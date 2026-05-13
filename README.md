@@ -37,17 +37,22 @@ For better view: https://dbdiagram.io/d/Dev-Community-6a02b9f454a51d93d3fe1826
 
 
 ## Community Endpoints
-| Method | Endpoint                                      |                  Description                   |
-| ------ | --------------------------------------------- | :--------------------------------------------: |
-| POST   | `/community/create`                           |               Create a community               |
-| PATCH  | `/community/:communityId/update`              |          Update community information          |
-| DELETE | `/community/:communityId/delete`              |               Delete a community               |
-| POST   | `/community/:communityId/post/create`         |            Create a community post             |
-| PATCH  | `/community/:communityId/post/:postId/update` |            Update a community post             |
-| POST   | `/community/:communityId/post/:postId/vote`   |      `upvote`/`downvote` a community post      |
-| POST   | `/community/:communityId/post/:postId/vote`   |             Vote a community post              |
-| DELETE | `/community/:communityId/post/:postId/delete` | `[ADMIN/MOD]` delete a post from the community |
-| DELETE | `/community/:communityId/user/:userId/ban`    |  `[ADMIN/MOD]` Ban a user from the community   |
+| Method | Endpoint                                            |                  Description                   |
+| ------ | --------------------------------------------------- | :--------------------------------------------: |
+| POST   | `/community/create`                                 |               Create a community               |
+| PATCH  | `/community/:communityId/update`                    |          Update community information          |
+| DELETE | `/community/:communityId/delete`                    |               Delete a community               |
+| POST   | `/community/:communityId/post/create`               |            Create a community post             |
+| PATCH  | `/community/:communityId/post/:postId/update`       |            Update a community post             |
+| POST   | `/community/:communityId/post/:postId/vote`         |      `upvote`/`downvote` a community post      |
+| POST   | `/community/:communityId/post/:postId/vote`         |             Vote a community post              |
+| DELETE | `/community/:communityId/post/:postId/delete`       | `[ADMIN/MOD]` delete a post from the community |
+| DELETE | `/community/:communityId/user/:userId/ban`          |  `[ADMIN/MOD]` Ban a user from the community   |
+| GET    | `/community/:communityId/post/:postId/comment/all`  |             Get comments of a post             |
+| POST   | `/community/:communityId/post/:postId/comment/add`  |            Add a comment to a post             |
+| PATCH  | `/community/:communityId/comment/:commentId/update` |           Update a comment of a post           |
+| DELETE | `/community/:communityId/comment/:commentId/delete` |          Delete a comment from a post          |
+
 
 
 
