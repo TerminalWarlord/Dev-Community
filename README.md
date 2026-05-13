@@ -48,7 +48,6 @@ For better view: https://dbdiagram.io/d/Dev-Community-6a02b9f454a51d93d3fe1826
 | POST   | `/community/:communityId/post/:postId/vote`   |             Vote a community post              |
 | DELETE | `/community/:communityId/post/:postId/delete` | `[ADMIN/MOD]` delete a post from the community |
 | DELETE | `/community/:communityId/user/:userId/ban`    |  `[ADMIN/MOD]` Ban a user from the community   |
-| POST   | `/community/:communityId/user/:userId/invite` |  `[ADMIN/MOD]` Ban a user from the community   |
 
 
 
