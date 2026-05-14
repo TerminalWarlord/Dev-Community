@@ -1,15 +1,37 @@
-import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { User } from 'src/user/schemas/user.schema';
 import bcrypt from "bcrypt";
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { LoginUserDto } from 'src/user/dto/login-user.dto';
+import { JwtService } from '@nestjs/jwt';
+import "dotenv/config";
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    console.error("JWT_SECRET is not set");
+    process.exit(1);
+}
+
+const ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY;
+if (!ACCESS_TOKEN_EXPIRY || Number.isNaN(Number(ACCESS_TOKEN_EXPIRY))) {
+    console.error("ACCESS_TOKEN_EXPIRY is not set");
+    process.exit(1);
+}
+
+const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY;
+if (!REFRESH_TOKEN_EXPIRY || Number.isNaN(Number(REFRESH_TOKEN_EXPIRY))) {
+    console.error("REFRESH_TOKEN_EXPIRY is not set");
+    process.exit(1);
+}
 
 @Injectable()
 export class AuthService {
     constructor(
         @InjectModel(User.name)
-        private readonly userModel: Model<User>
+        private readonly userModel: Model<User>,
+        private jwtService: JwtService
     ) { }
     async signUp(
         createUserDto: CreateUserDto
@@ -29,6 +51,33 @@ export class AuthService {
             email: user.email,
         }
     }
-    async logIn() {
+    async logIn(loginUserDto: LoginUserDto) {
+        const user = await this.userModel.findOne({ email: loginUserDto.email });
+        if (!user) {
+            throw new NotFoundException("User with that email doesn't exist");
+        }
+        try {
+            const passwordMatches = await bcrypt.compare(loginUserDto.password, user.password);
+            if (!passwordMatches) {
+                throw new BadRequestException("Password is invalid");
+            }
+            const payload = { userId: user._id }
+            return {
+                userId: user._id,
+                access_token: await this.jwtService.signAsync(payload, {
+                    secret: JWT_SECRET,
+                    expiresIn: Number(ACCESS_TOKEN_EXPIRY)
+                }),
+                refresh_token: await this.jwtService.signAsync(payload, {
+                    secret: JWT_SECRET,
+                    expiresIn: Number(REFRESH_TOKEN_EXPIRY)
+                }),
+            };
+        }
+        catch (err) {
+            console.log(err)
+            throw new BadRequestException("Password is invalid");
+        }
+
     }
 }
