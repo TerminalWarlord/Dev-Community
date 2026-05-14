@@ -6,25 +6,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { LoginUserDto } from 'src/user/dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
-import "dotenv/config";
-
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-    console.error("JWT_SECRET is not set");
-    process.exit(1);
-}
-
-const ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY;
-if (!ACCESS_TOKEN_EXPIRY || Number.isNaN(Number(ACCESS_TOKEN_EXPIRY))) {
-    console.error("ACCESS_TOKEN_EXPIRY is not set");
-    process.exit(1);
-}
-
-const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY;
-if (!REFRESH_TOKEN_EXPIRY || Number.isNaN(Number(REFRESH_TOKEN_EXPIRY))) {
-    console.error("REFRESH_TOKEN_EXPIRY is not set");
-    process.exit(1);
-}
+import { ACCESS_TOKEN_EXPIRY, JWT_SECRET, REFRESH_TOKEN_EXPIRY } from './constants';
 
 @Injectable()
 export class AuthService {
@@ -78,6 +60,9 @@ export class AuthService {
             console.log(err)
             throw new BadRequestException("Password is invalid");
         }
+    }
 
+    async getMe(userId: string) {
+        return [];
     }
 }
