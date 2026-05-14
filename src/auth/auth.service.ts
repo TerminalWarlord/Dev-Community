@@ -1,9 +1,26 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { UserModel } from 'src/user/schemas/user.schema';
+import bcrypt from "bcrypt";
 
 @Injectable()
 export class AuthService {
-    signUp() {
+    async signUp(createUserDto: CreateUserDto) {
+        const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+        const user = await UserModel.insertOne({
+            ...createUserDto,
+            password: hashedPassword
+        });
+        if (!user) {
+            throw new InternalServerErrorException("Failed to save user");
+        }
+        return {
+            userId: user._id,
+            fname: user.fname,
+            lname: user.lname,
+            email: user.email,
+        }
     }
-    logIn() {
+    async logIn() {
     }
 }
