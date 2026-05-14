@@ -8,12 +8,16 @@ if (!DATABASE_URL) {
   console.error("DATABASE_URL variable is not set!")
   process.exit(1);
 }
-
 @Module({
   imports: [
+    MongooseModule.forRoot(DATABASE_URL, {
+      connectionFactory: (connection) => {
+        connection.set('bufferCommands', false);
+        return connection;
+      },
+    }),
     UserModule,
     AuthModule,
-    MongooseModule.forRoot(DATABASE_URL)
   ],
 })
 export class AppModule { }
