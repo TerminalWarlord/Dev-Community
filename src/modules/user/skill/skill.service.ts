@@ -1,6 +1,6 @@
 import { Body, Injectable, InternalServerErrorException, Request } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Skill } from 'src/schemas/skill.schema';
 import { UserSkill } from 'src/schemas/user-skill.schema';
 import { CreateSkillDto } from './dto/create-skill.dto';
@@ -30,7 +30,7 @@ export class SkillService {
       }
       try {
         const userSkill = await this.userSkillModel.insertOne({
-          userId: createSkillDto.userId,
+          userId: new mongoose.Types.ObjectId(createSkillDto.userId),
           skillId: skill._id
         });
         return {
@@ -46,6 +46,14 @@ export class SkillService {
     } catch (error) {
       throw new InternalServerErrorException("Failed to create user skill");
     }
+  }
+
+  // TODO: add pagination
+  async getAllSkills(userId: string) {
+    const userSkills = await this.userSkillModel.find({
+      userId: new mongoose.Types.ObjectId(userId)
+    }).populate("skillId");
+    return userSkills;
   }
   async removeSkill() {
     return {};
