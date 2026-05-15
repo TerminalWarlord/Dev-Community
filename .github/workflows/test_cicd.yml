@@ -41,8 +41,8 @@ jobs:
             fi
 
             cat > .env << 'ENVEOF'
-          ${{secrets.ENV_VALUES}}
-          ENVOF
+          ${{ secrets.ENV_VALUES }}
+          ENVEOF
 
             # Load NVM
             export NVM_DIR="$HOME/.nvm"
