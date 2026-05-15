@@ -24,14 +24,6 @@ export class UserController {
     return this.userService.changePassword(changePasswordDto, req.userId);
   }
   // TODO: add new module for skill, experience, invitation
-  @Post('skill/add')
-  async addSkill() {
-    return this.userService.addSkill();
-  }
-  @Delete('skill/delete')
-  async removeSkill() {
-    return this.userService.removeSkill();
-  }
   @Post('experience/add')
   async addExperience() {
     return this.userService.addExperience();
