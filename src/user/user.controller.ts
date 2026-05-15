@@ -9,8 +9,6 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { User } from './schemas/user.schema';
 import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('user')
