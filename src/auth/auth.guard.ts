@@ -16,7 +16,8 @@ export class AuthGuard implements CanActivate {
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
-    private readonly jwtService: JwtService) { }
+    private readonly jwtService: JwtService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -26,15 +27,17 @@ export class AuthGuard implements CanActivate {
     }
     try {
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: JWT_SECRET
+        secret: JWT_SECRET,
       });
-      const user = await this.userModel.findById(new mongoose.Types.ObjectId(payload.userId));
+      const user = await this.userModel.findById(
+        new mongoose.Types.ObjectId(payload.userId),
+      );
       if (!user) {
         throw new UnauthorizedException();
       }
       request['userId'] = payload.userId;
     } catch (err) {
-      console.log(err)
+      console.log(err);
       throw new UnauthorizedException();
     }
     return true;
