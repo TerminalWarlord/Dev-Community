@@ -1,14 +1,22 @@
-import { Controller, Delete, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Patch, Post, Request, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { User } from './schemas/user.schema';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('user')
 export class UserController {
     constructor(private userService: UserService) {
     }
 
+    @UseGuards(AuthGuard)
     @Patch("change-password")
-    async changePassword() {
-        return this.userService.changePassword();
+    async changePassword(
+        @Body() changePasswordDto: ChangePasswordDto,
+        @Request() req: { userId: string }
+    ) {
+        return this.userService.changePassword(changePasswordDto, req.userId);
     }
     // TODO: add new module for skill, experience, invitation
     @Post("skill/add")
