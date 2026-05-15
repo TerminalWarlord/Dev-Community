@@ -26,7 +26,10 @@ For better view: https://dbdiagram.io/d/Dev-Community-6a02b9f454a51d93d3fe1826
 ## User Endpoints
 | Method | Endpoint                                   |              Description               |
 | ------ | ------------------------------------------ | :------------------------------------: |
+| GET    | `/user/profile/:userId`                    |         Get details of a user          |
+| GET    | `/user/all`                                |             Get all users              |
 | PATCH  | `/user/change-password`                    |          Change user password          |
+| GET    | `/user/skill/all`                          |             Get all skills             |
 | POST   | `/user/skill/add`                          |            Add a new skill             |
 | DELETE | `/user/skill/remove`                       |           Remove a new skill           |
 | POST   | `/user/experience/add`                     |          Add a new experience          |
