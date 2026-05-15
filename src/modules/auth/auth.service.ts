@@ -4,18 +4,18 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { User } from 'src/user/schemas/user.schema';
+import { CreateUserDto } from 'src/modules/user/dto/create-user.dto';
 import bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { LoginUserDto } from 'src/user/dto/login-user.dto';
+import { LoginUserDto } from 'src/modules/user/dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import {
   ACCESS_TOKEN_EXPIRY,
   JWT_SECRET,
   REFRESH_TOKEN_EXPIRY,
-} from './constants';
+} from '../../common/constants';
+import { User } from 'src/schemas/user.schema';
 
 @Injectable()
 export class AuthService {

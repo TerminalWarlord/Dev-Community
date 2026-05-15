@@ -7,8 +7,8 @@ import {
 import { ChangePasswordDto } from './dto/change-password.dto';
 import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from './schemas/user.schema';
 import bcrypt from 'bcrypt';
+import { User } from 'src/schemas/user.schema';
 
 @Injectable()
 export class UserService {

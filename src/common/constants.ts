@@ -17,3 +17,9 @@ if (!REFRESH_TOKEN_EXPIRY || Number.isNaN(Number(REFRESH_TOKEN_EXPIRY))) {
   console.error('REFRESH_TOKEN_EXPIRY is not set');
   process.exit(1);
 }
+
+export const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  console.error('DATABASE_URL variable is not set!');
+  process.exit(1);
+}
