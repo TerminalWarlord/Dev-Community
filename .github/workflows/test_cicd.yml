@@ -42,7 +42,7 @@ jobs:
 
             cat > .env << 'ENVEOF'
             ${{secrets.ENV_VALUES}}
-            ENVOF
+          ENVOF
 
             # Load NVM
             export NVM_DIR="$HOME/.nvm"
