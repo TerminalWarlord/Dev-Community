@@ -1,7 +1,6 @@
 name: Deploy Dev Community on test branch
 
-
-on: 
+on:
   push:
     branches:
       - test
@@ -16,14 +15,14 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-      
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{secrets.SSH_KEY}}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{secrets.SSH_HOST}} >> ~/.ssh/known_hosts
-      
+
       - name: Deploy to VPS via SSH
         run: |
           ssh ${{secrets.SSH_USER}}@${{secrets.SSH_HOST}} << 'EOF'
@@ -52,15 +51,11 @@ jobs:
             if pm2 list | grep -Eq 'dev-community'; then
               pm2 restart dev-community --update-env
             else
-              pm2 start --name dev-community
+              pm2 start "npm start" --name dev-community
             fi
 
             pm2 save
           EOF
-        
+
       - name: Clean up SSH key
         run: rm -rf ~/.ssh/id_rsa
-
-      
-
-
