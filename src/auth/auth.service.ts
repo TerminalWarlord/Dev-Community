@@ -61,8 +61,4 @@ export class AuthService {
             throw new BadRequestException("Password is invalid");
         }
     }
-
-    async getMe(userId: string) {
-        return [];
-    }
 }

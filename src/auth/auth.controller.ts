@@ -18,10 +18,4 @@ export class AuthController {
     async logIn(@Body() loginUserDto: LoginUserDto) {
         return this.authService.logIn(loginUserDto);
     }
-
-    @UseGuards(AuthGuard)
-    @Get('getMe')
-    async getMe(@Request() req: { userId: string }) {
-        return this.authService.getMe(req.userId);
-    }
 }
