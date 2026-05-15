@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import 'dotenv/config';
 import { DATABASE_URL } from './common/constants';
 import { ExperienceModule } from './modules/user/experience/experience.module';
+import { CommunityModule } from './modules/community/community.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ExperienceModule } from './modules/user/experience/experience.module';
     UserModule,
     AuthModule,
     ExperienceModule,
+    CommunityModule,
   ],
 })
 export class AppModule {}
