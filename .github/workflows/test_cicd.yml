@@ -41,7 +41,7 @@ jobs:
             fi
 
             cat > .env << 'ENVEOF'
-            ${{secrets.ENV_VALUES}}
+          ${{secrets.ENV_VALUES}}
           ENVOF
 
             # Load NVM
