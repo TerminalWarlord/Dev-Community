@@ -7,10 +7,16 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { JWT_SECRET } from './constants';
+import { InjectModel } from '@nestjs/mongoose';
+import { User } from 'src/user/schemas/user.schema';
+import mongoose, { Model } from 'mongoose';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) { }
+  constructor(
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>,
+    private readonly jwtService: JwtService) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -22,7 +28,11 @@ export class AuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: JWT_SECRET
       });
-      request['user'] = payload;
+      const user = await this.userModel.findById(new mongoose.Types.ObjectId(payload.userId));
+      if (!user) {
+        throw new UnauthorizedException();
+      }
+      request['userId'] = payload.userId;
     } catch (err) {
       console.log(err)
       throw new UnauthorizedException();
