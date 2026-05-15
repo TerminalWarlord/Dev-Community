@@ -1,0 +1,63 @@
+name: Deploy Dev Community on test branch
+
+on:
+  push:
+    branches:
+      - test
+  pull_request:
+    branches:
+      - test
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{secrets.SSH_KEY}}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{secrets.SSH_HOST}} >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS via SSH
+        run: |
+          ssh ${{secrets.SSH_USER}}@${{secrets.SSH_HOST}} << 'EOF'
+            set -e
+            mkdir -p ~${{secrets.PROJECT_PATH}}
+            cd ~${{secrets.PROJECT_PATH}}
+
+            if [ -d ".git" ]; then
+              git pull origin HEAD
+            else
+              git init
+              git remote add origin https://github.com/${{ github.repository }}
+              git branch -m test
+              git pull origin test
+            fi
+
+            cat > .env << 'ENVEOF'
+          ${{ secrets.ENV_VALUES }}
+          ENVEOF
+
+            # Load NVM
+            export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 22
+
+            npm i
+
+            if pm2 list | grep -Eq 'dev-community'; then
+              pm2 restart dev-community --update-env
+            else
+              pm2 start "npm start" --name dev-community
+            fi
+
+            pm2 save
+          EOF
+
+      - name: Clean up SSH key
+        run: rm -rf ~/.ssh/id_rsa
