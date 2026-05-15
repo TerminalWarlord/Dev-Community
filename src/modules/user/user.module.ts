@@ -5,12 +5,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { SkillModule } from './skill/skill.module';
 import { User, UserSchema } from 'src/schemas/user.schema';
+import { ExperienceModule } from './experience/experience.module';
 
 @Module({
   imports: [
     JwtModule.register({}),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     SkillModule,
+    ExperienceModule,
   ],
   controllers: [UserController],
   providers: [UserService],
