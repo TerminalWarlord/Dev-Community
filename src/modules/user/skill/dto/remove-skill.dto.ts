@@ -1,4 +1,4 @@
 export class RemoveSkillDto {
-  skillTitle!: string;
+  userSkillId!: string;
   userId!: string;
 }
