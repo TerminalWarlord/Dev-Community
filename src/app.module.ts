@@ -4,6 +4,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import 'dotenv/config';
 import { DATABASE_URL } from './common/constants';
+import { ExperienceModule } from './user/experience/experience.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { DATABASE_URL } from './common/constants';
     }),
     UserModule,
     AuthModule,
+    ExperienceModule,
   ],
 })
 export class AppModule {}
