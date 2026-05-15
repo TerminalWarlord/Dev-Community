@@ -9,8 +9,6 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { User } from './schemas/user.schema';
 import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('user')
@@ -26,14 +24,6 @@ export class UserController {
     return this.userService.changePassword(changePasswordDto, req.userId);
   }
   // TODO: add new module for skill, experience, invitation
-  @Post('skill/add')
-  async addSkill() {
-    return this.userService.addSkill();
-  }
-  @Delete('skill/delete')
-  async removeSkill() {
-    return this.userService.removeSkill();
-  }
   @Post('experience/add')
   async addExperience() {
     return this.userService.addExperience();
