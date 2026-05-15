@@ -1,9 +1,10 @@
-import { Body, Injectable, InternalServerErrorException, Request } from '@nestjs/common';
+import { Body, Injectable, InternalServerErrorException, NotFoundException, Request } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Skill } from 'src/schemas/skill.schema';
 import { UserSkill } from 'src/schemas/user-skill.schema';
 import { CreateSkillDto } from './dto/create-skill.dto';
+import { RemoveSkillDto } from './dto/remove-skill.dto';
 
 @Injectable()
 export class SkillService {
@@ -55,7 +56,17 @@ export class SkillService {
     }).populate("skillId");
     return userSkills;
   }
-  async removeSkill() {
-    return {};
+  // TODO: add more checks
+  async removeSkill(removeSkillDto: RemoveSkillDto) {
+    const userSkill = this.userSkillModel.findByIdAndDelete({
+      _id: removeSkillDto.userSkillId,
+      userId: removeSkillDto.userId
+    });
+    if (!userSkill) {
+      throw new NotFoundException("Couldn't find the user skill");
+    }
+    return {
+      message: "success"
+    };
   }
 }

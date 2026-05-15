@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Post, Request, UseGuards } from '@nestjs
 import { SkillService } from './skill.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
+import { RemoveSkillDto } from './dto/remove-skill.dto';
 
 @Controller('user/skill')
 export class SkillController {
@@ -23,8 +24,13 @@ export class SkillController {
   ) {
     return this.skillService.addSkill({ ...createSkillDto, userId: req.userId });
   }
+  @UseGuards(AuthGuard)
   @Delete('delete')
-  async removeSkill() {
-    return this.skillService.removeSkill();
+  async removeSkill(
+    @Body() removeSkillDto: RemoveSkillDto,
+    @Request() req: {userId: string}
+
+  ) {
+    return this.skillService.removeSkill({...removeSkillDto, userId: req.userId});
   }
 }
