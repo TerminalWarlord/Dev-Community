@@ -6,9 +6,9 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { JWT_SECRET } from './constants';
+import { JWT_SECRET } from '../../common/constants';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from 'src/user/schemas/user.schema';
+import { User } from 'src/schemas/user.schema';
 import mongoose, { Model } from 'mongoose';
 
 @Injectable()
