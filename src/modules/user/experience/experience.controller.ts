@@ -1,5 +1,7 @@
-import { Controller, Delete, Get, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post, Request, UseGuards } from '@nestjs/common';
 import { ExperienceService } from './experience.service';
+import { CreateExperienceDto } from './dto/create-experience.dto';
+import { AuthGuard } from 'src/modules/auth/auth.guard';
 
 
 @Controller('user/experience')
@@ -8,9 +10,13 @@ export class ExperienceController {
     private experienceService: ExperienceService
   ) { }
 
+  @UseGuards(AuthGuard)
   @Post('add')
-  async addExperience() {
-    return this.experienceService.addExperience();
+  async addExperience(
+    @Body() createExperienceDto: CreateExperienceDto,
+    @Request() req: {userId: string}
+  ) {
+    return this.experienceService.addExperience({...createExperienceDto, userId: req.userId});
   }
   @Patch('update')
   async updateExperience() {
