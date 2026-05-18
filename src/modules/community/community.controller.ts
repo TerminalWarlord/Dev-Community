@@ -1,11 +1,13 @@
-import { Controller, Delete, Get, Patch, Post } from '@nestjs/common';
+import { Controller, Delete, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import { CommunityService } from './community.service';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('community')
 export class CommunityController {
   constructor(
     private communityService: CommunityService
   ) { }
+  @UseGuards(AuthGuard)
   @Post('create')
   async createCommunity() {
     return this.communityService.createCommunity();
