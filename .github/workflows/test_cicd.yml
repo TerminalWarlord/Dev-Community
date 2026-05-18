@@ -1,12 +1,12 @@
-name: Deploy Dev Community on test branch
+name: Deploy Dev Community on main branch
 
 on:
   push:
     branches:
-      - test
+      - main
   pull_request:
     branches:
-      - test
+      - main
 
 jobs:
   deploy:
@@ -35,8 +35,8 @@ jobs:
             else
               git init
               git remote add origin https://github.com/${{ github.repository }}
-              git branch -m test
-              git pull origin test
+              git branch -m main
+              git pull origin main
             fi
 
             cat > .env << 'ENVEOF'
