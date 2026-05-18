@@ -1,10 +1,11 @@
-import { Body, Injectable, InternalServerErrorException, NotFoundException, Request } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException, Request } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Skill } from 'src/schemas/skill.schema';
 import { UserSkill } from 'src/schemas/user-skill.schema';
 import { CreateSkillDto } from './dto/create-skill.dto';
-import { RemoveSkillDto } from './dto/remove-skill.dto';
+import { RemoveSkillParamsDto, RemoveSkillRequestDto } from './dto/remove-skill.dto';
+import { GetSkillsDto } from './dto/get-skills.dto';
 
 @Injectable()
 export class SkillService {
@@ -49,24 +50,39 @@ export class SkillService {
     }
   }
 
-  // TODO: add pagination
-  async getAllSkills(userId: string) {
-    const userSkills = await this.userSkillModel.find({
-      userId: new mongoose.Types.ObjectId(userId)
-    }).populate("skillId");
-    return userSkills;
-  }
-  // TODO: add more checks
-  async removeSkill(removeSkillDto: RemoveSkillDto) {
-    const userSkill = this.userSkillModel.findByIdAndDelete({
-      _id: removeSkillDto.userSkillId,
-      userId: removeSkillDto.userId
-    });
-    if (!userSkill) {
-      throw new NotFoundException("Couldn't find the user skill");
+  async getAllSkills(getSkillsDto: GetSkillsDto) {
+    const page = getSkillsDto.page || 1;
+    const limit = getSkillsDto.limit || 10;
+    const offset = (page - 1) * limit;
+    try {
+      const skills = await this.skillModel.find()
+        .skip(offset)
+        .limit(limit + 1);
+      const results = skills.slice(0, limit);
+      return {
+        results: results,
+        hasNextPage: skills.length > limit
+      };
+    } catch (error) {
+      throw new InternalServerErrorException("Failed to get skills")
     }
-    return {
-      message: "success"
-    };
+  }
+
+
+  async removeSkill(removeSkillParamsDto: RemoveSkillParamsDto, removeSkillRequestDto: RemoveSkillRequestDto) {
+    try {
+      const userSkill = await this.userSkillModel.findOneAndDelete({
+        _id: new mongoose.Types.ObjectId(removeSkillParamsDto.userSkillId),
+        userId: new mongoose.Types.ObjectId(removeSkillRequestDto.userId)
+      });
+      if (!userSkill) {
+        throw new NotFoundException("Couldn't find the user skill");
+      }
+      return {
+        message: "success"
+      };
+    } catch (error) {
+      throw new InternalServerErrorException("Failed to delete skill");
+    }
   }
 }
