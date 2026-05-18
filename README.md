@@ -27,6 +27,8 @@ For better view: https://dbdiagram.io/d/Dev-Community-6a02b9f454a51d93d3fe1826
 | Method | Endpoint                                   |              Description               |
 | ------ | ------------------------------------------ | :------------------------------------: |
 | GET    | `/user/profile/:userId`                    |         Get details of a user          |
+| GET    | `/user/profile/:userId/skills`             |  Get the list of the skills of a user  |
+| GET    | `/user/profile/:userId/experiences`        |  Get the list of the skills of a user  |
 | GET    | `/user/all`                                |             Get all users              |
 | PATCH  | `/user/change-password`                    |          Change user password          |
 | GET    | `/user/skill/all`                          |             Get all skills             |
@@ -42,13 +44,13 @@ For better view: https://dbdiagram.io/d/Dev-Community-6a02b9f454a51d93d3fe1826
 ## Community Endpoints
 | Method | Endpoint                                            |                  Description                   |
 | ------ | --------------------------------------------------- | :--------------------------------------------: |
+| GET    | `/community/all`                                    |           Get list of all communties           |
 | POST   | `/community/create`                                 |               Create a community               |
 | PATCH  | `/community/:communityId/update`                    |          Update community information          |
 | DELETE | `/community/:communityId/delete`                    |               Delete a community               |
 | POST   | `/community/:communityId/post/create`               |            Create a community post             |
 | PATCH  | `/community/:communityId/post/:postId/update`       |            Update a community post             |
 | POST   | `/community/:communityId/post/:postId/vote`         |      `upvote`/`downvote` a community post      |
-| POST   | `/community/:communityId/post/:postId/vote`         |             Vote a community post              |
 | DELETE | `/community/:communityId/post/:postId/delete`       | `[ADMIN/MOD]` delete a post from the community |
 | DELETE | `/community/:communityId/user/:userId/ban`          |  `[ADMIN/MOD]` Ban a user from the community   |
 | GET    | `/community/:communityId/post/:postId/comment/all`  |             Get comments of a post             |
