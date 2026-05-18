@@ -4,14 +4,17 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
+import { GetUsersSkillsParamsDto, GetUsersSkillsQueriesDto } from './dto/get-users-skills.dto';
 
 @Controller('user')
 export class UserController {
@@ -31,6 +34,15 @@ export class UserController {
     @Param('userId') userId: string
   ) {
     return this.userService.getUserProfile(userId);
+  }
+
+  @Get('profile/:userId/skills')
+  async getUserSkills(
+    @Param() getUsersSkillsParamsDto: GetUsersSkillsParamsDto,
+    @Query() getUsersSkillsQueriesDto: GetUsersSkillsQueriesDto,
+
+  ) {
+    return this.userService.getUserSkills(getUsersSkillsParamsDto, getUsersSkillsQueriesDto);
   }
 
   @Post('invitation/accept/:invitationId')

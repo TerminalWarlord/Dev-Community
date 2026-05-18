@@ -10,6 +10,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import bcrypt from 'bcrypt';
 import { User } from 'src/schemas/user.schema';
 import { UserSkill } from 'src/schemas/user-skill.schema';
+import { GetUsersSkillsParamsDto, GetUsersSkillsQueriesDto } from './dto/get-users-skills.dto';
 
 @Injectable()
 export class UserService {
@@ -23,6 +24,31 @@ export class UserService {
   async getUserProfile(userId: string) {
     const user = await this.userModel.findById(new mongoose.Types.ObjectId(userId)).select("-password -__v -updatedAt");
     return user;
+  }
+
+  async getUserSkills(getUsersSkillsParamsDto: GetUsersSkillsParamsDto, getUsersSkillsQueriesDto: GetUsersSkillsQueriesDto) {
+    const page = getUsersSkillsQueriesDto.page || 1;
+    const limit = getUsersSkillsQueriesDto.limit || 10;
+    const offset = (page - 1) * limit;
+    const userSkills = await this.userSkillModel.find({
+      userId: new mongoose.Types.ObjectId(getUsersSkillsParamsDto.userId)
+    })
+      .populate("skillId", "skillTitle")
+      .select("-userId -__v")
+      .skip(offset)
+      .limit(limit + 1);
+
+    const results = userSkills.slice(0, limit).map(item => {
+      return {
+        userSkillId: item._id,
+        skillId: (item.skillId as unknown as { _id: string })._id,
+        skillTitle: (item.skillId as unknown as { skillTitle: string }).skillTitle
+      }
+    });
+    return {
+      results,
+      hasNextPage: userSkills.length > limit
+    }
   }
 
   async changePassword(changePasswordDto: ChangePasswordDto, userId: string) {
