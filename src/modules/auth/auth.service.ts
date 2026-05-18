@@ -66,7 +66,6 @@ export class AuthService {
         }),
       };
     } catch (err) {
-      console.log(err);
       throw new BadRequestException('Password is invalid');
     }
   }

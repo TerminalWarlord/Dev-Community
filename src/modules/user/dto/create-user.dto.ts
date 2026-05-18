@@ -1,11 +1,15 @@
-import mongoose from 'mongoose';
+import { IsEmail, IsString } from "class-validator";
 
 export class CreateUserDto {
-  _id!: mongoose.Types.ObjectId;
+  @IsString()
   fname!: string;
+
+  @IsString()
   lname!: string;
+
+  @IsEmail()
   email!: string;
+
+  @IsString()
   password!: string;
-  created_at!: Date;
-  updated_at!: Date;
 }
