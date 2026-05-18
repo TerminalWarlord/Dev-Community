@@ -4,7 +4,7 @@ import mongoose, { Model } from 'mongoose';
 import { Skill } from 'src/schemas/skill.schema';
 import { UserSkill } from 'src/schemas/user-skill.schema';
 import { CreateSkillDto } from './dto/create-skill.dto';
-import { RemoveSkillDto } from './dto/remove-skill.dto';
+import { RemoveSkillParamsDto, RemoveSkillRequestDto } from './dto/remove-skill.dto';
 
 @Injectable()
 export class SkillService {
@@ -56,17 +56,22 @@ export class SkillService {
     }).populate("skillId");
     return userSkills;
   }
-  // TODO: add more checks
-  async removeSkill(removeSkillDto: RemoveSkillDto) {
-    const userSkill = this.userSkillModel.findByIdAndDelete({
-      _id: removeSkillDto.userSkillId,
-      userId: removeSkillDto.userId
-    });
-    if (!userSkill) {
-      throw new NotFoundException("Couldn't find the user skill");
+
+
+  async removeSkill(removeSkillParamsDto: RemoveSkillParamsDto, removeSkillRequestDto: RemoveSkillRequestDto) {
+    try {
+      const userSkill = await this.userSkillModel.findOneAndDelete({
+        _id: new mongoose.Types.ObjectId(removeSkillParamsDto.userSkillId),
+        userId: new mongoose.Types.ObjectId(removeSkillRequestDto.userId)
+      });
+      if (!userSkill) {
+        throw new NotFoundException("Couldn't find the user skill");
+      }
+      return {
+        message: "success"
+      };
+    } catch (error) {
+      throw new InternalServerErrorException("Failed to delete skill");
     }
-    return {
-      message: "success"
-    };
   }
 }
