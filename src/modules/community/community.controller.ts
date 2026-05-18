@@ -1,6 +1,7 @@
-import { Controller, Delete, Get, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post, Request, UseGuards } from '@nestjs/common';
 import { CommunityService } from './community.service';
 import { AuthGuard } from '../auth/auth.guard';
+import { CreateCommunityBodyDto, CreateCommunityRequestDto } from './dto/create-community.dto';
 
 @Controller('community')
 export class CommunityController {
@@ -9,8 +10,11 @@ export class CommunityController {
   ) { }
   @UseGuards(AuthGuard)
   @Post('create')
-  async createCommunity() {
-    return this.communityService.createCommunity();
+  async createCommunity(
+    @Body() createCommunityBodyDto: CreateCommunityBodyDto,
+    @Request() createCommunityRequestDto: CreateCommunityRequestDto,
+  ) {
+    return this.communityService.createCommunity(createCommunityBodyDto, createCommunityRequestDto);
   }
 
   @Patch(':communityId/update')
