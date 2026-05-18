@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
+  Param,
   Patch,
   Post,
   Request,
@@ -13,7 +15,7 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 
 @Controller('user')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService) { }
 
   @UseGuards(AuthGuard)
   @Patch('change-password')
@@ -23,11 +25,19 @@ export class UserController {
   ) {
     return this.userService.changePassword(changePasswordDto, req.userId);
   }
-  // TODO: add new module for skill, experience, invitation
+
+  @Get('profile/:userId')
+  async getUserProfile(
+    @Param('userId') userId: string
+  ) {
+    return this.userService.getUserProfile(userId);
+  }
+
   @Post('invitation/accept/:invitationId')
   async acceptInvitation() {
     return this.userService.acceptInvitation();
   }
+
   @Post('invitation/reject/:invitationId')
   async rejectInvitation() {
     return this.userService.rejectInvitation();

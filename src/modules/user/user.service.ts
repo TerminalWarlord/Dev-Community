@@ -9,13 +9,22 @@ import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import bcrypt from 'bcrypt';
 import { User } from 'src/schemas/user.schema';
+import { UserSkill } from 'src/schemas/user-skill.schema';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
-  ) {}
+    @InjectModel(UserSkill.name)
+    private readonly userSkillModel: Model<UserSkill>,
+  ) { }
+
+  async getUserProfile(userId: string) {
+    const user = await this.userModel.findById(new mongoose.Types.ObjectId(userId)).select("-password -__v -updatedAt");
+    return user;
+  }
+
   async changePassword(changePasswordDto: ChangePasswordDto, userId: string) {
     if (!userId) {
       throw new UnauthorizedException();
@@ -57,6 +66,7 @@ export class UserService {
       throw new ForbiddenException('Old password is incorrect');
     }
   }
-  async acceptInvitation() {}
-  async rejectInvitation() {}
+
+  async acceptInvitation() { }
+  async rejectInvitation() { }
 }
