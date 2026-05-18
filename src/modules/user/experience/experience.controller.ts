@@ -1,9 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
 import { ExperienceService } from './experience.service';
-import { CreateExperienceDto } from './dto/create-experience.dto';
+import { CreateExperienceBodyDto, CreateExperienceRequestDto } from './dto/create-experience.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
-import { RemoveExperienceDto } from './dto/remove-experience.dto';
-import { UpdateExperienceDto } from './dto/update-experience.dto';
+import { UpdateExperienceBodyDto, UpdateExperienceParamsDto, UpdateExperienceRequestDto } from './dto/update-experience.dto';
+import { RemoveExperienceParamsDto, RemoveExperienceRequestDto } from './dto/remove-experience.dto';
 
 
 @UseGuards(AuthGuard)
@@ -15,34 +15,34 @@ export class ExperienceController {
 
   @Post('add')
   async addExperience(
-    @Body() createExperienceDto: CreateExperienceDto,
-    @Request() req: { userId: string }
+    @Body() createExperienceBodyDto: CreateExperienceBodyDto,
+    @Request() createExperienceRequestDto: CreateExperienceRequestDto
   ) {
-    return this.experienceService.addExperience({ ...createExperienceDto, userId: req.userId });
+    return this.experienceService.addExperience(createExperienceBodyDto, createExperienceRequestDto);
   }
+
   @Patch(':experienceId/update')
   async updateExperience(
-    @Body() updateExperienceDto: UpdateExperienceDto,
-    @Param('experienceId') experienceId: string,
-    @Request() req: { userId: string }
+    @Body() updateExperienceBodyDto: UpdateExperienceBodyDto,
+    @Param() updateExperienceParamsDto: UpdateExperienceParamsDto,
+    @Request() updateExperienceRequestDto: UpdateExperienceRequestDto
   ) {
-    return this.experienceService.updateExperience({
-      ...updateExperienceDto,
-      experienceId,
-      userId: req.userId,
-    });
+    return this.experienceService.updateExperience(
+      updateExperienceBodyDto,
+      updateExperienceParamsDto,
+      updateExperienceRequestDto
+    );
   }
+
   @Delete(':experienceId/delete')
   async removeExperience(
-    @Body() removeExperienceDto: RemoveExperienceDto,
-    @Param('experienceId') experienceId: string,
-    @Request() req: { userId: string }
+    @Param() removeExperienceParamsDto: RemoveExperienceParamsDto,
+    @Request() removeExperienceRequestDto: RemoveExperienceRequestDto
   ) {
-    return this.experienceService.removeExperience({
-      ...removeExperienceDto,
-      experienceId,
-      userId: req.userId,
-    });
+    return this.experienceService.removeExperience(
+      removeExperienceParamsDto,
+      removeExperienceRequestDto
+    );
   }
 
 }

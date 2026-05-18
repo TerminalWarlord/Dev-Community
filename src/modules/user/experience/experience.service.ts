@@ -2,9 +2,9 @@ import { Injectable, InternalServerErrorException, NotFoundException } from '@ne
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Experience } from 'src/schemas/experience.schema';
-import { CreateExperienceDto } from './dto/create-experience.dto';
-import { RemoveExperienceDto } from './dto/remove-experience.dto';
-import { UpdateExperienceDto } from './dto/update-experience.dto';
+import { CreateExperienceBodyDto, CreateExperienceRequestDto } from './dto/create-experience.dto';
+import { UpdateExperienceBodyDto, UpdateExperienceParamsDto, UpdateExperienceRequestDto } from './dto/update-experience.dto';
+import { RemoveExperienceParamsDto, RemoveExperienceRequestDto } from './dto/remove-experience.dto';
 
 @Injectable()
 export class ExperienceService {
@@ -13,13 +13,14 @@ export class ExperienceService {
     private readonly experienceModel: Model<Experience>,
   ) { }
 
-  async addExperience(createExperienceDto: CreateExperienceDto) {
+  async addExperience(
+    createExperienceBodyDto: CreateExperienceBodyDto,
+    createExperienceRequestDto: CreateExperienceRequestDto
+  ) {
     try {
       const experience = await this.experienceModel.insertOne({
-        ...createExperienceDto,
-        userId: new mongoose.Types.ObjectId(createExperienceDto.userId),
-        startDate: new Date(createExperienceDto.startDate),
-        endDate: new Date(createExperienceDto.endDate),
+        ...createExperienceBodyDto,
+        userId: new mongoose.Types.ObjectId(createExperienceRequestDto.userId)
       })
       return {
         message: "success",
@@ -32,14 +33,18 @@ export class ExperienceService {
     }
   }
 
-  async updateExperience(updateExperienceDto: UpdateExperienceDto) {
+  async updateExperience(
+    updateExperienceBodyDto: UpdateExperienceBodyDto,
+    updateExperienceParamsDto: UpdateExperienceParamsDto,
+    updateExperienceRequestDto: UpdateExperienceRequestDto
+  ) {
     try {
       const experience = await this.experienceModel.findOneAndUpdate({
-        _id: new mongoose.Types.ObjectId(updateExperienceDto.experienceId),
-        userId: new mongoose.Types.ObjectId(updateExperienceDto.userId),
+        _id: new mongoose.Types.ObjectId(updateExperienceParamsDto.experienceId),
+        userId: new mongoose.Types.ObjectId(updateExperienceRequestDto.userId),
       }, {
-        ...updateExperienceDto,
-        userId: new mongoose.Types.ObjectId(updateExperienceDto.userId),
+        ...updateExperienceBodyDto,
+        userId: new mongoose.Types.ObjectId(updateExperienceRequestDto.userId),
       })
 
       if (!experience) {
@@ -50,14 +55,19 @@ export class ExperienceService {
       }
 
     } catch (error) {
+      console.log(error)
       throw new InternalServerErrorException("Failed to update experience");
     }
   }
-  async removeExperience(removeExperienceDto: RemoveExperienceDto) {
+
+  async removeExperience(
+    removeExperienceParamsDto: RemoveExperienceParamsDto,
+    removeExperienceRequestDto: RemoveExperienceRequestDto
+  ) {
     try {
       const experience = await this.experienceModel.findOneAndDelete({
-        userId: new mongoose.Types.ObjectId(removeExperienceDto.userId),
-        _id: new mongoose.Types.ObjectId(removeExperienceDto.experienceId)
+        userId: new mongoose.Types.ObjectId(removeExperienceRequestDto.userId),
+        _id: new mongoose.Types.ObjectId(removeExperienceParamsDto.experienceId)
       })
       if (!experience) {
         throw new NotFoundException("Experience doesn't exist");
