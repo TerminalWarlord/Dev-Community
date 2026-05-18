@@ -1,9 +1,6 @@
 import { IsDate, IsString } from "class-validator";
 
-export class UpdateExperienceDto {
-  @IsString()
-  experienceId!: string;
-
+export class UpdateExperienceBodyDto {
   @IsString()
   companyName!: string;
 
@@ -18,4 +15,15 @@ export class UpdateExperienceDto {
 
   @IsDate()
   endDate!: string;
+}
+
+export class UpdateExperienceRequestDto {
+  @IsString()
+  userId!: string;
+}
+
+
+export class UpdateExperienceParamsDto {
+  @IsString()
+  experienceId!: string;
 }
