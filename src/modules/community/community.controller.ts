@@ -1,15 +1,27 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { CommunityService } from './community.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { CreateCommunityBodyDto, CreateCommunityRequestDto } from './dto/create-community.dto';
 import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from './dto/update-community.dto';
 import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delete-community.dto';
+import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
 
 @Controller('community')
 export class CommunityController {
   constructor(
     private communityService: CommunityService
   ) { }
+  // TODO: get list of communities when user is admin
+  // TODO: get list of communities when user is member
+
+  @Get('all')
+  async getAllCommunities(
+    @Query() getCommunitiesQueriesDto: GetCommunitiesQueriesDto
+  ) {
+    return this.communityService.getAllCommunities(getCommunitiesQueriesDto);
+  }
+
+
   @UseGuards(AuthGuard)
   @Post('create')
   async createCommunity(

@@ -7,6 +7,7 @@ import { CreateCommunityBodyDto, CreateCommunityRequestDto } from './dto/create-
 import { MembershipStatus, Role } from 'src/common/community.enum';
 import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from './dto/update-community.dto';
 import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delete-community.dto';
+import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
 
 @Injectable()
 export class CommunityService {
@@ -16,6 +17,35 @@ export class CommunityService {
     @InjectModel(CommunityRole.name)
     private readonly communityRoleModel: Model<CommunityRole>,
   ) { }
+  async getAllCommunities(getCommunitiesQueriesDto: GetCommunitiesQueriesDto) {
+    const page = getCommunitiesQueriesDto.page || 1;
+    const limit = getCommunitiesQueriesDto.limit || 1;
+    const offset = (page - 1) * limit;
+    const query = getCommunitiesQueriesDto.query;
+    try {
+      // Add query
+      let filter = {};
+      if (query) {
+        filter = {
+          name: {
+            $regex: getCommunitiesQueriesDto.query
+          }
+        }
+      }
+      const communities = await this.communityModel.find(filter)
+        .skip(offset)
+        .limit(limit + 1);
+      const results = communities.slice(0, limit);
+      return {
+        results,
+        hasNextPage: communities.length > limit
+      }
+    } catch (error) {
+      throw new InternalServerErrorException("Failed to get communities");
+    }
+  }
+
+
   async createCommunity(
     createCommunityBodyDto: CreateCommunityBodyDto,
     createCommunityRequestDto: CreateCommunityRequestDto,
