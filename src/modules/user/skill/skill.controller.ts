@@ -1,19 +1,19 @@
-import { Body, Controller, Delete, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { SkillService } from './skill.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
-import { RemoveSkillDto } from './dto/remove-skill.dto';
+import { RemoveSkillParamsDto, RemoveSkillRequestDto } from './dto/remove-skill.dto';
+import { GetSkillsDto } from './dto/get-skills.dto';
 
 @Controller('user/skill')
 export class SkillController {
   constructor(private skillService: SkillService) { }
 
-  @UseGuards(AuthGuard)
   @Get('get/all')
   async getAllSkills(
-    @Request() req: { userId: string }
+    @Query() getSkillsDto: GetSkillsDto
   ) {
-    return this.skillService.getAllSkills(req.userId);
+    return this.skillService.getAllSkills(getSkillsDto);
   }
 
   @UseGuards(AuthGuard)
@@ -24,13 +24,13 @@ export class SkillController {
   ) {
     return this.skillService.addSkill({ ...createSkillDto, userId: req.userId });
   }
-  @UseGuards(AuthGuard)
-  @Delete('delete')
-  async removeSkill(
-    @Body() removeSkillDto: RemoveSkillDto,
-    @Request() req: {userId: string}
 
+  @UseGuards(AuthGuard)
+  @Delete(':userSkillId/delete')
+  async removeSkill(
+    @Param() removeSkillParamsDto: RemoveSkillParamsDto,
+    @Request() removeSkillRequestDto: RemoveSkillRequestDto
   ) {
-    return this.skillService.removeSkill({...removeSkillDto, userId: req.userId});
+    return this.skillService.removeSkill(removeSkillParamsDto, removeSkillRequestDto);
   }
 }

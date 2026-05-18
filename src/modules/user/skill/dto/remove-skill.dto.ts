@@ -1,9 +1,12 @@
 import { IsString } from "class-validator";
 
-export class RemoveSkillDto {
+export class RemoveSkillParamsDto {
   @IsString()
   userSkillId!: string;
+}
 
+export class RemoveSkillRequestDto {
   @IsString()
   userId!: string;
 }
+
