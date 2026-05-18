@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
 import { ExperienceService } from './experience.service';
 import { CreateExperienceDto } from './dto/create-experience.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
@@ -20,19 +20,29 @@ export class ExperienceController {
   ) {
     return this.experienceService.addExperience({ ...createExperienceDto, userId: req.userId });
   }
-  @Patch('update')
+  @Patch(':experienceId/update')
   async updateExperience(
     @Body() updateExperienceDto: UpdateExperienceDto,
+    @Param('experienceId') experienceId: string,
     @Request() req: { userId: string }
   ) {
-    return this.experienceService.updateExperience({ ...updateExperienceDto, userId: req.userId });
+    return this.experienceService.updateExperience({
+      ...updateExperienceDto,
+      experienceId,
+      userId: req.userId,
+    });
   }
-  @Delete('delete')
+  @Delete(':experienceId/delete')
   async removeExperience(
     @Body() removeExperienceDto: RemoveExperienceDto,
+    @Param('experienceId') experienceId: string,
     @Request() req: { userId: string }
   ) {
-    return this.experienceService.removeExperience({ ...removeExperienceDto, userId: req.userId });
+    return this.experienceService.removeExperience({
+      ...removeExperienceDto,
+      experienceId,
+      userId: req.userId,
+    });
   }
 
 }

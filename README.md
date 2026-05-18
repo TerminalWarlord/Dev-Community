@@ -33,10 +33,10 @@ For better view: https://dbdiagram.io/d/Dev-Community-6a02b9f454a51d93d3fe1826
 | PATCH  | `/user/change-password`                    |          Change user password          |
 | GET    | `/user/skill/all`                          |             Get all skills             |
 | POST   | `/user/skill/add`                          |            Add a new skill             |
-| DELETE | `/user/skill/remove`                       |           Remove a new skill           |
+| DELETE | `/user/skill/:userSkillId/remove`          |           Remove a new skill           |
 | POST   | `/user/experience/add`                     |          Add a new experience          |
-| PATCH  | `/user/experience/update`                  |          Update an experience          |
-| POST   | `/user/experience/remove`                  |          Add a new experience          |
+| PATCH  | `/user/experience/:experienceId/update`    |          Update an experience          |
+| POST   | `/user/experience/:experienceId/remove`    |          Add a new experience          |
 | POST   | `/user/invitation/accept/:communityRoleId` | Accept an invitation to be a moderator |
 | POST   | `/user/invitation/reject/:communityRoleId` | Reject an invitation to be a moderator |
 
