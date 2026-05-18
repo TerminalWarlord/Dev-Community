@@ -1,10 +1,11 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { CommunityRole } from 'src/schemas/community-role.schema';
 import { Community } from 'src/schemas/community.schema';
 import { CreateCommunityBodyDto, CreateCommunityRequestDto } from './dto/create-community.dto';
 import { MembershipStatus, Role } from 'src/common/community.enum';
+import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from './dto/update-community.dto';
 
 @Injectable()
 export class CommunityService {
@@ -37,7 +38,29 @@ export class CommunityService {
     }
   }
 
-  async updateCommunity() {
+  async updateCommunity(
+    updateCommunityBodyDto: UpdateCommunityBodyDto,
+    updateCommunityParamsDto: UpdateCommunityParamsDto,
+    updateCommunityRequestDto: UpdateCommunityRequestDto,
+  ) {
+    try {
+      const communityRole = await this.communityRoleModel.findOne({
+        communityId: new mongoose.Types.ObjectId(updateCommunityParamsDto.communityId),
+        userId: new mongoose.Types.ObjectId(updateCommunityRequestDto.userId)
+      });
+      if (!communityRole || communityRole.role !== Role.ADMIN) {
+        throw new UnauthorizedException("You can't perform this action");
+      }
+      const community = await this.communityModel.updateOne({
+        _id: updateCommunityParamsDto.communityId,
+      }, updateCommunityBodyDto);
+      return {
+        message: "success"
+      }
+    } catch (error) {
+      console.error(error)
+      throw new InternalServerErrorException("Failed to update community");
+    }
   }
 
   async deleteCommunity() {
