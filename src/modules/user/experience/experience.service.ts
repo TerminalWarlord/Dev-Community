@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Experience } from 'src/schemas/experience.schema';
@@ -13,11 +13,11 @@ export class ExperienceService {
     private readonly experienceModel: Model<Experience>,
   ) { }
 
-  // TODO: check duplicates
   async addExperience(createExperienceDto: CreateExperienceDto) {
     try {
       const experience = await this.experienceModel.insertOne({
         ...createExperienceDto,
+        userId: new mongoose.Types.ObjectId(createExperienceDto.userId),
         startDate: new Date(createExperienceDto.startDate),
         endDate: new Date(createExperienceDto.endDate),
       })
@@ -34,14 +34,19 @@ export class ExperienceService {
 
   async updateExperience(updateExperienceDto: UpdateExperienceDto) {
     try {
-      await this.experienceModel.updateOne({
-        _id: updateExperienceDto.experienceId,
-        userId: new mongoose.Types.ObjectId(updateExperienceDto.experienceId),
+      const experience = await this.experienceModel.findOneAndUpdate({
+        _id: new mongoose.Types.ObjectId(updateExperienceDto.experienceId),
+        userId: new mongoose.Types.ObjectId(updateExperienceDto.userId),
       }, {
-        ...updateExperienceDto
+        ...updateExperienceDto,
+        userId: new mongoose.Types.ObjectId(updateExperienceDto.userId),
       })
+
+      if (!experience) {
+        throw new NotFoundException("Experience doesn't exist");
+      }
       return {
-        message: "success"
+        message: "success",
       }
 
     } catch (error) {
@@ -55,14 +60,20 @@ export class ExperienceService {
         _id: new mongoose.Types.ObjectId(removeExperienceDto.experienceId)
       })
       if (!experience) {
-        throw new InternalServerErrorException("Failed to delete experience");
+        throw new NotFoundException("Experience doesn't exist");
       }
       return {
         message: "success"
       }
     }
     catch (err) {
-      throw new InternalServerErrorException("Failed to delete experience");
+      console.log(err)
+      if (err instanceof Error) {
+        throw new InternalServerErrorException(err.message);
+      }
+      else {
+        throw new InternalServerErrorException("Failed to delete experience");
+      }
     }
   }
 }
