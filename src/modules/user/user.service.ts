@@ -57,11 +57,6 @@ export class UserService {
       throw new ForbiddenException('Old password is incorrect');
     }
   }
-  async addSkill() {}
-  async removeSkill() {}
-  async addExperience() {}
-  async updateExperience() {}
-  async removeExperience() {}
   async acceptInvitation() {}
   async rejectInvitation() {}
 }
