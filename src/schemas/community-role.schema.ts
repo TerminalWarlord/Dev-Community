@@ -17,9 +17,6 @@ export class CommunityRole {
 
   @Prop({ type: mongoose.Types.ObjectId, required: true, ref: "Community" })
   communityId!: mongoose.Types.ObjectId;
-
-  @Prop({ type: String, required: true })
-  description!: string;
 }
 
 export const CommunityRoleSchema = SchemaFactory.createForClass(CommunityRole);

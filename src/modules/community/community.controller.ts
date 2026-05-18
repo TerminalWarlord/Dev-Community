@@ -1,26 +1,57 @@
-import { Controller, Delete, Get, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { CommunityService } from './community.service';
 import { AuthGuard } from '../auth/auth.guard';
+import { CreateCommunityBodyDto, CreateCommunityRequestDto } from './dto/create-community.dto';
+import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from './dto/update-community.dto';
+import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delete-community.dto';
+import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
 
 @Controller('community')
 export class CommunityController {
   constructor(
     private communityService: CommunityService
   ) { }
+  // TODO: get list of communities when user is admin
+  // TODO: get list of communities when user is member
+
+  @Get('all')
+  async getAllCommunities(
+    @Query() getCommunitiesQueriesDto: GetCommunitiesQueriesDto
+  ) {
+    return this.communityService.getAllCommunities(getCommunitiesQueriesDto);
+  }
+
+
   @UseGuards(AuthGuard)
   @Post('create')
-  async createCommunity() {
-    return this.communityService.createCommunity();
+  async createCommunity(
+    @Body() createCommunityBodyDto: CreateCommunityBodyDto,
+    @Request() createCommunityRequestDto: CreateCommunityRequestDto,
+  ) {
+    return this.communityService.createCommunity(createCommunityBodyDto, createCommunityRequestDto);
   }
 
+  @UseGuards(AuthGuard)
   @Patch(':communityId/update')
-  async updateCommunity() {
-    return this.communityService.updateCommunity();
+  async updateCommunity(
+    @Body() updateCommunityBodyDto: UpdateCommunityBodyDto,
+    @Param() updateCommunityParamsDto: UpdateCommunityParamsDto,
+    @Request() updateCommunityRequestDto: UpdateCommunityRequestDto,
+  ) {
+    return this.communityService.updateCommunity(
+      updateCommunityBodyDto,
+      updateCommunityParamsDto,
+      updateCommunityRequestDto
+    );
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':communityId/delete')
-  async deleteCommunity() {
-    return this.communityService.deleteCommunity();
+  async deleteCommunity(
+    @Param() deleteCommunityParamsDto: DeleteCommunityParamsDto,
+    @Request() deleteCommunityRequestDto: DeleteCommunityRequestDto,
+  ) {
+    return this.communityService.deleteCommunity(deleteCommunityParamsDto, deleteCommunityRequestDto);
   }
 
   @Post(':communityId/post/create')
