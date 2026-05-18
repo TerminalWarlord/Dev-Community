@@ -34,24 +34,28 @@ export class UserService {
     const page = getUsersSkillsQueriesDto.page || 1;
     const limit = getUsersSkillsQueriesDto.limit || 10;
     const offset = (page - 1) * limit;
-    const userSkills = await this.userSkillModel.find({
-      userId: new mongoose.Types.ObjectId(getUsersSkillsParamsDto.userId)
-    })
-      .populate("skillId", "skillTitle")
-      .select("-userId -__v")
-      .skip(offset)
-      .limit(limit + 1);
+    try {
+      const userSkills = await this.userSkillModel.find({
+        userId: new mongoose.Types.ObjectId(getUsersSkillsParamsDto.userId)
+      })
+        .populate("skillId", "skillTitle")
+        .select("-userId -__v")
+        .skip(offset)
+        .limit(limit + 1);
 
-    const results = userSkills.slice(0, limit).map(item => {
+      const results = userSkills.slice(0, limit).map(item => {
+        return {
+          userSkillId: item._id,
+          skillId: (item.skillId as unknown as { _id: string })._id,
+          skillTitle: (item.skillId as unknown as { skillTitle: string }).skillTitle
+        }
+      });
       return {
-        userSkillId: item._id,
-        skillId: (item.skillId as unknown as { _id: string })._id,
-        skillTitle: (item.skillId as unknown as { skillTitle: string }).skillTitle
+        results,
+        hasNextPage: userSkills.length > limit
       }
-    });
-    return {
-      results,
-      hasNextPage: userSkills.length > limit
+    } catch (error) {
+      throw new InternalServerErrorException("Failed to get user skills");
     }
   }
 
@@ -59,17 +63,21 @@ export class UserService {
     const page = getUsersExperiencesQueriesDto.page || 1;
     const limit = getUsersExperiencesQueriesDto.limit || 10;
     const offset = (page - 1) * limit;
-    const userExperiences = await this.experienceModel.find({
-      userId: new mongoose.Types.ObjectId(getUsersExperienceParamsDto.userId)
-    })
-      .select("-createdAt -updatedAt -userId -__v")
-      .skip(offset)
-      .limit(limit + 1);
+    try {
+      const userExperiences = await this.experienceModel.find({
+        userId: new mongoose.Types.ObjectId(getUsersExperienceParamsDto.userId)
+      })
+        .select("-createdAt -updatedAt -userId -__v")
+        .skip(offset)
+        .limit(limit + 1);
 
-    const results = userExperiences.slice(0, limit);
-    return {
-      results,
-      hasNextPage: userExperiences.length > limit
+      const results = userExperiences.slice(0, limit);
+      return {
+        results,
+        hasNextPage: userExperiences.length > limit
+      }
+    } catch (error) {
+      throw new InternalServerErrorException("Failed to get user experiences");
     }
   }
 
