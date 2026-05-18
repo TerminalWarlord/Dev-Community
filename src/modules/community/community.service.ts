@@ -6,6 +6,7 @@ import { Community } from 'src/schemas/community.schema';
 import { CreateCommunityBodyDto, CreateCommunityRequestDto } from './dto/create-community.dto';
 import { MembershipStatus, Role } from 'src/common/community.enum';
 import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from './dto/update-community.dto';
+import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delete-community.dto';
 
 @Injectable()
 export class CommunityService {
@@ -63,7 +64,36 @@ export class CommunityService {
     }
   }
 
-  async deleteCommunity() {
+  async deleteCommunity(
+    deleteCommunityParamsDto: DeleteCommunityParamsDto,
+    deleteCommunityRequestDto: DeleteCommunityRequestDto,
+  ) {
+    // TODO: add communityId+userId index on CommunityRole schema
+    // TODO: add better error handling
+    try {
+      const communityId = new mongoose.Types.ObjectId(deleteCommunityParamsDto.communityId);
+      const userId = new mongoose.Types.ObjectId(deleteCommunityRequestDto.userId);
+      const communityRole = await this.communityRoleModel.findOne({
+        communityId,
+        userId,
+      });
+      if (!communityRole || communityRole.role !== Role.ADMIN) {
+        throw new UnauthorizedException("You can't perform this action");
+      }
+      await this.communityModel.findByIdAndDelete(communityId);
+      await this.communityRoleModel.deleteMany({
+        communityId
+      });
+
+      return {
+        message: "success"
+      }
+
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException("Failed to delete community");
+
+    }
   }
 
   async createCommunityPost() {

@@ -3,6 +3,7 @@ import { CommunityService } from './community.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { CreateCommunityBodyDto, CreateCommunityRequestDto } from './dto/create-community.dto';
 import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from './dto/update-community.dto';
+import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delete-community.dto';
 
 @Controller('community')
 export class CommunityController {
@@ -32,9 +33,13 @@ export class CommunityController {
     );
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':communityId/delete')
-  async deleteCommunity() {
-    return this.communityService.deleteCommunity();
+  async deleteCommunity(
+    @Param() deleteCommunityParamsDto: DeleteCommunityParamsDto,
+    @Request() deleteCommunityRequestDto: DeleteCommunityRequestDto,
+  ) {
+    return this.communityService.deleteCommunity(deleteCommunityParamsDto, deleteCommunityRequestDto);
   }
 
   @Post(':communityId/post/create')
