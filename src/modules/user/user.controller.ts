@@ -15,6 +15,7 @@ import { UserService } from './user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { GetUsersSkillsParamsDto, GetUsersSkillsQueriesDto } from './dto/get-users-skills.dto';
+import { GetUsersExperiencesParamsDto, GetUsersExperiencesQueriesDto } from './dto/get-users-experiences.dto';
 
 @Controller('user')
 export class UserController {
@@ -43,6 +44,16 @@ export class UserController {
 
   ) {
     return this.userService.getUserSkills(getUsersSkillsParamsDto, getUsersSkillsQueriesDto);
+  }
+
+
+  @Get('profile/:userId/experiences')
+  async getUserExperiences(
+    @Param() getUsersExperienceParamsDto: GetUsersExperiencesParamsDto,
+    @Query() GetUsersExperiencesQueriesDto: GetUsersExperiencesQueriesDto,
+
+  ) {
+    return this.userService.getUserExperiences(getUsersExperienceParamsDto, GetUsersExperiencesQueriesDto);
   }
 
   @Post('invitation/accept/:invitationId')

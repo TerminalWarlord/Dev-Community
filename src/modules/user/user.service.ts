@@ -11,6 +11,8 @@ import bcrypt from 'bcrypt';
 import { User } from 'src/schemas/user.schema';
 import { UserSkill } from 'src/schemas/user-skill.schema';
 import { GetUsersSkillsParamsDto, GetUsersSkillsQueriesDto } from './dto/get-users-skills.dto';
+import { GetUsersExperiencesParamsDto, GetUsersExperiencesQueriesDto } from './dto/get-users-experiences.dto';
+import { Experience } from 'src/schemas/experience.schema';
 
 @Injectable()
 export class UserService {
@@ -19,6 +21,8 @@ export class UserService {
     private readonly userModel: Model<User>,
     @InjectModel(UserSkill.name)
     private readonly userSkillModel: Model<UserSkill>,
+    @InjectModel(Experience.name)
+    private readonly experienceModel: Model<Experience>,
   ) { }
 
   async getUserProfile(userId: string) {
@@ -48,6 +52,24 @@ export class UserService {
     return {
       results,
       hasNextPage: userSkills.length > limit
+    }
+  }
+
+  async getUserExperiences(getUsersExperienceParamsDto: GetUsersExperiencesParamsDto, getUsersExperiencesQueriesDto: GetUsersExperiencesQueriesDto) {
+    const page = getUsersExperiencesQueriesDto.page || 1;
+    const limit = getUsersExperiencesQueriesDto.limit || 10;
+    const offset = (page - 1) * limit;
+    const userExperiences = await this.experienceModel.find({
+      userId: new mongoose.Types.ObjectId(getUsersExperienceParamsDto.userId)
+    })
+      .select("-createdAt -updatedAt -userId -__v")
+      .skip(offset)
+      .limit(limit + 1);
+
+    const results = userExperiences.slice(0, limit);
+    return {
+      results,
+      hasNextPage: userExperiences.length > limit
     }
   }
 
