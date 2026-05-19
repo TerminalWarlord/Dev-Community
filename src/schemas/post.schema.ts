@@ -21,7 +21,7 @@ export class Post {
   @Prop({ type: mongoose.Types.ObjectId, ref: "Community" })
   communityId!: mongoose.Types.ObjectId;
 
-  @Prop({ type: String, enum: PostStatus, default: PostStatus.PUBLISHED })
+  @Prop({ type: String, enum: PostStatus, default: PostStatus.PUBLISHED, required: true })
   status!: mongoose.Types.ObjectId;
 }
 
