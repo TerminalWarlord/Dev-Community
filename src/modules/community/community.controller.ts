@@ -9,7 +9,7 @@ import { GetCommunityMembersParamsDto, GetCommunityMembersQueriesDto } from './d
 import { BanACommunityMemberParamsDto, BanACommunityMemberRequestDto } from './dto/ban-community-member.dto';
 import { CommunityModeratorAuthGuard } from './common/moderator.guard';
 import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-community.dto';
-import { InviteModeratorParamsDto, InviteModeratorRequestDto } from './dto/invite-moderator.dto';
+import { InviteModeratorParamsDto } from './dto/invite-moderator.dto';
 import { CommunityAdminAuthGuard } from './common/admin.guard';
 
 @Controller('community')
@@ -102,11 +102,9 @@ export class CommunityController {
   @Post(':communityId/invite/:userId')
   async inviteModerator(
     @Param() inviteModeratorParamsDto: InviteModeratorParamsDto,
-    @Request() inviteModeratorRequestDto: InviteModeratorRequestDto,
   ) {
     return this.communityService.inviteModerator(
       inviteModeratorParamsDto,
-      inviteModeratorRequestDto
     );
   }
 

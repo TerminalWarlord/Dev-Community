@@ -12,7 +12,7 @@ import { generateSlug } from './community.helper';
 import { GetCommunityMembersParamsDto, GetCommunityMembersQueriesDto } from './dto/get-community-members.dto';
 import { BanACommunityMemberParamsDto, BanACommunityMemberRequestDto } from './dto/ban-community-member.dto';
 import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-community.dto';
-import { InviteModeratorParamsDto, InviteModeratorRequestDto } from './dto/invite-moderator.dto';
+import { InviteModeratorParamsDto } from './dto/invite-moderator.dto';
 import { PORT } from 'src/common/constants';
 
 @Injectable()
@@ -219,24 +219,10 @@ export class CommunityService {
 
   async inviteModerator(
     inviteModeratorParamsDto: InviteModeratorParamsDto,
-    inviteModeratorRequestDto: InviteModeratorRequestDto,
   ) {
     const userId = new mongoose.Types.ObjectId(inviteModeratorParamsDto.userId);
-    const adminId = new mongoose.Types.ObjectId(inviteModeratorRequestDto.userId);
     const communityId = new mongoose.Types.ObjectId(inviteModeratorParamsDto.communityId);
-    console.log(inviteModeratorRequestDto.userId, inviteModeratorParamsDto)
     try {
-      // Check if the user is admin
-      // const user = await this.communityRoleModel.findOne({ 
-      //   userId: adminId
-      //  });
-      // if (!user || user.role !== "ADMIN") {
-      //   throw new ForbiddenException("You can't perform this action");
-      // }
-      // console.log({
-      //   userId,
-      //   communityId
-      // })
       const communityRole = await this.communityRoleModel.findOneAndUpdate({
         userId,
         communityId

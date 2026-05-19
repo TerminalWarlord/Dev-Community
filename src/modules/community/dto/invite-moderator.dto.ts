@@ -7,8 +7,3 @@ export class InviteModeratorParamsDto {
   @IsString()
   userId!: string;
 }
-
-export class InviteModeratorRequestDto {
-  @IsString()
-  userId!: string;
-}
