@@ -9,6 +9,7 @@ import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityReques
 import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delete-community.dto';
 import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
 import { generateSlug } from './community.helper';
+import { GetCommunityMembersParamsDto, GetCommunityMembersQueriesDto } from './dto/get-community-members.dto';
 
 @Injectable()
 export class CommunityService {
@@ -129,6 +130,32 @@ export class CommunityService {
       console.log(error);
       throw new InternalServerErrorException("Failed to delete community");
 
+    }
+  }
+
+  async getCommunityMembers(
+    getCommunityMembersQueriesDto: GetCommunityMembersQueriesDto,
+    getCommunityMembersParamsDto: GetCommunityMembersParamsDto
+  ) {
+    try {
+      const page = getCommunityMembersQueriesDto.page || 1;
+      const limit = getCommunityMembersQueriesDto.limit || 10;
+      const offset = (page - 1) * limit;
+      const members = await this.communityRoleModel.find({
+        communityId: new mongoose.Types.ObjectId(getCommunityMembersParamsDto.communityId)
+      })
+        .populate("userId", "-password -createdAt -updatedAt -__v -email")
+        .select("-_id -__v -createdAt -updatedAt -communityId")
+        .skip(offset)
+        .limit(limit + 1);
+      const results = members.slice(0, limit);
+      return {
+        results,
+        hasNextPage: members.length > limit
+      }
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException("Failed to get community members");
     }
   }
 

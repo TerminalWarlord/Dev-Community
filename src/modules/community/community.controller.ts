@@ -5,6 +5,7 @@ import { CreateCommunityBodyDto, CreateCommunityRequestDto } from './dto/create-
 import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from './dto/update-community.dto';
 import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delete-community.dto';
 import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
+import { GetCommunityMembersParamsDto, GetCommunityMembersQueriesDto } from './dto/get-community-members.dto';
 
 @Controller('community')
 export class CommunityController {
@@ -53,6 +54,17 @@ export class CommunityController {
     @Request() deleteCommunityRequestDto: DeleteCommunityRequestDto,
   ) {
     return this.communityService.deleteCommunity(deleteCommunityParamsDto, deleteCommunityRequestDto);
+  }
+
+  @Get(':communityId/member/all')
+  async getCommunityMembers(
+    @Query() getCommunityMembersQueriesDto: GetCommunityMembersQueriesDto,
+    @Param() getCommunityMembersParamsDto: GetCommunityMembersParamsDto
+  ) {
+    return this.communityService.getCommunityMembers(
+      getCommunityMembersQueriesDto,
+      getCommunityMembersParamsDto,
+    );
   }
 
   @Post(':communityId/post/create')
