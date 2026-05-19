@@ -5,6 +5,7 @@ export enum Role {
 }
 
 export enum MembershipStatus {
+  INVITED = "INVITED",
   BANNED = "BANNED",
   REGULAR = "REGULAR"
 }
