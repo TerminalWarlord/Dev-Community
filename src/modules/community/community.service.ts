@@ -8,6 +8,7 @@ import { MembershipStatus, Role } from 'src/common/community.enum';
 import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from './dto/update-community.dto';
 import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delete-community.dto';
 import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
+import { generateSlug } from './community.helper';
 
 @Injectable()
 export class CommunityService {
@@ -51,8 +52,12 @@ export class CommunityService {
     createCommunityRequestDto: CreateCommunityRequestDto,
   ) {
     try {
-      // TODO: generate a unique slug
-      const community = await this.communityModel.insertOne(createCommunityBodyDto);
+      const slug = await generateSlug(createCommunityBodyDto.name, this.communityModel);
+      const community = await this.communityModel.insertOne({
+        slug,
+        ...createCommunityBodyDto,
+
+      });
       const communityRole = await this.communityRoleModel.insertOne({
         communityId: new mongoose.Types.ObjectId(community._id),
         role: Role.ADMIN,
@@ -62,7 +67,8 @@ export class CommunityService {
 
       return {
         message: "success",
-        communityId: community._id
+        communityId: community._id,
+        communitySlug: slug
       }
     } catch (error) {
       throw new InternalServerErrorException("Failed to create community");

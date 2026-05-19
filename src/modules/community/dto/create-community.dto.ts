@@ -10,12 +10,6 @@ export class CreateCommunityBodyDto{
   @MinLength(3)
   @MaxLength(1000)
   description!: string;
-
-  // TODO: remove this, write a helper func
-  @IsString()
-  @MinLength(3)
-  @MaxLength(1000)
-  slug!: string;
 }
 
 export class CreateCommunityRequestDto{
