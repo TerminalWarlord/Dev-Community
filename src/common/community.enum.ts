@@ -9,3 +9,10 @@ export enum MembershipStatus {
   BANNED = "BANNED",
   REGULAR = "REGULAR"
 }
+
+
+export enum CommunityStatus {
+  DELETED = "DELETED",
+  BANNED = "BANNED",
+  ACTIVE = "ACTIVE"
+}
