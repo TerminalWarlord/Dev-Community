@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Community, CommunitySchema } from 'src/schemas/community.schema';
 import { CommunityRole, CommunityRoleSchema } from 'src/schemas/community-role.schema';
 import { User, UserSchema } from 'src/schemas/user.schema';
+import { PostModule } from './post/post.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { User, UserSchema } from 'src/schemas/user.schema';
       { name: Community.name, schema: CommunitySchema },
       { name: CommunityRole.name, schema: CommunityRoleSchema },
     ]),
+    PostModule,
   ],
   controllers: [CommunityController],
   providers: [CommunityService]
