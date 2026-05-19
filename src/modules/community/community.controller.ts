@@ -121,46 +121,46 @@ export class CommunityController {
     );
   }
 
-  @Post(':communityId/post/create')
-  async createCommunityPost() {
-    return this.communityService.createCommunityPost();
-  }
+  // @Post(':communityId/post/create')
+  // async createCommunityPost() {
+  //   return this.communityService.createCommunityPost();
+  // }
 
-  @Patch(':communityId/post/:postId/update')
-  async updateCommunityPost() {
-    return this.communityService.updateCommunityPost();
-  }
+  // @Patch(':communityId/post/:postId/update')
+  // async updateCommunityPost() {
+  //   return this.communityService.updateCommunityPost();
+  // }
 
-  @Post(':communityId/post/:postId/vote')
-  async voteCommunityPost() {
-    return this.communityService.voteCommunityPost();
-  }
-
-
-  @Delete(':communityId/post/:postId/delete')
-  async deleteCommunityPost() {
-    return this.communityService.deleteCommunityPost();
-  }
+  // @Post(':communityId/post/:postId/vote')
+  // async voteCommunityPost() {
+  //   return this.communityService.voteCommunityPost();
+  // }
 
 
+  // @Delete(':communityId/post/:postId/delete')
+  // async deleteCommunityPost() {
+  //   return this.communityService.deleteCommunityPost();
+  // }
 
-  @Get(':communityId/post/:postId/comment/all')
-  async getCommunityPostComments() {
-    return this.communityService.getCommunityPostComments();
-  }
 
-  @Post(':communityId/post/:postId/comment/add')
-  async addACommunityPostComment() {
-    return this.communityService.addACommunityPostComment();
-  }
 
-  @Patch(':communityId/post/:postId/comment/update')
-  async updateACommunityPostComment() {
-    return this.communityService.updateACommunityPostComment();
-  }
+  // @Get(':communityId/post/:postId/comment/all')
+  // async getCommunityPostComments() {
+  //   return this.communityService.getCommunityPostComments();
+  // }
 
-  @Delete(':communityId/post/:postId/comment/update')
-  async deleteACommunityPostComment() {
-    return this.communityService.deleteACommunityPostComment();
-  }
+  // @Post(':communityId/post/:postId/comment/add')
+  // async addACommunityPostComment() {
+  //   return this.communityService.addACommunityPostComment();
+  // }
+
+  // @Patch(':communityId/post/:postId/comment/update')
+  // async updateACommunityPostComment() {
+  //   return this.communityService.updateACommunityPostComment();
+  // }
+
+  // @Delete(':communityId/post/:postId/comment/update')
+  // async deleteACommunityPostComment() {
+  //   return this.communityService.deleteACommunityPostComment();
+  // }
 }

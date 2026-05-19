@@ -289,30 +289,4 @@ export class CommunityService {
       throw new InternalServerErrorException("Failed to accept invitation");
     }
   }
-
-  async createCommunityPost() {
-  }
-
-  async updateCommunityPost() {
-  }
-
-  async voteCommunityPost() {
-  }
-
-
-  async deleteCommunityPost() {
-  }
-
-
-  async getCommunityPostComments() {
-  }
-
-  async addACommunityPostComment() {
-  }
-
-  async updateACommunityPostComment() {
-  }
-
-  async deleteACommunityPostComment() {
-  }
 }
