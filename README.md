@@ -48,6 +48,7 @@ For better view: https://dbdiagram.io/d/Dev-Community-6a02b9f454a51d93d3fe1826
 | POST   | `/community/create`                                    |                   Create a community                    |
 | PATCH  | `/community/:communityId/update`                       |         `[ADMIN]`  Update community information         |
 | DELETE | `/community/:communityId/delete`                       |             `[ADMIN]`   Delete a community              |
+| POST   | `/community/:communityId/join`                         |               Join a community as a user                |
 | POST   | `/community/:communityId/invite/:userId`               |        `[ADMIN]` Invite a user to be a moderator        |
 | POST   | `/community/:communityId/invite/accept/:invitationId`  |          Accept invitation to join a community          |
 | POST   | `/community/:communityId/invite/discard/:invitationId` |         Discard invitation to join a community          |
