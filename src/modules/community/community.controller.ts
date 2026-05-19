@@ -13,6 +13,7 @@ export class CommunityController {
   ) { }
   // TODO: get list of communities when user is admin
   // TODO: get list of communities when user is member
+  // TODO: get list of members with their roles (with pagination)
 
   @Get('all')
   async getAllCommunities(
