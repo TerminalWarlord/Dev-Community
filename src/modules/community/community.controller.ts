@@ -5,6 +5,13 @@ import { CreateCommunityBodyDto, CreateCommunityRequestDto } from './dto/create-
 import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from './dto/update-community.dto';
 import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delete-community.dto';
 import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
+import { GetCommunityMembersParamsDto, GetCommunityMembersQueriesDto } from './dto/get-community-members.dto';
+import { BanACommunityMemberParamsDto, BanACommunityMemberRequestDto } from './dto/ban-community-member.dto';
+import { CommunityModeratorAuthGuard } from './common/moderator.guard';
+import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-community.dto';
+import { InviteModeratorParamsDto } from './dto/invite-moderator.dto';
+import { CommunityAdminAuthGuard } from './common/admin.guard';
+import { ManageInvitationParamsDto, ManageInvitationRequestDto } from './dto/manage-invitation.dto';
 
 @Controller('community')
 export class CommunityController {
@@ -55,6 +62,65 @@ export class CommunityController {
     return this.communityService.deleteCommunity(deleteCommunityParamsDto, deleteCommunityRequestDto);
   }
 
+  @Get(':communityId/member/all')
+  async getCommunityMembers(
+    @Query() getCommunityMembersQueriesDto: GetCommunityMembersQueriesDto,
+    @Param() getCommunityMembersParamsDto: GetCommunityMembersParamsDto
+  ) {
+    return this.communityService.getCommunityMembers(
+      getCommunityMembersQueriesDto,
+      getCommunityMembersParamsDto,
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @UseGuards(CommunityModeratorAuthGuard)
+  @Post(':communityId/member/:memberId/ban')
+  async banACommunityMember(
+    @Param() banACommunityMemberParamsDto: BanACommunityMemberParamsDto,
+    @Request() banACommunityMemberRequestDto: BanACommunityMemberRequestDto
+  ) {
+    return this.communityService.banACommunityMember(
+      banACommunityMemberParamsDto,
+      banACommunityMemberRequestDto
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Post(':communityId/join')
+  async joinCommunity(
+    @Param() joinCommunityParamsDto: JoinCommunityParamsDto,
+    @Request() joinCommunityRequestDto: JoinCommunityRequestDto
+  ) {
+    return this.communityService.joinCommunity(
+      joinCommunityParamsDto,
+      joinCommunityRequestDto
+    )
+  }
+
+  @UseGuards(AuthGuard)
+  @UseGuards(CommunityAdminAuthGuard)
+  @Post(':communityId/invite/:userId')
+  async inviteModerator(
+    @Param() inviteModeratorParamsDto: InviteModeratorParamsDto,
+  ) {
+    return this.communityService.inviteModerator(
+      inviteModeratorParamsDto,
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Post(':communityId/invite/accept/:invitationId')
+  async acceptModeratorInvitation(
+    @Param() manageInvitationParamsDto: ManageInvitationParamsDto,
+    @Request() manageInvitationRequestDto: ManageInvitationRequestDto,
+  ) {
+    return this.communityService.acceptModeratorInvitation(
+      manageInvitationParamsDto,
+      manageInvitationRequestDto
+    );
+  }
+
   @Post(':communityId/post/create')
   async createCommunityPost() {
     return this.communityService.createCommunityPost();
@@ -76,10 +142,7 @@ export class CommunityController {
     return this.communityService.deleteCommunityPost();
   }
 
-  @Delete(':communityId/user/:userId/ban')
-  async banACommunityMember() {
-    return this.communityService.banACommunityMember();
-  }
+
 
   @Get(':communityId/post/:postId/comment/all')
   async getCommunityPostComments() {

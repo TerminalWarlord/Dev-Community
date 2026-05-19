@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { CommunityRole } from 'src/schemas/community-role.schema';
@@ -9,6 +9,12 @@ import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityReques
 import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delete-community.dto';
 import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
 import { generateSlug } from './community.helper';
+import { GetCommunityMembersParamsDto, GetCommunityMembersQueriesDto } from './dto/get-community-members.dto';
+import { BanACommunityMemberParamsDto, BanACommunityMemberRequestDto } from './dto/ban-community-member.dto';
+import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-community.dto';
+import { InviteModeratorParamsDto } from './dto/invite-moderator.dto';
+import { PORT } from 'src/common/constants';
+import { ManageInvitationParamsDto, ManageInvitationRequestDto } from './dto/manage-invitation.dto';
 
 @Injectable()
 export class CommunityService {
@@ -132,6 +138,158 @@ export class CommunityService {
     }
   }
 
+  async getCommunityMembers(
+    getCommunityMembersQueriesDto: GetCommunityMembersQueriesDto,
+    getCommunityMembersParamsDto: GetCommunityMembersParamsDto
+  ) {
+    try {
+      const page = getCommunityMembersQueriesDto.page || 1;
+      const limit = getCommunityMembersQueriesDto.limit || 10;
+      const offset = (page - 1) * limit;
+      const members = await this.communityRoleModel.find({
+        communityId: new mongoose.Types.ObjectId(getCommunityMembersParamsDto.communityId)
+      })
+        .populate("userId", "-password -createdAt -updatedAt -__v -email")
+        .select("-_id -__v -createdAt -updatedAt -communityId")
+        .skip(offset)
+        .limit(limit + 1);
+      const results = members.slice(0, limit);
+      return {
+        results,
+        hasNextPage: members.length > limit
+      }
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException("Failed to get community members");
+    }
+  }
+
+  async banACommunityMember(
+    banACommunityMemberParamsDto: BanACommunityMemberParamsDto,
+    banACommunityMemberRequestDto: BanACommunityMemberRequestDto
+  ) {
+    try {
+      const userId = new mongoose.Types.ObjectId(banACommunityMemberRequestDto.userId);
+      const memberId = new mongoose.Types.ObjectId(banACommunityMemberParamsDto.memberId);
+      const communityId = new mongoose.Types.ObjectId(banACommunityMemberParamsDto.communityId);
+      const communityRole = await this.communityRoleModel.findOneAndUpdate({
+        userId: memberId,
+        communityId: communityId
+      }, {
+        role: "BANNED"
+      });
+      if (!communityRole) {
+        throw new InternalServerErrorException("Failed to ban user");
+      }
+      return {
+        message: "success",
+      }
+
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException("Failed to ban user");
+    }
+  }
+
+  async joinCommunity(
+    joinCommunityParamsDto: JoinCommunityParamsDto,
+    joinCommunityRequestDto: JoinCommunityRequestDto
+  ) {
+    try {
+      const userId = new mongoose.Types.ObjectId(joinCommunityRequestDto.userId);
+      const communityId = new mongoose.Types.ObjectId(joinCommunityParamsDto.communityId);
+      // check if community exists
+      const community = await this.communityModel.findById(communityId);
+      if (!community) {
+        throw new BadRequestException("Community doesn't exist");
+      }
+      await this.communityRoleModel.insertOne({
+        userId,
+        communityId,
+        joinedAt: new Date()
+      })
+      return {
+        message: "success",
+      }
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw new BadRequestException(error.message);
+      }
+      throw new InternalServerErrorException("Failed to join community");
+    }
+  }
+
+  async inviteModerator(
+    inviteModeratorParamsDto: InviteModeratorParamsDto,
+  ) {
+    const userId = new mongoose.Types.ObjectId(inviteModeratorParamsDto.userId);
+    const communityId = new mongoose.Types.ObjectId(inviteModeratorParamsDto.communityId);
+    try {
+      const communityRole = await this.communityRoleModel.findOneAndUpdate({
+        userId,
+        communityId
+      }, {
+        status: "INVITED"
+      });
+
+      if (!communityRole) {
+        throw new InternalServerErrorException("User is not a member of the community");
+      }
+      return {
+        message: "success",
+        invitationUrl: `http://localhost:${PORT}/community/${communityId}/invite/accept/${communityRole._id}`
+      }
+
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(error.message);
+      }
+      console.log(error);
+      throw new InternalServerErrorException("Failed to invite user");
+    }
+  }
+
+  async acceptModeratorInvitation(
+    manageInvitationParamsDto: ManageInvitationParamsDto,
+    manageInvitationRequestDto: ManageInvitationRequestDto,
+  ) {
+    try {
+      const invitationId = new mongoose.Types.ObjectId(manageInvitationParamsDto.invitationId);
+      const communityId = new mongoose.Types.ObjectId(manageInvitationParamsDto.communityId);
+      const userId = new mongoose.Types.ObjectId(manageInvitationRequestDto.userId);
+      const communityRole = await this.communityRoleModel.findOne({
+        communityId,
+        userId,
+        _id: invitationId,
+      });
+      if (!communityRole || communityRole.status !== "INVITED") {
+        throw new ForbiddenException("Doesn't seem like you have any open invitation");
+      }
+      const updatedCommunityRole = await this.communityRoleModel.findOneAndUpdate({
+        userId,
+        communityId,
+        _id: invitationId,
+      }, {
+        role: "MODERATOR",
+        status: "REGULAR",
+      });
+      if (!updatedCommunityRole) {
+        throw new InternalServerErrorException("Failed to update user role");
+      }
+      return {
+        message: "success"
+      }
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw new ForbiddenException(error.message);
+      }
+      else if (error instanceof InternalServerErrorException) {
+        throw new InternalServerErrorException(error.message);
+      }
+      throw new InternalServerErrorException("Failed to accept invitation");
+    }
+  }
+
   async createCommunityPost() {
   }
 
@@ -145,8 +303,6 @@ export class CommunityService {
   async deleteCommunityPost() {
   }
 
-  async banACommunityMember() {
-  }
 
   async getCommunityPostComments() {
   }

@@ -17,6 +17,13 @@ export class CommunityRole {
 
   @Prop({ type: mongoose.Types.ObjectId, required: true, ref: "Community" })
   communityId!: mongoose.Types.ObjectId;
+
+  @Prop({ type: Date })
+  joinedAt!: Date;
 }
 
 export const CommunityRoleSchema = SchemaFactory.createForClass(CommunityRole);
+
+CommunityRoleSchema.index({
+  userId: 1, communityId: 1
+}, { unique: true })
