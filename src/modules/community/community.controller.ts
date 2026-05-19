@@ -11,6 +11,7 @@ import { CommunityModeratorAuthGuard } from './common/moderator.guard';
 import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-community.dto';
 import { InviteModeratorParamsDto } from './dto/invite-moderator.dto';
 import { CommunityAdminAuthGuard } from './common/admin.guard';
+import { ManageInvitationParamsDto, ManageInvitationRequestDto } from './dto/manage-invitation.dto';
 
 @Controller('community')
 export class CommunityController {
@@ -105,6 +106,18 @@ export class CommunityController {
   ) {
     return this.communityService.inviteModerator(
       inviteModeratorParamsDto,
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Post(':communityId/invite/accept/:invitationId')
+  async acceptModeratorInvitation(
+    @Param() manageInvitationParamsDto: ManageInvitationParamsDto,
+    @Request() manageInvitationRequestDto: ManageInvitationRequestDto,
+  ) {
+    return this.communityService.acceptModeratorInvitation(
+      manageInvitationParamsDto,
+      manageInvitationRequestDto
     );
   }
 

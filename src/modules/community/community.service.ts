@@ -14,6 +14,7 @@ import { BanACommunityMemberParamsDto, BanACommunityMemberRequestDto } from './d
 import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-community.dto';
 import { InviteModeratorParamsDto } from './dto/invite-moderator.dto';
 import { PORT } from 'src/common/constants';
+import { ManageInvitationParamsDto, ManageInvitationRequestDto } from './dto/manage-invitation.dto';
 
 @Injectable()
 export class CommunityService {
@@ -244,6 +245,47 @@ export class CommunityService {
       }
       console.log(error);
       throw new InternalServerErrorException("Failed to invite user");
+    }
+  }
+
+  async acceptModeratorInvitation(
+    manageInvitationParamsDto: ManageInvitationParamsDto,
+    manageInvitationRequestDto: ManageInvitationRequestDto,
+  ) {
+    try {
+      const invitationId = new mongoose.Types.ObjectId(manageInvitationParamsDto.invitationId);
+      const communityId = new mongoose.Types.ObjectId(manageInvitationParamsDto.communityId);
+      const userId = new mongoose.Types.ObjectId(manageInvitationRequestDto.userId);
+      const communityRole = await this.communityRoleModel.findOne({
+        communityId,
+        userId,
+        _id: invitationId,
+      });
+      if (!communityRole || communityRole.status !== "INVITED") {
+        throw new ForbiddenException("Doesn't seem like you have any open invitation");
+      }
+      const updatedCommunityRole = await this.communityRoleModel.findOneAndUpdate({
+        userId,
+        communityId,
+        _id: invitationId,
+      }, {
+        role: "MODERATOR",
+        status: "REGULAR",
+      });
+      if (!updatedCommunityRole) {
+        throw new InternalServerErrorException("Failed to update user role");
+      }
+      return {
+        message: "success"
+      }
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw new ForbiddenException(error.message);
+      }
+      else if (error instanceof InternalServerErrorException) {
+        throw new InternalServerErrorException(error.message);
+      }
+      throw new InternalServerErrorException("Failed to accept invitation");
     }
   }
 
