@@ -10,6 +10,7 @@ import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delet
 import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
 import { generateSlug } from './community.helper';
 import { GetCommunityMembersParamsDto, GetCommunityMembersQueriesDto } from './dto/get-community-members.dto';
+import { BanACommunityMemberParamsDto, BanACommunityMemberRequestDto } from './dto/ban-community-member.dto';
 
 @Injectable()
 export class CommunityService {
@@ -159,6 +160,33 @@ export class CommunityService {
     }
   }
 
+  async banACommunityMember(
+    banACommunityMemberParamsDto: BanACommunityMemberParamsDto,
+    banACommunityMemberRequestDto: BanACommunityMemberRequestDto
+  ) {
+    try {
+      const userId = new mongoose.Types.ObjectId(banACommunityMemberRequestDto.userId);
+      const memberId = new mongoose.Types.ObjectId(banACommunityMemberParamsDto.memberId);
+      const communityId = new mongoose.Types.ObjectId(banACommunityMemberParamsDto.communityId);
+      const communityRole = await this.communityRoleModel.findOneAndUpdate({
+        userId: memberId,
+        communityId: communityId
+      }, {
+        role: "BANNED"
+      });
+      if (!communityRole) {
+        throw new InternalServerErrorException("Failed to ban user");
+      }
+      return {
+        message: "success",
+      }
+
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException("Failed to ban user");
+    }
+  }
+
   async createCommunityPost() {
   }
 
@@ -172,8 +200,6 @@ export class CommunityService {
   async deleteCommunityPost() {
   }
 
-  async banACommunityMember() {
-  }
 
   async getCommunityPostComments() {
   }

@@ -6,6 +6,8 @@ import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityReques
 import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delete-community.dto';
 import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
 import { GetCommunityMembersParamsDto, GetCommunityMembersQueriesDto } from './dto/get-community-members.dto';
+import { BanACommunityMemberParamsDto, BanACommunityMemberRequestDto } from './dto/ban-community-member.dto';
+import { CommunityModeratorAuthGuard } from './common/moderator.guard';
 
 @Controller('community')
 export class CommunityController {
@@ -67,6 +69,19 @@ export class CommunityController {
     );
   }
 
+  @UseGuards(AuthGuard)
+  @UseGuards(CommunityModeratorAuthGuard)
+  @Post(':communityId/member/:memberId/ban')
+  async banACommunityMember(
+    @Param() banACommunityMemberParamsDto: BanACommunityMemberParamsDto,
+    @Request() banACommunityMemberRequestDto: BanACommunityMemberRequestDto
+  ) {
+    return this.communityService.banACommunityMember(
+      banACommunityMemberParamsDto,
+      banACommunityMemberRequestDto
+    );
+  }
+
   @Post(':communityId/post/create')
   async createCommunityPost() {
     return this.communityService.createCommunityPost();
@@ -88,10 +103,7 @@ export class CommunityController {
     return this.communityService.deleteCommunityPost();
   }
 
-  @Delete(':communityId/user/:userId/ban')
-  async banACommunityMember() {
-    return this.communityService.banACommunityMember();
-  }
+
 
   @Get(':communityId/post/:postId/comment/all')
   async getCommunityPostComments() {
