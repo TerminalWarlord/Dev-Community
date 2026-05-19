@@ -20,3 +20,7 @@ export class CommunityRole {
 }
 
 export const CommunityRoleSchema = SchemaFactory.createForClass(CommunityRole);
+
+CommunityRoleSchema.index({
+  userId: 1, communityId: 1
+}, { unique: true })
