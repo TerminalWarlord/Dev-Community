@@ -8,6 +8,7 @@ import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
 import { GetCommunityMembersParamsDto, GetCommunityMembersQueriesDto } from './dto/get-community-members.dto';
 import { BanACommunityMemberParamsDto, BanACommunityMemberRequestDto } from './dto/ban-community-member.dto';
 import { CommunityModeratorAuthGuard } from './common/moderator.guard';
+import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-community.dto';
 
 @Controller('community')
 export class CommunityController {
@@ -80,6 +81,18 @@ export class CommunityController {
       banACommunityMemberParamsDto,
       banACommunityMemberRequestDto
     );
+  }
+
+  @UseGuards(AuthGuard)
+  @Post(':communityId/join')
+  async joinCommunity(
+    @Param() joinCommunityParamsDto: JoinCommunityParamsDto,
+    @Request() joinCommunityRequestDto: JoinCommunityRequestDto
+  ) {
+    return this.communityService.joinCommunity(
+      joinCommunityParamsDto,
+      joinCommunityRequestDto
+    )
   }
 
   @Post(':communityId/post/create')

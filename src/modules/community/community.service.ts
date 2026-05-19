@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { CommunityRole } from 'src/schemas/community-role.schema';
@@ -11,6 +11,7 @@ import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
 import { generateSlug } from './community.helper';
 import { GetCommunityMembersParamsDto, GetCommunityMembersQueriesDto } from './dto/get-community-members.dto';
 import { BanACommunityMemberParamsDto, BanACommunityMemberRequestDto } from './dto/ban-community-member.dto';
+import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-community.dto';
 
 @Injectable()
 export class CommunityService {
@@ -184,6 +185,33 @@ export class CommunityService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException("Failed to ban user");
+    }
+  }
+
+  async joinCommunity(
+    joinCommunityParamsDto: JoinCommunityParamsDto,
+    joinCommunityRequestDto: JoinCommunityRequestDto
+  ) {
+    try {
+      const userId = new mongoose.Types.ObjectId(joinCommunityRequestDto.userId);
+      const communityId = new mongoose.Types.ObjectId(joinCommunityParamsDto.communityId);
+      // check if community exists
+      const community = await this.communityModel.findById(communityId);
+      if (!community) {
+        throw new BadRequestException("Community doesn't exist");
+      }
+      const membership = await this.communityRoleModel.insertOne({
+        userId,
+        communityId
+      })
+      return {
+        message: "success",
+      }
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw new BadRequestException(error.message);
+      }
+      throw new InternalServerErrorException("Failed to join community");
     }
   }
 
