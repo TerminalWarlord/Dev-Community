@@ -15,7 +15,7 @@ import { CommunityRole } from 'src/schemas/community-role.schema';
 @Injectable()
 export class CommunityAdminAuthGuard implements CanActivate {
   constructor(
-    @InjectModel(User.name)
+    @InjectModel(CommunityRole.name)
     private readonly communityRoleModel: Model<CommunityRole>,
     private readonly jwtService: JwtService,
   ) { }
