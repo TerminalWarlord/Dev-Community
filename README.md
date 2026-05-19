@@ -49,10 +49,12 @@ For better view: https://dbdiagram.io/d/Dev-Community-6a02b9f454a51d93d3fe1826
 | PATCH  | `/community/:communityId/update`                    |          Update community information          |
 | DELETE | `/community/:communityId/delete`                    |               Delete a community               |
 | POST   | `/community/:communityId/post/create`               |            Create a community post             |
+| GET    | `/community/:communityId/post/all`                  |            Get all community posts             |
 | PATCH  | `/community/:communityId/post/:postId/update`       |            Update a community post             |
 | POST   | `/community/:communityId/post/:postId/vote`         |      `upvote`/`downvote` a community post      |
 | DELETE | `/community/:communityId/post/:postId/delete`       | `[ADMIN/MOD]` delete a post from the community |
-| DELETE | `/community/:communityId/user/:userId/ban`          |  `[ADMIN/MOD]` Ban a user from the community   |
+| GET    | `/community/:communityId/member/all`                |     Get a list of members of the community     |
+| DELETE | `/community/:communityId/member/:userId/ban`        | `[ADMIN/MOD]` Ban a member from the community  |
 | GET    | `/community/:communityId/post/:postId/comment/all`  |             Get comments of a post             |
 | POST   | `/community/:communityId/post/:postId/comment/add`  |            Add a comment to a post             |
 | PATCH  | `/community/:communityId/comment/:commentId/update` |           Update a comment of a post           |
