@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { CommunityRole } from 'src/schemas/community-role.schema';
@@ -12,6 +12,8 @@ import { generateSlug } from './community.helper';
 import { GetCommunityMembersParamsDto, GetCommunityMembersQueriesDto } from './dto/get-community-members.dto';
 import { BanACommunityMemberParamsDto, BanACommunityMemberRequestDto } from './dto/ban-community-member.dto';
 import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-community.dto';
+import { InviteModeratorParamsDto, InviteModeratorRequestDto } from './dto/invite-moderator.dto';
+import { PORT } from 'src/common/constants';
 
 @Injectable()
 export class CommunityService {
@@ -200,7 +202,7 @@ export class CommunityService {
       if (!community) {
         throw new BadRequestException("Community doesn't exist");
       }
-      const membership = await this.communityRoleModel.insertOne({
+      await this.communityRoleModel.insertOne({
         userId,
         communityId
       })
@@ -212,6 +214,50 @@ export class CommunityService {
         throw new BadRequestException(error.message);
       }
       throw new InternalServerErrorException("Failed to join community");
+    }
+  }
+
+  async inviteModerator(
+    inviteModeratorParamsDto: InviteModeratorParamsDto,
+    inviteModeratorRequestDto: InviteModeratorRequestDto,
+  ) {
+    const userId = new mongoose.Types.ObjectId(inviteModeratorParamsDto.userId);
+    const adminId = new mongoose.Types.ObjectId(inviteModeratorRequestDto.userId);
+    const communityId = new mongoose.Types.ObjectId(inviteModeratorParamsDto.communityId);
+    console.log(inviteModeratorRequestDto.userId, inviteModeratorParamsDto)
+    try {
+      // Check if the user is admin
+      // const user = await this.communityRoleModel.findOne({ 
+      //   userId: adminId
+      //  });
+      // if (!user || user.role !== "ADMIN") {
+      //   throw new ForbiddenException("You can't perform this action");
+      // }
+      // console.log({
+      //   userId,
+      //   communityId
+      // })
+      const communityRole = await this.communityRoleModel.findOneAndUpdate({
+        userId,
+        communityId
+      }, {
+        status: "INVITED"
+      });
+
+      if (!communityRole) {
+        throw new InternalServerErrorException("User is not a member of the community");
+      }
+      return {
+        message: "success",
+        invitationUrl: `http://localhost:${PORT}/community/${communityId}/invite/accept/${communityRole._id}`
+      }
+
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(error.message);
+      }
+      console.log(error);
+      throw new InternalServerErrorException("Failed to invite user");
     }
   }
 
