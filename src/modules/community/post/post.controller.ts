@@ -4,6 +4,14 @@ import { PostService } from './post.service';
 @Controller('community/:communityId/post')
 export class PostController {
   constructor(private postService: PostService) { }
+  @Get(":postSlug")
+  async getAPost() {
+  }
+
+  @Get('all')
+  async getAllPosts() {
+  }
+
   @Post('create')
   async createCommunityPost() {
   }
@@ -16,11 +24,9 @@ export class PostController {
   async voteCommunityPost() {
   }
 
-
   @Delete('delete')
   async deleteCommunityPost() {
   }
-
 
   @Get(':postSlug/comment/all')
   async getCommunityPostComments() {
@@ -34,7 +40,7 @@ export class PostController {
   async updateACommunityPostComment() {
   }
 
-  @Delete(':postSlug/comment/update')
+  @Delete(':postSlug/comment/delete')
   async deleteACommunityPostComment() {
   }
 }
