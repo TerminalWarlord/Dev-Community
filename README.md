@@ -29,6 +29,8 @@ For better view: https://dbdiagram.io/d/Dev-Community-6a02b9f454a51d93d3fe1826
 | GET    | `/user/profile/:userId`                    |         Get details of a user          |
 | GET    | `/user/profile/:userId/skills`             |  Get the list of the skills of a user  |
 | GET    | `/user/profile/:userId/experiences`        |  Get the list of the skills of a user  |
+| GET    | `/user/profile/:userId/post/:postSlug`     |            Get a user post             |
+| GET    | `/user/profile/:userId/post/all`           |           Get all user posts           |
 | GET    | `/user/all`                                |             Get all users              |
 | PATCH  | `/user/change-password`                    |          Change user password          |
 | GET    | `/user/skill/all`                          |             Get all skills             |

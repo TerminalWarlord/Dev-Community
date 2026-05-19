@@ -4,7 +4,7 @@ import mongoose, { Model } from 'mongoose';
 import { CommunityRole } from 'src/schemas/community-role.schema';
 import { Community } from 'src/schemas/community.schema';
 import { CreateCommunityBodyDto, CreateCommunityRequestDto } from './dto/create-community.dto';
-import { MembershipStatus, Role } from 'src/common/community.enum';
+import { CommunityStatus, MembershipStatus, Role } from 'src/common/community.enum';
 import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from './dto/update-community.dto';
 import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delete-community.dto';
 import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
@@ -110,8 +110,6 @@ export class CommunityService {
     deleteCommunityParamsDto: DeleteCommunityParamsDto,
     deleteCommunityRequestDto: DeleteCommunityRequestDto,
   ) {
-    // TODO: add communityId+userId index on CommunityRole schema
-    // TODO: add better error handling
     try {
       const communityId = new mongoose.Types.ObjectId(deleteCommunityParamsDto.communityId);
       const userId = new mongoose.Types.ObjectId(deleteCommunityRequestDto.userId);
@@ -122,11 +120,9 @@ export class CommunityService {
       if (!communityRole || communityRole.role !== Role.ADMIN) {
         throw new UnauthorizedException("You can't perform this action");
       }
-      await this.communityModel.findByIdAndDelete(communityId);
-      await this.communityRoleModel.deleteMany({
-        communityId
+      await this.communityModel.findOneAndUpdate(communityId, {
+        status: CommunityStatus.DELETED
       });
-
       return {
         message: "success"
       }
@@ -288,31 +284,5 @@ export class CommunityService {
       }
       throw new InternalServerErrorException("Failed to accept invitation");
     }
-  }
-
-  async createCommunityPost() {
-  }
-
-  async updateCommunityPost() {
-  }
-
-  async voteCommunityPost() {
-  }
-
-
-  async deleteCommunityPost() {
-  }
-
-
-  async getCommunityPostComments() {
-  }
-
-  async addACommunityPostComment() {
-  }
-
-  async updateACommunityPostComment() {
-  }
-
-  async deleteACommunityPostComment() {
   }
 }
