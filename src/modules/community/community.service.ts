@@ -205,7 +205,8 @@ export class CommunityService {
       }
       await this.communityRoleModel.insertOne({
         userId,
-        communityId
+        communityId,
+        joinedAt: new Date()
       })
       return {
         message: "success",
