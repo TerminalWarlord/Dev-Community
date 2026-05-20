@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostBodyDto, CreatePostParamsDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { CommunityMembershipAuthGuard } from '../common/member.guard';
+import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
 
 @Controller('community/:communityId/post')
 export class PostController {
@@ -12,7 +13,14 @@ export class PostController {
   }
 
   @Get('all')
-  async getAllPosts() {
+  async getAllPosts(
+    @Query() getPostsQueriesDto: GetPostsQueriesDto,
+    @Param() getPostsParamsDto: GetPostsParamsDto,
+  ) {
+    return this.postService.getAllPosts(
+      getPostsQueriesDto,
+      getPostsParamsDto
+    )
   }
 
   @UseGuards(AuthGuard)

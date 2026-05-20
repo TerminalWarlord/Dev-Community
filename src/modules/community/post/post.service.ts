@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { Post } from 'src/schemas/post.schema';
 import { CreatePostBodyDto, CreatePostParamsDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { PostStatus } from 'src/common/post.enum';
+import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
 
 @Injectable()
 export class PostService {
@@ -16,10 +17,29 @@ export class PostService {
   async getPost() {
   }
 
-  async getAllPosts() {
+  async getAllPosts(
+    getPostsQueriesDto: GetPostsQueriesDto,
+    getPostsParamsDto: GetPostsParamsDto,
+  ) {
+    try {
+      const page = getPostsQueriesDto.page || 1;
+      const limit = getPostsQueriesDto.limit || 10;
+      const offset = (page - 1) * limit;
+      const posts = await this.postModel.find({
+        communityId: getPostsParamsDto.communityId
+      })
+        .skip(offset)
+        .limit(limit + 1);
+      const results = posts.slice(0, limit);
+      return {
+        results,
+        hasNextPage: posts.length > limit,
+      }
+    } catch (err) {
+      throw new InternalServerErrorException("Failed to get posts");
+    }
   }
 
-  // TODO: add a guard to check if user is a member of a community
   async createCommunityPost(
     createPostBodyDto: CreatePostBodyDto,
     createPostParamsDto: CreatePostParamsDto,
