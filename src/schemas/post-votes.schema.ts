@@ -16,3 +16,8 @@ export class PostVote {
 }
 
 export const PostVoteSchema = SchemaFactory.createForClass(PostVote);
+
+PostVoteSchema.index({
+  postId: 1,
+  userId: 1
+}, { unique: true });
