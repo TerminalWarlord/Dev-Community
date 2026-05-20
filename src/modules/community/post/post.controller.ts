@@ -7,6 +7,7 @@ import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
 import { GetPostParamsDto } from './dto/get-post.dto';
 import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from '../dto/update-community.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
+import { DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
 
 @Controller('community/:communityId/post')
 export class PostController {
@@ -61,12 +62,22 @@ export class PostController {
     )
   }
 
-  @Post('vote')
-  async voteCommunityPost() {
+  @UseGuards(AuthGuard)
+  // @UseGuards(CommunityMembershipAuthGuard) 
+  @Delete(':postSlug/delete')
+  async deleteCommunityPost(
+    @Param() deletePostParamsDto: DeletePostParamsDto,
+    @Request() deletePostRequestDto: DeletePostRequestDto,
+  ) {
+    return this.postService.deleteCommunityPost(
+      deletePostParamsDto,
+      deletePostRequestDto
+    )
   }
 
-  @Delete('delete')
-  async deleteCommunityPost() {
+
+  @Post('vote')
+  async voteCommunityPost() {
   }
 
   @Get(':postSlug/comment/all')
