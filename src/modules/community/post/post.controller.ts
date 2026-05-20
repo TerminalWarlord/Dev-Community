@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards }
 import { PostService } from './post.service';
 import { CreatePostBodyDto, CreatePostParamsDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
+import { CommunityMembershipAuthGuard } from '../common/member.guard';
 
 @Controller('community/:communityId/post')
 export class PostController {
@@ -15,6 +16,7 @@ export class PostController {
   }
 
   @UseGuards(AuthGuard)
+  @UseGuards(CommunityMembershipAuthGuard)
   @Post('create')
   async createCommunityPost(
     @Body() createPostBodyDto: CreatePostBodyDto,
