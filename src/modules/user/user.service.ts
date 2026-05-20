@@ -18,6 +18,7 @@ import { Experience } from 'src/schemas/experience.schema';
 import { AddUserPostDto, AddUserPostRequestDto } from './dto/add-user-post.dto';
 import { Post as PostModel } from 'src/schemas/post.schema';
 import { GetUserPost } from './dto/get-user-post.dto';
+import { GetUserPostsParamsDto, GetUserPostsQueriesDto } from './dto/get-user-posts.dto';
 
 @Injectable()
 export class UserService {
@@ -136,9 +137,12 @@ export class UserService {
         slug: getUserPost.postSlug,
         communityId: undefined,
       })
+      .populate("postedBy", "_id fname lname")
+      .select("-_id -__v")
       if (!post) {
         throw new NotFoundException("Post doesn't exist");
       }
+      return post
     } catch (err) {
       if (err instanceof NotFoundException) {
         throw new NotFoundException(err.message);
@@ -147,8 +151,45 @@ export class UserService {
     }
   }
 
-  async getUserPosts() {
+  async getUserPosts(
+    getUserPostsQueriesDto: GetUserPostsQueriesDto,
+    getUserPostsParamsDto: GetUserPostsParamsDto
+  ) {
+    try {
+      const limit = getUserPostsQueriesDto.limit || 20;
+      const page = getUserPostsQueriesDto.page || 1;
+      const offset = (page - 1) * limit;
+      const query = getUserPostsQueriesDto.query;
+      const postFilter: {
+        communityId: undefined,
+        postedBy: mongoose.Types.ObjectId,
+        title?: object
+      } = {
+        communityId: undefined,
+        postedBy: new mongoose.Types.ObjectId(getUserPostsParamsDto.userId)
+      }
+      if (query) {
+        postFilter.title = {
+          $regex: query,
+          $options: "i"
+        }
+      }
+      const posts = await this.postModel.find(postFilter)
+        .populate("postedBy", "_id fname lname")
+        .select("-_id -__v -status")
+        .skip(offset)
+        .limit(limit + 1);
+      const results = posts.slice(0, limit);
+      return {
+        results,
+        hasNextPage: posts.length > limit
+      }
+    } catch (err) {
+      console.log(err)
+      throw new InternalServerErrorException("Failed to get user posts");
+    }
   }
+
 
   async addUserPost(
     addUserPostDto: AddUserPostDto,

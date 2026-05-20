@@ -17,6 +17,8 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { GetUsersSkillsParamsDto, GetUsersSkillsQueriesDto } from './dto/get-users-skills.dto';
 import { GetUsersExperiencesParamsDto, GetUsersExperiencesQueriesDto } from './dto/get-users-experiences.dto';
 import { AddUserPostDto, AddUserPostRequestDto } from './dto/add-user-post.dto';
+import { GetUserPost } from './dto/get-user-post.dto';
+import { GetUserPostsParamsDto, GetUserPostsQueriesDto } from './dto/get-user-posts.dto';
 
 @Controller('user')
 export class UserController {
@@ -57,14 +59,6 @@ export class UserController {
     return this.userService.getUserExperiences(getUsersExperienceParamsDto, GetUsersExperiencesQueriesDto);
   }
 
-  @Get('profile/:userId/post/:postSlug')
-  async getUserPost() {
-  }
-
-  @Get('profile/:userId/post/all')
-  async getUserPosts() {
-  }
-
   @UseGuards(AuthGuard)
   @Post('profile/:userId/post')
   async addUserPost(
@@ -76,6 +70,26 @@ export class UserController {
       addUserPostRequestDto
     )
   }
+
+  @Get('profile/:userId/post/all')
+  async getUserPosts(
+    @Query() getUserPostsQueriesDto: GetUserPostsQueriesDto,
+    @Param() getUserPostsParamsDto: GetUserPostsParamsDto
+  ) {
+    return this.userService.getUserPosts(
+      getUserPostsQueriesDto,
+      getUserPostsParamsDto
+    )
+  }
+
+  @Get('profile/:userId/post/:postSlug')
+  async getUserPost(
+    @Param() getUserPost: GetUserPost
+  ) {
+    return this.userService.getUserPost(getUserPost);
+  }
+
+
 
   @UseGuards(AuthGuard)
   @Patch('profile/:userId/post/:postSlug/update')
