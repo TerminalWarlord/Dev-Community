@@ -1,31 +1,93 @@
-import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { PostService } from './post.service';
+import { CreatePostBodyDto, CreatePostParamsDto, CreatePostRequestDto } from './dto/create-post.dto';
+import { AuthGuard } from 'src/modules/auth/auth.guard';
+import { CommunityMembershipAuthGuard } from '../common/member.guard';
+import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
+import { GetPostParamsDto } from './dto/get-post.dto';
+import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from '../dto/update-community.dto';
+import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
+import { DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
+import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
 
 @Controller('community/:communityId/post')
 export class PostController {
   constructor(private postService: PostService) { }
-  @Get(":postSlug")
-  async getAPost() {
-  }
 
   @Get('all')
-  async getAllPosts() {
+  async getAllPosts(
+    @Query() getPostsQueriesDto: GetPostsQueriesDto,
+    @Param() getPostsParamsDto: GetPostsParamsDto,
+  ) {
+    return this.postService.getAllPosts(
+      getPostsQueriesDto,
+      getPostsParamsDto
+    )
+  }
+  @Get(":postSlug")
+  async getPost(
+    @Param() getPostParamsDto: GetPostParamsDto
+  ) {
+    return this.postService.getPost(getPostParamsDto);
   }
 
+
+
+  @UseGuards(AuthGuard)
+  @UseGuards(CommunityMembershipAuthGuard)
   @Post('create')
-  async createCommunityPost() {
+  async createCommunityPost(
+    @Body() createPostBodyDto: CreatePostBodyDto,
+    @Param() createPostParamsDto: CreatePostParamsDto,
+    @Request() createPostRequestDto: CreatePostRequestDto
+  ) {
+    return this.postService.createCommunityPost(
+      createPostBodyDto,
+      createPostParamsDto,
+      createPostRequestDto
+    );
   }
 
-  @Patch('update')
-  async updateCommunityPost() {
+  @UseGuards(AuthGuard)
+  @UseGuards(CommunityMembershipAuthGuard)
+  @Patch(':postSlug/update')
+  async updateCommunityPost(
+    @Body() updatePostBodyDto: UpdatePostBodyDto,
+    @Param() updatePostParamsDto: UpdatePostParamsDto,
+    @Request() updatePostRequestDto: UpdatePostRequestDto,
+  ) {
+    return this.postService.updateCommunityPost(
+      updatePostBodyDto,
+      updatePostParamsDto,
+      updatePostRequestDto
+    )
   }
 
-  @Post('vote')
-  async voteCommunityPost() {
+  @UseGuards(AuthGuard)
+  // @UseGuards(CommunityMembershipAuthGuard) 
+  @Delete(':postSlug/delete')
+  async deleteCommunityPost(
+    @Param() deletePostParamsDto: DeletePostParamsDto,
+    @Request() deletePostRequestDto: DeletePostRequestDto,
+  ) {
+    return this.postService.deleteCommunityPost(
+      deletePostParamsDto,
+      deletePostRequestDto
+    )
   }
 
-  @Delete('delete')
-  async deleteCommunityPost() {
+
+  @Post(':postSlug/vote')
+  async voteCommunityPost(
+    @Body() votePostBodyDto: VotePostBodyDto,
+    @Param() votePostParamsDto: VotePostParamsDto,
+    @Request() votePostRequestDto: VotePostRequestDto
+  ) {
+    return this.postService.voteCommunityPost(
+      votePostBodyDto,
+      votePostParamsDto,
+      votePostRequestDto
+    )
   }
 
   @Get(':postSlug/comment/all')

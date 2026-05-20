@@ -25,9 +25,9 @@ export class Post {
   status!: mongoose.Types.ObjectId;
 }
 
-export const SkillSchema = SchemaFactory.createForClass(Post);
+export const PostSchema = SchemaFactory.createForClass(Post);
 
-SkillSchema.index({
+PostSchema.index({
   communityId: 1,
   slug: 1
 }, { unique: true });
