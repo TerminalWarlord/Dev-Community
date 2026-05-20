@@ -1,6 +1,6 @@
 import { IsString, MaxLength, MinLength } from "class-validator";
 
-export class CreateTaskBodyDto {
+export class CreatePostBodyDto {
   @IsString()
   @MinLength(5)
   @MaxLength(255)
@@ -10,15 +10,21 @@ export class CreateTaskBodyDto {
   @MinLength(10)
   @MaxLength(1000)
   content!: string;
+
+  // TODO: generate slug based on post title
+  @IsString()
+  @MinLength(10)
+  @MaxLength(255)
+  slug!: string;
 }
 
-export class CreateTaskParamsDto {
+export class CreatePostParamsDto {
   @IsString()
   communityId!: string;
 }
 
 
-export class CreateTaskRequestDto {
+export class CreatePostRequestDto {
   @IsString()
   userId!: string;
 }

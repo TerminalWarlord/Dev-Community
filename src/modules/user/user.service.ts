@@ -2,6 +2,8 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
+  Post,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -13,6 +15,14 @@ import { UserSkill } from 'src/schemas/user-skill.schema';
 import { GetUsersSkillsParamsDto, GetUsersSkillsQueriesDto } from './dto/get-users-skills.dto';
 import { GetUsersExperiencesParamsDto, GetUsersExperiencesQueriesDto } from './dto/get-users-experiences.dto';
 import { Experience } from 'src/schemas/experience.schema';
+import { AddUserPostDto, AddUserPostRequestDto } from './dto/add-user-post.dto';
+import { Post as PostModel } from 'src/schemas/post.schema';
+import { GetUserPost } from './dto/get-user-post.dto';
+import { GetUserPostsParamsDto, GetUserPostsQueriesDto } from './dto/get-user-posts.dto';
+import { UpdateUserPostBodyDto, UpdateUserPostParamsDto, UpdateUserPostRequestDto } from './dto/update-user-post.dto';
+import { managePost, PostOperationType } from '../community/post/post.helper';
+import { CommunityRole } from 'src/schemas/community-role.schema';
+import { DeleteUserPostParamsDto, DeleteUserPostRequestDto } from './dto/delete-user-post.dto';
 
 @Injectable()
 export class UserService {
@@ -23,6 +33,10 @@ export class UserService {
     private readonly userSkillModel: Model<UserSkill>,
     @InjectModel(Experience.name)
     private readonly experienceModel: Model<Experience>,
+    @InjectModel(PostModel.name)
+    private readonly postModel: Model<PostModel>,
+    @InjectModel(CommunityRole.name)
+    private readonly communityRoleModel: Model<CommunityRole>,
   ) { }
 
   async getUserProfile(userId: string) {
@@ -120,6 +134,149 @@ export class UserService {
       }
     } catch (err) {
       throw new ForbiddenException('Old password is incorrect');
+    }
+  }
+
+  async getUserPost(getUserPost: GetUserPost) {
+    try {
+      const post = await this.postModel.findOne({
+        slug: getUserPost.postSlug,
+        communityId: undefined,
+      })
+        .populate("postedBy", "_id fname lname")
+        .select("-_id -__v")
+      if (!post) {
+        throw new NotFoundException("Post doesn't exist");
+      }
+      return post
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to get post");
+    }
+  }
+
+  async getUserPosts(
+    getUserPostsQueriesDto: GetUserPostsQueriesDto,
+    getUserPostsParamsDto: GetUserPostsParamsDto
+  ) {
+    try {
+      const limit = getUserPostsQueriesDto.limit || 20;
+      const page = getUserPostsQueriesDto.page || 1;
+      const offset = (page - 1) * limit;
+      const query = getUserPostsQueriesDto.query;
+      const postFilter: {
+        communityId: undefined,
+        postedBy: mongoose.Types.ObjectId,
+        title?: object
+      } = {
+        communityId: undefined,
+        postedBy: new mongoose.Types.ObjectId(getUserPostsParamsDto.userId)
+      }
+      if (query) {
+        postFilter.title = {
+          $regex: query,
+          $options: "i"
+        }
+      }
+      const posts = await this.postModel.find(postFilter)
+        .populate("postedBy", "_id fname lname")
+        .select("-_id -__v -status")
+        .skip(offset)
+        .limit(limit + 1);
+      const results = posts.slice(0, limit);
+      return {
+        results,
+        hasNextPage: posts.length > limit
+      }
+    } catch (err) {
+      console.log(err)
+      throw new InternalServerErrorException("Failed to get user posts");
+    }
+  }
+
+
+  async addUserPost(
+    addUserPostDto: AddUserPostDto,
+    addUserPostRequestDto: AddUserPostRequestDto,
+  ) {
+    try {
+      const post = await this.postModel.insertOne({
+        content: addUserPostDto.content,
+        postedBy: new mongoose.Types.ObjectId(addUserPostRequestDto.userId),
+        slug: addUserPostDto.slug,
+        title: addUserPostDto.title
+      });
+      return {
+        message: "success",
+        slug: post.slug,
+        title: post.title,
+        content: post.content
+      }
+    } catch (err) {
+      throw new InternalServerErrorException("Failed to create post");
+    }
+  }
+
+  async updateUserPost(
+    updateUserPostBodyDto: UpdateUserPostBodyDto,
+    updateUserPostParamsDto: UpdateUserPostParamsDto,
+    updateUserPostRequestDto: UpdateUserPostRequestDto
+  ) {
+
+    try {
+      await managePost(
+        updateUserPostParamsDto.postSlug,
+        this.postModel,
+        this.communityRoleModel,
+        this.userModel,
+        updateUserPostRequestDto.userId,
+        updateUserPostRequestDto.userId,
+        PostOperationType.UPDATE,
+        undefined,
+        updateUserPostBodyDto
+      );
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message)
+      }
+      else if (err instanceof ForbiddenException) {
+        throw new ForbiddenException(err.message)
+      }
+      throw new InternalServerErrorException("Failed to update post");
+    }
+  }
+
+  async deleteUserPost(
+    deleteUserPostParamsDto: DeleteUserPostParamsDto,
+    deleteUserPostRequestDto: DeleteUserPostRequestDto
+  ) {
+    try {
+      await managePost(
+        deleteUserPostParamsDto.postSlug,
+        this.postModel,
+        this.communityRoleModel,
+        this.userModel,
+        deleteUserPostParamsDto.userId,
+        deleteUserPostRequestDto.userId,
+        PostOperationType.DELETION
+      );
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      console.log(err)
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message)
+      }
+      else if (err instanceof ForbiddenException) {
+        throw new ForbiddenException(err.message)
+      }
+      throw new InternalServerErrorException("Failed to update post");
     }
   }
 
