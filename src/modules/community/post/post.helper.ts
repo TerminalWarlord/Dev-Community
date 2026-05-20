@@ -7,6 +7,7 @@ import { Post } from "src/schemas/post.schema";
 import { UpdatePostBodyDto } from "./dto/update-post.dto";
 import { User } from "src/schemas/user.schema";
 import { UserStatus } from "src/common/user.enum";
+import { PostVote } from "src/schemas/post-votes.schema";
 
 
 export enum PostOperationType {
@@ -70,4 +71,26 @@ export async function managePost(
     operationType === PostOperationType.DELETION ? performDeletion() : performUpdate();
   }
   throw new ForbiddenException("You can't perform this action");
+}
+
+
+export async function castVote(
+  userId: string,
+  postSlug: string,
+  isUpvote: boolean,
+  postVoteModel: Model<PostVote>,
+  postModel: Model<Post>,
+) {
+  const post = await postModel.findOne({
+    slug: postSlug
+  });
+  if (!post) {
+    throw new NotFoundException("Post doesn't exist");
+  }
+  await postVoteModel.updateOne({
+    postId: post._id,
+    userId: new mongoose.Types.ObjectId(userId)
+  }, {
+    isUpvote
+  }, { upsert: true });
 }

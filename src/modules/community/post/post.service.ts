@@ -9,9 +9,11 @@ import { GetPostParamsDto } from './dto/get-post.dto';
 import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from '../dto/update-community.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 import { DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
-import { managePost, PostOperationType } from './post.helper';
+import { castVote, managePost, PostOperationType } from './post.helper';
 import { CommunityRole } from 'src/schemas/community-role.schema';
 import { User } from 'src/schemas/user.schema';
+import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
+import { PostVote } from 'src/schemas/post-votes.schema';
 
 
 @Injectable()
@@ -20,6 +22,8 @@ export class PostService {
   constructor(
     @InjectModel(Post.name)
     private readonly postModel: Model<Post>,
+    @InjectModel(PostVote.name)
+    private readonly postVoteModel: Model<PostVote>,
     @InjectModel(CommunityRole.name)
     private readonly communityRoleModel: Model<CommunityRole>,
     @InjectModel(User.name)
@@ -180,7 +184,26 @@ export class PostService {
     }
   }
 
-  async voteCommunityPost() {
+  async voteCommunityPost(
+    votePostBodyDto: VotePostBodyDto,
+    votePostParamsDto: VotePostParamsDto,
+    votePostRequestDto: VotePostRequestDto
+  ) {
+    try {
+      await castVote(
+        votePostRequestDto.userId,
+        votePostParamsDto.postSlug,
+        votePostBodyDto.isUpvote,
+        this.postVoteModel,
+        this.postModel
+      );
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to cast vote");
+
+    }
   }
 
 }

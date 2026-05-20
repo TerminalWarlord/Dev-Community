@@ -8,6 +8,7 @@ import { GetPostParamsDto } from './dto/get-post.dto';
 import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from '../dto/update-community.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 import { DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
+import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
 
 @Controller('community/:communityId/post')
 export class PostController {
@@ -76,8 +77,17 @@ export class PostController {
   }
 
 
-  @Post('vote')
-  async voteCommunityPost() {
+  @Post(':postSlug/vote')
+  async voteCommunityPost(
+    @Body() votePostBodyDto: VotePostBodyDto,
+    @Param() votePostParamsDto: VotePostParamsDto,
+    @Request() votePostRequestDto: VotePostRequestDto
+  ) {
+    return this.postService.voteCommunityPost(
+      votePostBodyDto,
+      votePostParamsDto,
+      votePostRequestDto
+    )
   }
 
   @Get(':postSlug/comment/all')
