@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   Post,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { GetUsersExperiencesParamsDto, GetUsersExperiencesQueriesDto } from './d
 import { Experience } from 'src/schemas/experience.schema';
 import { AddUserPostDto, AddUserPostRequestDto } from './dto/add-user-post.dto';
 import { Post as PostModel } from 'src/schemas/post.schema';
+import { GetUserPost } from './dto/get-user-post.dto';
 
 @Injectable()
 export class UserService {
@@ -128,7 +130,21 @@ export class UserService {
     }
   }
 
-  async getUserPost() {
+  async getUserPost(getUserPost: GetUserPost) {
+    try {
+      const post = await this.postModel.findOne({
+        slug: getUserPost.postSlug,
+        communityId: undefined,
+      })
+      if (!post) {
+        throw new NotFoundException("Post doesn't exist");
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to get post");
+    }
   }
 
   async getUserPosts() {
