@@ -1,6 +1,6 @@
 import { IsString, MaxLength, MinLength } from "class-validator";
 
-export class CreateTaskBodyDto {
+export class CreatePostBodyDto {
   @IsString()
   @MinLength(5)
   @MaxLength(255)
@@ -12,13 +12,13 @@ export class CreateTaskBodyDto {
   content!: string;
 }
 
-export class CreateTaskParamsDto {
+export class CreatePostParamsDto {
   @IsString()
   communityId!: string;
 }
 
 
-export class CreateTaskRequestDto {
+export class CreatePostRequestDto {
   @IsString()
   userId!: string;
 }
