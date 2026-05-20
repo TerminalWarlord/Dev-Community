@@ -28,7 +28,8 @@ export class PostService {
   ) {
     try {
       const post = await this.postModel.findOne({
-        slug: getPostParamsDto.postSlug
+        slug: getPostParamsDto.postSlug,
+        status: PostStatus.PUBLISHED
       })
         .select("-__v -status -_id -communityId")
         .populate("postedBy", "_id fname lname");
@@ -53,7 +54,8 @@ export class PostService {
       const limit = getPostsQueriesDto.limit || 10;
       const offset = (page - 1) * limit;
       const posts = await this.postModel.find({
-        communityId: new mongoose.Types.ObjectId(getPostsParamsDto.communityId)
+        communityId: new mongoose.Types.ObjectId(getPostsParamsDto.communityId),
+        status: PostStatus.PUBLISHED
       })
         .select("-communityId -status -__v -_id")
         .populate("postedBy", "_id fname lname")
