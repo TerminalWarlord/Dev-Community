@@ -52,11 +52,27 @@ export class PostService {
     try {
       const page = getPostsQueriesDto.page || 1;
       const limit = getPostsQueriesDto.limit || 10;
-      const offset = (page - 1) * limit;
-      const posts = await this.postModel.find({
+      const query = getPostsQueriesDto.query;
+
+      let postFilter: {
+        communityId: mongoose.Types.ObjectId,
+        status: PostStatus,
+        title?: object
+      } = {
         communityId: new mongoose.Types.ObjectId(getPostsParamsDto.communityId),
         status: PostStatus.PUBLISHED
-      })
+      }
+      if (query) {
+        postFilter = {
+          ...postFilter,
+          title: {
+            $regex: query,
+            $options: "i"
+          },
+        }
+      }
+      const offset = (page - 1) * limit;
+      const posts = await this.postModel.find(postFilter)
         .select("-communityId -status -__v -_id")
         .populate("postedBy", "_id fname lname")
         .skip(offset)

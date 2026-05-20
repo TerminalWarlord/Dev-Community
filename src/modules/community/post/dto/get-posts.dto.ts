@@ -11,6 +11,10 @@ export class GetPostsQueriesDto {
   @Min(1)
   @Max(20)
   limit!: number;
+
+  @IsOptional()
+  @IsString()
+  query!: string;
 }
 
 export class GetPostsParamsDto {
