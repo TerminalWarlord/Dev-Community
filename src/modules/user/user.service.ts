@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  Post,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -13,6 +14,8 @@ import { UserSkill } from 'src/schemas/user-skill.schema';
 import { GetUsersSkillsParamsDto, GetUsersSkillsQueriesDto } from './dto/get-users-skills.dto';
 import { GetUsersExperiencesParamsDto, GetUsersExperiencesQueriesDto } from './dto/get-users-experiences.dto';
 import { Experience } from 'src/schemas/experience.schema';
+import { AddUserPostDto, AddUserPostRequestDto } from './dto/add-user-post.dto';
+import { Post as PostModel } from 'src/schemas/post.schema';
 
 @Injectable()
 export class UserService {
@@ -23,6 +26,8 @@ export class UserService {
     private readonly userSkillModel: Model<UserSkill>,
     @InjectModel(Experience.name)
     private readonly experienceModel: Model<Experience>,
+    @InjectModel(PostModel.name)
+    private readonly postModel: Model<PostModel>,
   ) { }
 
   async getUserProfile(userId: string) {
@@ -121,6 +126,40 @@ export class UserService {
     } catch (err) {
       throw new ForbiddenException('Old password is incorrect');
     }
+  }
+
+  async getUserPost() {
+  }
+
+  async getUserPosts() {
+  }
+
+  async addUserPost(
+    addUserPostDto: AddUserPostDto,
+    addUserPostRequestDto: AddUserPostRequestDto,
+  ) {
+    try {
+      const post = await this.postModel.insertOne({
+        content: addUserPostDto.content,
+        postedBy: new mongoose.Types.ObjectId(addUserPostRequestDto.userId),
+        slug: addUserPostDto.slug,
+        title: addUserPostDto.title
+      });
+      return {
+        message: "success",
+        slug: post.slug,
+        title: post.title,
+        content: post.content
+      }
+    } catch (err) {
+      throw new InternalServerErrorException("Failed to create post");
+    }
+  }
+
+  async updateUserPost() {
+  }
+
+  async deleteUserPost() {
   }
 
   async acceptInvitation() { }
