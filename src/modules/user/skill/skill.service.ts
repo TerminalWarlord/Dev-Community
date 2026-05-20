@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException, Request } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, NotFoundException, Request } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Skill } from 'src/schemas/skill.schema';
@@ -9,6 +9,7 @@ import { GetSkillsDto } from './dto/get-skills.dto';
 
 @Injectable()
 export class SkillService {
+  private logger = new Logger(SkillService.name);
   constructor(
     @InjectModel(Skill.name)
     private readonly skillModel: Model<Skill>,
@@ -41,7 +42,7 @@ export class SkillService {
         }
       }
       catch (err) {
-        console.log(err)
+        this.logger.error(err)
         throw new InternalServerErrorException("Failed to create user skill");
       }
 
