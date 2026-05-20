@@ -11,6 +11,7 @@ import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './
 import { DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
 import { managePost, PostOperationType } from './post.helper';
 import { CommunityRole } from 'src/schemas/community-role.schema';
+import { User } from 'src/schemas/user.schema';
 
 
 @Injectable()
@@ -20,7 +21,9 @@ export class PostService {
     @InjectModel(Post.name)
     private readonly postModel: Model<Post>,
     @InjectModel(CommunityRole.name)
-    private readonly communityRoleModel: Model<CommunityRole>
+    private readonly communityRoleModel: Model<CommunityRole>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>
   ) { }
 
   async getPost(
@@ -125,6 +128,8 @@ export class PostService {
         updatePostParamsDto.postSlug,
         this.postModel,
         this.communityRoleModel,
+        this.userModel,
+        updatePostRequestDto.userId,
         updatePostRequestDto.userId,
         PostOperationType.UPDATE,
         updatePostParamsDto.communityId,
@@ -154,6 +159,8 @@ export class PostService {
         deletePostParamsDto.postSlug,
         this.postModel,
         this.communityRoleModel,
+        this.userModel,
+        deletePostRequestDto.userId,
         deletePostRequestDto.userId,
         PostOperationType.DELETION,
         deletePostParamsDto.communityId

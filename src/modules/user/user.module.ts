@@ -9,6 +9,7 @@ import { ExperienceModule } from './experience/experience.module';
 import { UserSkill, UserSkillSchema } from 'src/schemas/user-skill.schema';
 import { Experience, ExperienceSchema } from 'src/schemas/experience.schema';
 import { Post, PostSchema } from 'src/schemas/post.schema';
+import { CommunityRole, CommunityRoleSchema } from 'src/schemas/community-role.schema';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { Post, PostSchema } from 'src/schemas/post.schema';
       { name: UserSkill.name, schema: UserSkillSchema },
       { name: Experience.name, schema: ExperienceSchema },
       { name: Post.name, schema: PostSchema },
+      { name: CommunityRole.name, schema: CommunityRoleSchema },
     ]),
     SkillModule,
     ExperienceModule,

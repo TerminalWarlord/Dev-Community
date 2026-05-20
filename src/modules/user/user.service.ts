@@ -19,6 +19,10 @@ import { AddUserPostDto, AddUserPostRequestDto } from './dto/add-user-post.dto';
 import { Post as PostModel } from 'src/schemas/post.schema';
 import { GetUserPost } from './dto/get-user-post.dto';
 import { GetUserPostsParamsDto, GetUserPostsQueriesDto } from './dto/get-user-posts.dto';
+import { UpdateUserPostBodyDto, UpdateUserPostParamsDto, UpdateUserPostRequestDto } from './dto/update-user-post.dto';
+import { managePost, PostOperationType } from '../community/post/post.helper';
+import { CommunityRole } from 'src/schemas/community-role.schema';
+import { DeleteUserPostParamsDto, DeleteUserPostRequestDto } from './dto/delete-user-post.dto';
 
 @Injectable()
 export class UserService {
@@ -31,6 +35,8 @@ export class UserService {
     private readonly experienceModel: Model<Experience>,
     @InjectModel(PostModel.name)
     private readonly postModel: Model<PostModel>,
+    @InjectModel(CommunityRole.name)
+    private readonly communityRoleModel: Model<CommunityRole>,
   ) { }
 
   async getUserProfile(userId: string) {
@@ -137,8 +143,8 @@ export class UserService {
         slug: getUserPost.postSlug,
         communityId: undefined,
       })
-      .populate("postedBy", "_id fname lname")
-      .select("-_id -__v")
+        .populate("postedBy", "_id fname lname")
+        .select("-_id -__v")
       if (!post) {
         throw new NotFoundException("Post doesn't exist");
       }
@@ -213,10 +219,65 @@ export class UserService {
     }
   }
 
-  async updateUserPost() {
+  async updateUserPost(
+    updateUserPostBodyDto: UpdateUserPostBodyDto,
+    updateUserPostParamsDto: UpdateUserPostParamsDto,
+    updateUserPostRequestDto: UpdateUserPostRequestDto
+  ) {
+
+    try {
+      await managePost(
+        updateUserPostParamsDto.postSlug,
+        this.postModel,
+        this.communityRoleModel,
+        this.userModel,
+        updateUserPostRequestDto.userId,
+        updateUserPostRequestDto.userId,
+        PostOperationType.UPDATE,
+        undefined,
+        updateUserPostBodyDto
+      );
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message)
+      }
+      else if (err instanceof ForbiddenException) {
+        throw new ForbiddenException(err.message)
+      }
+      throw new InternalServerErrorException("Failed to update post");
+    }
   }
 
-  async deleteUserPost() {
+  async deleteUserPost(
+    deleteUserPostParamsDto: DeleteUserPostParamsDto,
+    deleteUserPostRequestDto: DeleteUserPostRequestDto
+  ) {
+    try {
+      await managePost(
+        deleteUserPostParamsDto.postSlug,
+        this.postModel,
+        this.communityRoleModel,
+        this.userModel,
+        deleteUserPostParamsDto.userId,
+        deleteUserPostRequestDto.userId,
+        PostOperationType.DELETION
+      );
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      console.log(err)
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message)
+      }
+      else if (err instanceof ForbiddenException) {
+        throw new ForbiddenException(err.message)
+      }
+      throw new InternalServerErrorException("Failed to update post");
+    }
   }
 
   async acceptInvitation() { }
