@@ -5,6 +5,8 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { CommunityMembershipAuthGuard } from '../common/member.guard';
 import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
 import { GetPostParamsDto } from './dto/get-post.dto';
+import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from '../dto/update-community.dto';
+import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 
 @Controller('community/:communityId/post')
 export class PostController {
@@ -44,8 +46,19 @@ export class PostController {
     );
   }
 
-  @Patch('update')
-  async updateCommunityPost() {
+  @UseGuards(AuthGuard)
+  @UseGuards(CommunityMembershipAuthGuard)
+  @Patch(':postSlug/update')
+  async updateCommunityPost(
+    @Body() updatePostBodyDto: UpdatePostBodyDto,
+    @Param() updatePostParamsDto: UpdatePostParamsDto,
+    @Request() updatePostRequestDto: UpdatePostRequestDto,
+  ) {
+    return this.postService.updateCommunityPost(
+      updatePostBodyDto,
+      updatePostParamsDto,
+      updatePostRequestDto
+    )
   }
 
   @Post('vote')
