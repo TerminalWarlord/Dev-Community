@@ -4,6 +4,7 @@ import { CreatePostBodyDto, CreatePostParamsDto, CreatePostRequestDto } from './
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { CommunityMembershipAuthGuard } from '../common/member.guard';
 import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
+import { GetPostParamsDto } from './dto/get-post.dto';
 
 @Controller('community/:communityId/post')
 export class PostController {
@@ -20,7 +21,10 @@ export class PostController {
     )
   }
   @Get(":postSlug")
-  async getPost() {
+  async getPost(
+    @Param() getPostParamsDto: GetPostParamsDto
+  ) {
+    return this.postService.getPost(getPostParamsDto);
   }
 
 

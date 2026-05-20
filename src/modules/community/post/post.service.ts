@@ -1,10 +1,11 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Post } from 'src/schemas/post.schema';
 import { CreatePostBodyDto, CreatePostParamsDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { PostStatus } from 'src/common/post.enum';
 import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
+import { GetPostParamsDto } from './dto/get-post.dto';
 
 
 @Injectable()
@@ -15,7 +16,25 @@ export class PostService {
     private readonly postModel: Model<Post>
   ) { }
 
-  async getPost() {
+  async getPost(
+    getPostParamsDto: GetPostParamsDto
+  ) {
+    try {
+      const post = await this.postModel.findOne({
+        slug: getPostParamsDto.postSlug
+      })
+        .select("-__v -status -_id -communityId")
+        .populate("postedBy", "_id fname lname");
+      if (!post) {
+        throw new NotFoundException("Couldn't find any post with that slug");
+      }
+      return post;
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to get post");
+    }
   }
 
   async getAllPosts(
