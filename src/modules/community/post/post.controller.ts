@@ -1,19 +1,31 @@
-import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
 import { PostService } from './post.service';
+import { CreatePostBodyDto, CreatePostParamsDto, CreatePostRequestDto } from './dto/create-post.dto';
+import { AuthGuard } from 'src/modules/auth/auth.guard';
 
 @Controller('community/:communityId/post')
 export class PostController {
   constructor(private postService: PostService) { }
   @Get(":postSlug")
-  async getAPost() {
+  async getPost() {
   }
 
   @Get('all')
   async getAllPosts() {
   }
 
+  @UseGuards(AuthGuard)
   @Post('create')
-  async createCommunityPost() {
+  async createCommunityPost(
+    @Body() createPostBodyDto: CreatePostBodyDto,
+    @Param() createPostParamsDto: CreatePostParamsDto,
+    @Request() createPostRequestDto: CreatePostRequestDto
+  ) {
+    return this.postService.createCommunityPost(
+      createPostBodyDto,
+      createPostParamsDto,
+      createPostRequestDto
+    );
   }
 
   @Patch('update')
