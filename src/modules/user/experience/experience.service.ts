@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Experience } from 'src/schemas/experience.schema';
@@ -8,6 +8,7 @@ import { RemoveExperienceParamsDto, RemoveExperienceRequestDto } from './dto/rem
 
 @Injectable()
 export class ExperienceService {
+  private logger = new Logger(ExperienceService.name);
   constructor(
     @InjectModel(Experience.name)
     private readonly experienceModel: Model<Experience>,
@@ -28,7 +29,7 @@ export class ExperienceService {
       };
 
     } catch (error) {
-      console.log(error)
+      this.logger.error(error)
       throw new InternalServerErrorException("Failed to create experience");
     }
   }
@@ -55,7 +56,7 @@ export class ExperienceService {
       }
 
     } catch (error) {
-      console.log(error)
+      this.logger.error(error)
       throw new InternalServerErrorException("Failed to update experience");
     }
   }
@@ -77,7 +78,7 @@ export class ExperienceService {
       }
     }
     catch (err) {
-      console.log(err)
+      this.logger.error(err)
       if (err instanceof Error) {
         throw new InternalServerErrorException(err.message);
       }

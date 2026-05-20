@@ -2,18 +2,20 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { JWT_SECRET } from '../../../common/constants';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from 'src/schemas/user.schema';
 import mongoose, { Model } from 'mongoose';
 import { CommunityRole } from 'src/schemas/community-role.schema';
+import { CommunityService } from '../community.service';
 
 @Injectable()
 export class CommunityModeratorAuthGuard implements CanActivate {
+  private logger = new Logger(CommunityService.name);
   constructor(
     @InjectModel(CommunityRole.name)
     private readonly communityRoleModel: Model<CommunityRole>,
@@ -47,7 +49,7 @@ export class CommunityModeratorAuthGuard implements CanActivate {
         throw new UnauthorizedException("You are not a moderator!");
       }
     } catch (err) {
-      console.log(err);
+      this.logger.error(err);
       throw new UnauthorizedException();
     }
     return true;

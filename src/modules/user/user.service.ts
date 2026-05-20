@@ -2,8 +2,8 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
-  Post,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -26,6 +26,7 @@ import { DeleteUserPostParamsDto, DeleteUserPostRequestDto } from './dto/delete-
 
 @Injectable()
 export class UserService {
+  private logger = new Logger(UserService.name)
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
@@ -191,7 +192,7 @@ export class UserService {
         hasNextPage: posts.length > limit
       }
     } catch (err) {
-      console.log(err)
+      this.logger.error(err)
       throw new InternalServerErrorException("Failed to get user posts");
     }
   }
@@ -269,7 +270,7 @@ export class UserService {
         message: "success"
       }
     } catch (err) {
-      console.log(err)
+      this.logger.error(err)
       if (err instanceof NotFoundException) {
         throw new NotFoundException(err.message)
       }

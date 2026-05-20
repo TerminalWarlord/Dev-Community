@@ -2,6 +2,7 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -11,9 +12,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/schemas/user.schema';
 import mongoose, { Model } from 'mongoose';
 import { CommunityRole } from 'src/schemas/community-role.schema';
+import { CommunityService } from '../community.service';
 
 @Injectable()
 export class CommunityAdminAuthGuard implements CanActivate {
+  private logger = new Logger(CommunityService.name);
   constructor(
     @InjectModel(CommunityRole.name)
     private readonly communityRoleModel: Model<CommunityRole>,
@@ -47,7 +50,7 @@ export class CommunityAdminAuthGuard implements CanActivate {
         throw new UnauthorizedException("You are not an admin!");
       }
     } catch (err) {
-      console.log(err);
+      this.logger.error(err);
       throw new UnauthorizedException();
     }
     return true;
