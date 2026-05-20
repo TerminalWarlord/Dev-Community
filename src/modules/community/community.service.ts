@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { CommunityRole } from 'src/schemas/community-role.schema';
@@ -18,6 +18,7 @@ import { ManageInvitationParamsDto, ManageInvitationRequestDto } from './dto/man
 
 @Injectable()
 export class CommunityService {
+  private logger = new Logger(CommunityService.name);
   constructor(
     @InjectModel(Community.name)
     private readonly communityModel: Model<Community>,
@@ -128,7 +129,7 @@ export class CommunityService {
       }
 
     } catch (error) {
-      console.log(error);
+      this.logger.error(error);
       throw new InternalServerErrorException("Failed to delete community");
 
     }
@@ -155,7 +156,7 @@ export class CommunityService {
         hasNextPage: members.length > limit
       }
     } catch (error) {
-      console.log(error)
+      this.logger.error(error)
       throw new InternalServerErrorException("Failed to get community members");
     }
   }
@@ -182,7 +183,7 @@ export class CommunityService {
       }
 
     } catch (error) {
-      console.log(error);
+      this.logger.error(error);
       throw new InternalServerErrorException("Failed to ban user");
     }
   }
@@ -240,7 +241,7 @@ export class CommunityService {
       if (error instanceof Error) {
         throw new InternalServerErrorException(error.message);
       }
-      console.log(error);
+      this.logger.error(error);
       throw new InternalServerErrorException("Failed to invite user");
     }
   }
