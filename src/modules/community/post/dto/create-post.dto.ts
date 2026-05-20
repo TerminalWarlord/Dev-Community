@@ -10,6 +10,12 @@ export class CreatePostBodyDto {
   @MinLength(10)
   @MaxLength(1000)
   content!: string;
+
+  // TODO: generate slug based on post title
+  @IsString()
+  @MinLength(10)
+  @MaxLength(255)
+  slug!: string;
 }
 
 export class CreatePostParamsDto {
