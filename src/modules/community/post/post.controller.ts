@@ -89,20 +89,4 @@ export class PostController {
       votePostRequestDto
     )
   }
-
-  @Get(':postSlug/comment/all')
-  async getCommunityPostComments() {
-  }
-
-  @Post(':postSlug/comment/add')
-  async addACommunityPostComment() {
-  }
-
-  @Patch(':postSlug/comment/update')
-  async updateACommunityPostComment() {
-  }
-
-  @Delete(':postSlug/comment/delete')
-  async deleteACommunityPostComment() {
-  }
 }
