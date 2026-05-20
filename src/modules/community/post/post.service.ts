@@ -1,10 +1,11 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Post } from 'src/schemas/post.schema';
 import { CreatePostBodyDto, CreatePostParamsDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { PostStatus } from 'src/common/post.enum';
 import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
+
 
 @Injectable()
 export class PostService {
@@ -26,8 +27,10 @@ export class PostService {
       const limit = getPostsQueriesDto.limit || 10;
       const offset = (page - 1) * limit;
       const posts = await this.postModel.find({
-        communityId: getPostsParamsDto.communityId
+        communityId: new mongoose.Types.ObjectId(getPostsParamsDto.communityId)
       })
+        .select("-communityId -status -__v -_id")
+        .populate("postedBy", "_id fname lname")
         .skip(offset)
         .limit(limit + 1);
       const results = posts.slice(0, limit);
@@ -51,8 +54,8 @@ export class PostService {
         slug: createPostBodyDto.slug,
         content: createPostBodyDto.content,
         status: PostStatus.PUBLISHED,
-        communityId: createPostParamsDto.communityId,
-        postedBy: createPostRequestDto.userId
+        communityId: new mongoose.Types.ObjectId(createPostParamsDto.communityId),
+        postedBy: new mongoose.Types.ObjectId(createPostRequestDto.userId),
       });
       return {
         message: "success",

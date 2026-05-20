@@ -8,9 +8,6 @@ import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
 @Controller('community/:communityId/post')
 export class PostController {
   constructor(private postService: PostService) { }
-  @Get(":postSlug")
-  async getPost() {
-  }
 
   @Get('all')
   async getAllPosts(
@@ -22,6 +19,11 @@ export class PostController {
       getPostsParamsDto
     )
   }
+  @Get(":postSlug")
+  async getPost() {
+  }
+
+
 
   @UseGuards(AuthGuard)
   @UseGuards(CommunityMembershipAuthGuard)
