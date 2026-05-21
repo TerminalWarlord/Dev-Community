@@ -7,6 +7,7 @@ import { GetAllCommentsParamsDto, GetAllCommentsQueriesDto, GetAllCommentsReques
 import { UpdateCommentBodyDto, UpdateCommentParamsDto, UpdateCommentRequestDto } from './dto/update-comment.dto';
 import { UpdateCommunityBodyDto } from '../../dto/update-community.dto';
 import { DeleteCommentParamsDto, DeleteCommentRequestDto } from './dto/delete-comment.dto';
+import { VoteCommentBodyDto, VoteCommentParamsDto, VoteCommentRequestDto } from './dto/vote-comment.dto';
 
 
 @Controller()
@@ -73,6 +74,20 @@ export class CommentController {
     return this.commentService.deleteComment(
       deleteCommentParamsDto,
       deleteCommentRequestDto
+    )
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/comment/:commentId/vote')
+  async voteComment(
+    @Body() voteCommentBodyDto: VoteCommentBodyDto,
+    @Param() voteCommentParamsDto: VoteCommentParamsDto,
+    @Request() voteCommentRequestDto: VoteCommentRequestDto
+  ) {
+    return this.commentService.voteComment(
+      voteCommentBodyDto,
+      voteCommentParamsDto,
+      voteCommentRequestDto
     )
   }
 }

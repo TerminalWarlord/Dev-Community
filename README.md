@@ -71,6 +71,7 @@ For better view: https://dbdiagram.io/d/Dev-Community-6a02b9f454a51d93d3fe1826
 | GET    | `/post/:postSlug/comment/all` |                 Get comments of a post                  |
 | POST   | `/post/:postSlug/comment/add` |                 Add a comment to a post                 |
 | GET    | `/comment/:commentId`         |                      Get a comment                      |
+| POST   | `/comment/:commentId/vote`    |                     Vote a comment                      |
 | PATCH  | `/comment/:commentId/update`  |               Update a comment of a post                |
 | DELETE | `/comment/:commentId/delete`  | `[ADMIN/MOD/User(itself)]` Delete a comment from a post |
 
