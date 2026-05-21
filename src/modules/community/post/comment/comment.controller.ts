@@ -1,5 +1,7 @@
-import { Controller, Delete, Get, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
 import { CommentService } from './comment.service';
+import { AddCommentBodyDto, AddCommentParamsDto, AddCommentRequestDto } from './dto/add-comment.dto';
+import { AuthGuard } from 'src/modules/auth/auth.guard';
 
 
 @Controller()
@@ -15,8 +17,18 @@ export class CommentController {
   async getComments() {
   }
 
+  @UseGuards(AuthGuard)
   @Post('/post/:postSlug/comment/add')
-  async addComment() {
+  async addComment(
+    @Body() addCommentBodyDto: AddCommentBodyDto,
+    @Param() addCommentParamsDto: AddCommentParamsDto,
+    @Request() addCommentRequestDto: AddCommentRequestDto,
+  ) {
+    return this.commentService.addComment(
+      addCommentBodyDto,
+      addCommentParamsDto,
+      addCommentRequestDto
+    )
   }
 
   @Patch('/comment/:commentId/update')
