@@ -20,9 +20,11 @@ import { Post as PostModel } from 'src/schemas/post.schema';
 import { GetUserPost } from './dto/get-user-post.dto';
 import { GetUserPostsParamsDto, GetUserPostsQueriesDto } from './dto/get-user-posts.dto';
 import { UpdateUserPostBodyDto, UpdateUserPostParamsDto, UpdateUserPostRequestDto } from './dto/update-user-post.dto';
-import { managePost, PostOperationType } from '../community/post/post.helper';
+import { castVote, managePost, PostOperationType } from '../community/post/post.helper';
 import { CommunityRole } from 'src/schemas/community-role.schema';
 import { DeleteUserPostParamsDto, DeleteUserPostRequestDto } from './dto/delete-user-post.dto';
+import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from '../community/post/dto/vote-post.dto';
+import { PostVote } from 'src/schemas/post-votes.schema';
 
 @Injectable()
 export class UserService {
@@ -36,6 +38,8 @@ export class UserService {
     private readonly experienceModel: Model<Experience>,
     @InjectModel(PostModel.name)
     private readonly postModel: Model<PostModel>,
+    @InjectModel(PostVote.name)
+    private readonly postVoteModel: Model<PostVote>,
     @InjectModel(CommunityRole.name)
     private readonly communityRoleModel: Model<CommunityRole>,
   ) { }
@@ -280,7 +284,30 @@ export class UserService {
       throw new InternalServerErrorException("Failed to update post");
     }
   }
+  async voteUserPost(
+    votePostBodyDto: VotePostBodyDto,
+    votePostParamsDto: VotePostParamsDto,
+    votePostRequestDto: VotePostRequestDto,
+  ) {
+    try {
+      await castVote(
+        votePostRequestDto.userId,
+        votePostParamsDto.postSlug,
+        votePostBodyDto?.voteType,
+        this.postVoteModel,
+        this.postModel
+      );
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      console.log(err)
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to cast vote");
 
-  async acceptInvitation() { }
-  async rejectInvitation() { }
+    }
+
+  }
 }
