@@ -21,6 +21,7 @@ import { GetUserPost } from './dto/get-user-post.dto';
 import { GetUserPostsParamsDto, GetUserPostsQueriesDto } from './dto/get-user-posts.dto';
 import { UpdateUserPostBodyDto, UpdateUserPostParamsDto, UpdateUserPostRequestDto } from './dto/update-user-post.dto';
 import { DeleteUserPostParamsDto, DeleteUserPostRequestDto } from './dto/delete-user-post.dto';
+import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from '../community/post/dto/vote-post.dto';
 
 @Controller('user')
 export class UserController {
@@ -119,15 +120,18 @@ export class UserController {
     )
   }
 
-  @Post('invitation/accept/:invitationId')
-  async acceptInvitation() {
-    return this.userService.acceptInvitation();
+
+  @UseGuards(AuthGuard)
+  @Post('profile/:userId/post/:postSlug/vote')
+  async voteUserPost(
+    @Body() votePostBodyDto: VotePostBodyDto,
+    @Param() votePostParamsDto: VotePostParamsDto,
+    @Request() votePostRequestDto: VotePostRequestDto,
+  ) {
+    return this.userService.voteUserPost(
+      votePostBodyDto,
+      votePostParamsDto,
+      votePostRequestDto
+    )
   }
-
-  @Post('invitation/reject/:invitationId')
-  async rejectInvitation() {
-    return this.userService.rejectInvitation();
-  }
-
-
 }
