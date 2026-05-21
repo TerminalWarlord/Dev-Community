@@ -4,6 +4,8 @@ import { AddCommentBodyDto, AddCommentParamsDto, AddCommentRequestDto } from './
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { GetCommentParamsDto } from './dto/get-comment.dto';
 import { GetAllCommentsParamsDto, GetAllCommentsQueriesDto, GetAllCommentsRequestDto } from './dto/get-all-comments.dto';
+import { UpdateCommentBodyDto, UpdateCommentParamsDto, UpdateCommentRequestDto } from './dto/update-comment.dto';
+import { UpdateCommunityBodyDto } from '../../dto/update-community.dto';
 
 
 @Controller()
@@ -47,8 +49,18 @@ export class CommentController {
     )
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/comment/:commentId/update')
-  async updateComment() {
+  async updateComment(
+    @Param() updateCommentParamsDto: UpdateCommentParamsDto,
+    @Request() updateCommentRequestDto: UpdateCommentRequestDto,
+    @Body() updateCommentBodyDto: UpdateCommentBodyDto,
+  ) {
+    return this.commentService.updateComment(
+      updateCommentParamsDto,
+      updateCommentRequestDto,
+      updateCommentBodyDto
+    )
   }
 
   @Delete('/comment/:commentId/delete')
