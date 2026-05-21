@@ -1,6 +1,6 @@
 import { Logger } from "@nestjs/common";
 import mongoose, { Model } from "mongoose";
-import { CommentStatus } from "src/common/comment.enum";
+import { CommentOrderBy, CommentStatus } from "src/common/comment.enum";
 import { Comment } from "src/schemas/comment.schema";
 import { CommentService } from "./comment.service";
 
@@ -10,11 +10,12 @@ export async function GetNestedComments(
   postId: mongoose.Types.ObjectId,
   page: number = 1,
   limit: number = 3,
+  orderBy: CommentOrderBy = CommentOrderBy.ASC
 ) {
   // TODO: add sorting
   const logger = new Logger(CommentService.name);
   const offset = (Math.max(page, 0) - 1) * Math.min(limit, 10);
-
+  logger.debug(orderBy)
   const comments = await commentModel.find({
     postId,
     parentId,
@@ -22,6 +23,9 @@ export async function GetNestedComments(
   })
     .populate("userId", "fname lname")
     .select("-__v -status")
+    .sort({
+      createdAt: orderBy === CommentOrderBy.ASC ? 1 : -1
+    })
     .skip(offset)
     .limit(limit + 1)
     .lean();
@@ -40,7 +44,8 @@ export async function GetNestedComments(
           comment._id,
           postId,
           1,
-          limit
+          limit,
+          orderBy
         )
       }
     })

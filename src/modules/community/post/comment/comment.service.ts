@@ -71,7 +71,8 @@ export class CommentService {
         parentObjId,
         post._id,
         page,
-        limit
+        limit,
+        orderBy
       );
       const results = comments.slice(0, limit);
       return {
