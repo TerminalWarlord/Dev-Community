@@ -3,10 +3,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Post } from 'src/schemas/post.schema';
 import { CreatePostBodyDto, CreatePostParamsDto, CreatePostRequestDto } from './dto/create-post.dto';
-import { PostStatus } from 'src/common/post.enum';
+import { PostStatus, VoteType } from 'src/common/post.enum';
 import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
 import { GetPostParamsDto } from './dto/get-post.dto';
-import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from '../dto/update-community.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 import { DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
 import { castVote, managePost, PostOperationType } from './post.helper';
@@ -27,24 +26,52 @@ export class PostService {
     @InjectModel(CommunityRole.name)
     private readonly communityRoleModel: Model<CommunityRole>,
     @InjectModel(User.name)
-    private readonly userModel: Model<User>
+    private readonly userModel: Model<User>,
   ) { }
 
   async getPost(
     getPostParamsDto: GetPostParamsDto
   ) {
     try {
+      // TODO: get post votes
       const post = await this.postModel.findOne({
         slug: getPostParamsDto.postSlug,
         status: PostStatus.PUBLISHED
       })
-        .select("-__v -status -_id -communityId")
-        .populate("postedBy", "_id fname lname");
+        .select("-__v -status -communityId")
+        .populate("postedBy", "_id fname lname")
+        .lean();
       if (!post) {
         throw new NotFoundException("Couldn't find any post with that slug");
       }
-      return post;
+
+      // TODO: use aggregation
+      // const postVotes = await this.postVoteModel.aggregate([
+      //   { $match: { postId: post._id } },
+      //   {
+      //     $group: { _id: "$voteType", upvotes: {$sum: "$UPVOTE"}}
+      //   }
+      // ]);
+      const upvotes = await this.postVoteModel.countDocuments({
+        postId: post._id,
+        voteType: VoteType.UPVOTE
+      });
+      const downvotes = await this.postVoteModel.countDocuments({
+        postId: post._id,
+        voteType: VoteType.DOWNVOTE
+      });
+      const neutralVotes = await this.postVoteModel.countDocuments({
+        postId: post._id,
+        voteType: VoteType.NEUTRAL
+      });
+      return {
+        ...post,
+        upvotes,
+        downvotes,
+        neutralVotes
+      };
     } catch (err) {
+      this.logger.error(err);
       if (err instanceof NotFoundException) {
         throw new NotFoundException(err.message);
       }
