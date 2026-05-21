@@ -2,26 +2,28 @@ import { Controller, Delete, Get, Patch, Post } from '@nestjs/common';
 import { CommentService } from './comment.service';
 
 
-@Controller('post/:postSlug/comment')
+@Controller()
 export class CommentController {
   constructor(private readonly commentService: CommentService) { }
 
-  @Get()
-  async getCommunityPostComment() {
-  }
-  @Get('all')
-  async getCommunityPostComments() {
+  // TODO: add guard if users are trying to add/get/update/delete community post comments
+  @Get('/comment/:commentId')
+  async getComment() {
   }
 
-  @Post('add')
-  async addACommunityPostComment() {
+  @Get('/post/:postSlug/comment/all')
+  async getComments() {
   }
 
-  @Patch('update')
-  async updateACommunityPostComment() {
+  @Post('/post/:postSlug/comment/add')
+  async addComment() {
   }
 
-  @Delete('delete')
-  async deleteACommunityPostComment() {
+  @Patch('/comment/:commentId/update')
+  async updateComment() {
+  }
+
+  @Delete('/comment/:commentId/delete')
+  async deleteComment() {
   }
 }
