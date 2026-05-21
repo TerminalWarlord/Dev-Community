@@ -77,6 +77,7 @@ export class PostController {
   }
 
 
+  @UseGuards(AuthGuard)
   @Post(':postSlug/vote')
   async voteCommunityPost(
     @Body() votePostBodyDto: VotePostBodyDto,
