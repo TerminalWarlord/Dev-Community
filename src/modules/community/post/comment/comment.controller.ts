@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards }
 import { CommentService } from './comment.service';
 import { AddCommentBodyDto, AddCommentParamsDto, AddCommentRequestDto } from './dto/add-comment.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
+import { GetCommentParamsDto } from './dto/get-comment.dto';
 
 
 @Controller()
@@ -10,7 +11,12 @@ export class CommentController {
 
   // TODO: add guard if users are trying to add/get/update/delete community post comments
   @Get('/comment/:commentId')
-  async getComment() {
+  async getComment(
+    @Param() getCommentParamsDto: GetCommentParamsDto
+  ) {
+    return this.commentService.getComment(
+      getCommentParamsDto
+    )
   }
 
   @Get('/post/:postSlug/comment/all')

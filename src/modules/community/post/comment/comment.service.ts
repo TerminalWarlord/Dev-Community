@@ -5,6 +5,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Comment } from 'src/schemas/comment.schema';
 import { Post } from 'src/schemas/post.schema';
 import { PostStatus } from 'src/common/post.enum';
+import { GetCommentParamsDto } from './dto/get-comment.dto';
+import { CommentStatus } from 'src/common/comment.enum';
 
 @Injectable()
 export class CommentService {
@@ -16,7 +18,26 @@ export class CommentService {
     private readonly postModel: Model<Post>
   ) { }
 
-  async getComment() {
+  async getComment(
+    getCommentParamsDto: GetCommentParamsDto
+  ) {
+    try {
+      // TODO: check if user has access to get comment (community post/comments arent public)
+      const commentId = new mongoose.Types.ObjectId(getCommentParamsDto.commentId);
+      const comment = await this.commentModel.findOne({
+        _id: commentId,
+        status: CommentStatus.PUBLISHED
+      }).select("-parentId -status -__v");
+      if (!comment) {
+        throw new NotFoundException("Comment doesn't exist");
+      }
+      return comment;
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to get comment");
+    }
   }
   async getComments() {
   }
