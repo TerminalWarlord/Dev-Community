@@ -12,7 +12,7 @@ export class PostVote {
   @Prop({ type: mongoose.Types.ObjectId, required: true, ref: "User" })
   userId!: mongoose.Types.ObjectId;
 
-  @Prop({ type: String, required: true, enum: VoteType, default: VoteType.UPVOTE })
+  @Prop({ type: String, required: true, enum: VoteType, default: VoteType.NEUTRAL })
   voteType!: string;
 }
 

@@ -193,11 +193,15 @@ export class PostService {
       await castVote(
         votePostRequestDto.userId,
         votePostParamsDto.postSlug,
-        votePostBodyDto.isUpvote,
+        votePostBodyDto?.voteType,
         this.postVoteModel,
         this.postModel
       );
+      return {
+        message: "success"
+      }
     } catch (err) {
+      console.log(err)
       if (err instanceof NotFoundException) {
         throw new NotFoundException(err.message);
       }
