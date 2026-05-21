@@ -1,7 +1,7 @@
 import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import mongoose, { Model } from "mongoose";
 import { Role } from "src/common/community.enum";
-import { PostStatus } from "src/common/post.enum";
+import { PostStatus, VoteType } from "src/common/post.enum";
 import { CommunityRole } from "src/schemas/community-role.schema";
 import { Post } from "src/schemas/post.schema";
 import { UpdatePostBodyDto } from "./dto/update-post.dto";
@@ -77,7 +77,7 @@ export async function managePost(
 export async function castVote(
   userId: string,
   postSlug: string,
-  isUpvote: boolean,
+  voteType: VoteType = VoteType.NEUTRAL,
   postVoteModel: Model<PostVote>,
   postModel: Model<Post>,
 ) {
@@ -91,6 +91,6 @@ export async function castVote(
     postId: post._id,
     userId: new mongoose.Types.ObjectId(userId)
   }, {
-    isUpvote
+    voteType
   }, { upsert: true });
 }
