@@ -1,20 +1,26 @@
-import { IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
+import { IsNumber, IsNumberString, IsOptional, IsString, Max, Min } from "class-validator";
+import { CommentOrderBy } from "src/common/comment.enum";
 
 export class GetAllCommentsQueriesDto {
   @IsOptional()
-  @IsNumber()
-  @Min(1)
+  @IsNumberString()
   page!: number;
 
   @IsOptional()
-  @IsNumber()
-  @Min(1)
-  @Max(20)
+  @IsNumberString()
   limit!: number;
 
   @IsOptional()
   @IsString()
   query!: string;
+
+  @IsOptional()
+  @IsString()
+  parentId!: string;
+
+  @IsOptional()
+  @IsString()
+  orderBy!: CommentOrderBy
 }
 
 export class GetAllCommentsParamsDto {

@@ -6,8 +6,9 @@ import { Comment } from 'src/schemas/comment.schema';
 import { Post } from 'src/schemas/post.schema';
 import { PostStatus } from 'src/common/post.enum';
 import { GetCommentParamsDto } from './dto/get-comment.dto';
-import { CommentStatus } from 'src/common/comment.enum';
+import { CommentOrderBy, CommentStatus } from 'src/common/comment.enum';
 import { GetAllCommentsParamsDto, GetAllCommentsQueriesDto, GetAllCommentsRequestDto } from './dto/get-all-comments.dto';
+import { GetNestedComments } from './comment.helper';
 
 @Injectable()
 export class CommentService {
@@ -45,13 +46,18 @@ export class CommentService {
     getAllCommentsParamsDto: GetAllCommentsParamsDto,
     getAllCommentsRequestDto: GetAllCommentsRequestDto,
   ) {
-    const { limit = 20, page = 1, query } = getAllCommentsQueriesDto;
+    const {
+      parentId,
+      query,
+      limit = 3,
+      page = 1,
+      orderBy = CommentOrderBy.ASC,
+    } = getAllCommentsQueriesDto;
     const { postSlug } = getAllCommentsParamsDto;
     const { userId } = getAllCommentsRequestDto;
 
+    const parentObjId = parentId ? new mongoose.Types.ObjectId(parentId) : null;
     // TODO: check if has rights to view the comments
-
-    const offset = (page - 1) * limit;
     try {
       const post = await this.postModel.findOne({
         slug: postSlug,
@@ -60,19 +66,17 @@ export class CommentService {
       if (!post) {
         throw new NotFoundException("Post doesn't exist");
       }
-      // TODO: get the nest results 
-      const comments = await this.commentModel.find({
-        postId: post._id
-      })
-        .populate("userId", "fname lname")
-        .select("-createdAt -updatedAt -__v -status")
-        .skip(offset)
-        .limit(limit + 1);
-
+      const comments = await GetNestedComments(
+        this.commentModel,
+        parentObjId,
+        post._id,
+        page,
+        limit
+      );
       const results = comments.slice(0, limit);
       return {
         results,
-        hasNextPage: comments.length > limit
+        hasNextPage: comments.length > 0
       }
     } catch (err) {
       if (err instanceof NotFoundException) {
