@@ -10,7 +10,7 @@ import { CommentOrderBy, CommentStatus } from 'src/common/comment.enum';
 import { GetAllCommentsParamsDto, GetAllCommentsQueriesDto, GetAllCommentsRequestDto } from './dto/get-all-comments.dto';
 import { GetNestedComments } from './comment.helper';
 import { UpdateCommentBodyDto, UpdateCommentParamsDto, UpdateCommentRequestDto } from './dto/update-comment.dto';
-import { UpdateCommunityBodyDto } from '../../dto/update-community.dto';
+import { DeleteCommentParamsDto, DeleteCommentRequestDto } from './dto/delete-comment.dto';
 
 @Injectable()
 export class CommentService {
@@ -151,6 +151,30 @@ export class CommentService {
     }
   }
 
-  async deleteComment() {
+  async deleteComment(
+    deleteCommentParamsDto: DeleteCommentParamsDto,
+    deleteCommentRequestDto: DeleteCommentRequestDto
+  ) {
+    const userId = new mongoose.Types.ObjectId(deleteCommentRequestDto.userId);
+    const commentId = new mongoose.Types.ObjectId(deleteCommentParamsDto.commentId);
+    try {
+      const comment = await this.commentModel.findOneAndUpdate({
+        userId,
+        _id: commentId
+      }, {
+        status: CommentStatus.DELETED
+      });
+      if (!comment) {
+        throw new NotFoundException("Comment doesn't exist");
+      }
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to delete comment");
+    }
   }
 }

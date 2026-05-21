@@ -6,6 +6,7 @@ import { GetCommentParamsDto } from './dto/get-comment.dto';
 import { GetAllCommentsParamsDto, GetAllCommentsQueriesDto, GetAllCommentsRequestDto } from './dto/get-all-comments.dto';
 import { UpdateCommentBodyDto, UpdateCommentParamsDto, UpdateCommentRequestDto } from './dto/update-comment.dto';
 import { UpdateCommunityBodyDto } from '../../dto/update-community.dto';
+import { DeleteCommentParamsDto, DeleteCommentRequestDto } from './dto/delete-comment.dto';
 
 
 @Controller()
@@ -63,7 +64,15 @@ export class CommentController {
     )
   }
 
+  @UseGuards(AuthGuard)
   @Delete('/comment/:commentId/delete')
-  async deleteComment() {
+  async deleteComment(
+    @Param() deleteCommentParamsDto: DeleteCommentParamsDto,
+    @Request() deleteCommentRequestDto: DeleteCommentRequestDto
+  ) {
+    return this.commentService.deleteComment(
+      deleteCommentParamsDto,
+      deleteCommentRequestDto
+    )
   }
 }
