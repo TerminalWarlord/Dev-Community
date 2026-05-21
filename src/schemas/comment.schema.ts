@@ -18,7 +18,7 @@ export class Comment {
   @Prop({ type: mongoose.Types.ObjectId, ref: "User", required: true })
   userId!: mongoose.Types.ObjectId;
 
-  @Prop({ type: CommentStatus, required: true, default: CommentStatus.PUBLISHED })
+  @Prop({ type: String, enum: CommentStatus, required: true, default: CommentStatus.PUBLISHED })
   status!: string;
 }
 
