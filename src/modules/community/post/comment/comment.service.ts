@@ -4,13 +4,15 @@ import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Comment } from 'src/schemas/comment.schema';
 import { Post } from 'src/schemas/post.schema';
-import { PostStatus } from 'src/common/post.enum';
+import { PostStatus, VoteType } from 'src/common/post.enum';
 import { GetCommentParamsDto } from './dto/get-comment.dto';
 import { CommentOrderBy, CommentStatus } from 'src/common/comment.enum';
 import { GetAllCommentsParamsDto, GetAllCommentsQueriesDto, GetAllCommentsRequestDto } from './dto/get-all-comments.dto';
 import { GetNestedComments } from './comment.helper';
 import { UpdateCommentBodyDto, UpdateCommentParamsDto, UpdateCommentRequestDto } from './dto/update-comment.dto';
 import { DeleteCommentParamsDto, DeleteCommentRequestDto } from './dto/delete-comment.dto';
+import { VoteCommentBodyDto, VoteCommentParamsDto, VoteCommentRequestDto } from './dto/vote-comment.dto';
+import { CommentVote } from 'src/schemas/comment-vote.schema';
 
 @Injectable()
 export class CommentService {
@@ -19,7 +21,9 @@ export class CommentService {
     @InjectModel(Comment.name)
     private readonly commentModel: Model<Comment>,
     @InjectModel(Post.name)
-    private readonly postModel: Model<Post>
+    private readonly postModel: Model<Post>,
+    @InjectModel(CommentVote.name)
+    private readonly commentVoteModel: Model<CommentVote>
   ) { }
 
   async getComment(
@@ -176,5 +180,40 @@ export class CommentService {
       }
       throw new InternalServerErrorException("Failed to delete comment");
     }
+  }
+
+
+  async voteComment(
+    voteCommentBodyDto: VoteCommentBodyDto,
+    voteCommentParamsDto: VoteCommentParamsDto,
+    voteCommentRequestDto: VoteCommentRequestDto
+  ) {
+    const commentId = new mongoose.Types.ObjectId(voteCommentParamsDto.commentId);
+    const userId = new mongoose.Types.ObjectId(voteCommentRequestDto.userId);
+    const voteType = voteCommentBodyDto?.voteType || VoteType.NEUTRAL;
+    try {
+      const comment = await this.commentModel.findById(commentId);
+      if (!comment) {
+        throw new NotFoundException("Comment doesn't exist");
+      }
+      const commentVote = await this.commentVoteModel.findOneAndUpdate({
+        commentId,
+        userId
+      }, {
+        voteType
+      }, { upsert: true });
+      if (!commentVote) {
+
+      }
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to cast vote");
+    }
+
   }
 }
