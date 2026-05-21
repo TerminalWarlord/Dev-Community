@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { AddCommentBodyDto, AddCommentParamsDto, AddCommentRequestDto } from './dto/add-comment.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { GetCommentParamsDto } from './dto/get-comment.dto';
+import { GetAllCommentsParamsDto, GetAllCommentsQueriesDto, GetAllCommentsRequestDto } from './dto/get-all-comments.dto';
 
 
 @Controller()
@@ -20,7 +21,16 @@ export class CommentController {
   }
 
   @Get('/post/:postSlug/comment/all')
-  async getComments() {
+  async getComments(
+    @Query() getAllCommentsQueriesDto: GetAllCommentsQueriesDto,
+    @Param() getAllCommentsParamsDto: GetAllCommentsParamsDto,
+    @Request() getAllCommentsRequestDto: GetAllCommentsRequestDto,
+  ) {
+    return this.commentService.getComments(
+      getAllCommentsQueriesDto,
+      getAllCommentsParamsDto,
+      getAllCommentsRequestDto
+    )
   }
 
   @UseGuards(AuthGuard)
