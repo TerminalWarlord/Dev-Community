@@ -10,6 +10,7 @@ import { UserSkill, UserSkillSchema } from 'src/schemas/user-skill.schema';
 import { Experience, ExperienceSchema } from 'src/schemas/experience.schema';
 import { Post, PostSchema } from 'src/schemas/post.schema';
 import { CommunityRole, CommunityRoleSchema } from 'src/schemas/community-role.schema';
+import { PostVote, PostVoteSchema } from 'src/schemas/post-votes.schema';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CommunityRole, CommunityRoleSchema } from 'src/schemas/community-role.s
       { name: Experience.name, schema: ExperienceSchema },
       { name: Post.name, schema: PostSchema },
       { name: CommunityRole.name, schema: CommunityRoleSchema },
+      { name: PostVote.name, schema: PostVoteSchema },
     ]),
     SkillModule,
     ExperienceModule,
