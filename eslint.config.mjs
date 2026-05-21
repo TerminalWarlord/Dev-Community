@@ -1,35 +1,76 @@
-// @ts-check
-import eslint from '@eslint/js';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
+/**
+ * THIS FILE WAS AUTO-GENERATED.
+ * PLEASE DO NOT EDIT IT MANUALLY.
+ * ===============================
+ * IF YOU COPY THIS INTO AN ESLINT CONFIG, REMOVE THIS COMMENT BLOCK.
+ */
 
-export default tseslint.config(
+import path from 'node:path';
+
+import { includeIgnoreFile } from '@eslint/compat';
+import js from '@eslint/js';
+import { defineConfig } from 'eslint/config';
+import { configs, plugins } from 'eslint-config-airbnb-extended';
+import { rules as prettierConfigRules } from 'eslint-config-prettier';
+import prettierPlugin from 'eslint-plugin-prettier';
+
+const gitignorePath = path.resolve('.', '.gitignore');
+
+const jsConfig = defineConfig([
+  // ESLint recommended config
   {
-    ignores: ['eslint.config.mjs'],
+    name: 'js/config',
+    ...js.configs.recommended,
   },
-  eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
-  eslintPluginPrettierRecommended,
+  // Stylistic plugin
+  plugins.stylistic,
+  // Import X plugin
+  plugins.importX,
+  // Airbnb base recommended config
+  ...configs.base.recommended,
+]);
+
+const nodeConfig = defineConfig([
+  // Node plugin
+  plugins.node,
+  // Airbnb Node recommended config
+  ...configs.node.recommended,
+]);
+
+const typescriptConfig = defineConfig([
+  // TypeScript ESLint plugin
+  plugins.typescriptEslint,
+  // Airbnb base TypeScript config
+  ...configs.base.typescript,
+]);
+
+const prettierConfig = defineConfig([
+  // Prettier plugin
   {
-    languageOptions: {
-      globals: {
-        ...globals.node,
-        ...globals.jest,
-      },
-      sourceType: 'commonjs',
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
+    name: 'prettier/plugin/config',
+    plugins: {
+      prettier: prettierPlugin,
     },
   },
+  // Prettier config
   {
+    name: 'prettier/config',
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
-      "prettier/prettier": ["error", { endOfLine: "auto" }],
+      ...prettierConfigRules,
+      'prettier/prettier': 'error',
     },
   },
-);
+]);
+
+export default defineConfig([
+  // Ignore files and folders listed in .gitignore
+  includeIgnoreFile(gitignorePath),
+  // JavaScript config
+  ...jsConfig,
+  // Node config
+  ...nodeConfig,
+  // TypeScript config
+  ...typescriptConfig,
+  // Prettier config
+  ...prettierConfig,
+]);
