@@ -8,7 +8,8 @@ import { UpdatePostBodyDto } from "./dto/update-post.dto";
 import { User } from "src/schemas/user.schema";
 import { UserStatus } from "src/common/user.enum";
 import { PostVote } from "src/schemas/post-votes.schema";
-
+import { nanoid } from "nanoid";
+import slugify from "slugify";
 
 export enum PostOperationType {
   DELETION = "DELETION",
@@ -21,13 +22,11 @@ export async function managePost(
   communityRoleModel: Model<CommunityRole>,
   userModel: Model<User>,
   uId: string,
-  actingUId: string,
   operationType: PostOperationType = PostOperationType.DELETION,
   cId?: string,
   updatePostBodyDto?: UpdatePostBodyDto
 ) {
   const userId = new mongoose.Types.ObjectId(uId);
-  const actingUserId = new mongoose.Types.ObjectId(actingUId);
   const communityId = cId ? new mongoose.Types.ObjectId(cId) : undefined;
   async function performDeletion() {
     await postModel.findOneAndUpdate({
@@ -57,7 +56,7 @@ export async function managePost(
   }
 
   const communityRole = await communityRoleModel.findOne({
-    userId: actingUserId,
+    userId,
     communityId
   });
   if (communityRole && (communityRole.role === Role.ADMIN || communityRole.role === Role.MODERATOR)) {
@@ -65,7 +64,7 @@ export async function managePost(
   }
   // check actingUser is OWNER
   const user = await userModel.findOne({
-    userId: actingUserId,
+    userId,
   });
   if (user && user.status === UserStatus.OWNER) {
     operationType === PostOperationType.DELETION ? performDeletion() : performUpdate();
@@ -93,4 +92,28 @@ export async function castVote(
   }, {
     voteType
   }, { upsert: true });
+}
+
+
+
+export async function generatePostSlug(name: string, postModel: Model<Post>) {
+  const slug = slugify(name, {
+    lower: true,
+  });
+  let checkedDefault = false;
+  while (true) {
+    let curSlug = slug;
+    if (checkedDefault) {
+      curSlug += "-" + nanoid();
+    }
+    else {
+      checkedDefault = true;
+    }
+    const community = await postModel.findOne({
+      slug: curSlug
+    });
+    if (!community) {
+      return curSlug;
+    }
+  }
 }

@@ -5,7 +5,6 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { GetCommentParamsDto } from './dto/get-comment.dto';
 import { GetAllCommentsParamsDto, GetAllCommentsQueriesDto, GetAllCommentsRequestDto } from './dto/get-all-comments.dto';
 import { UpdateCommentBodyDto, UpdateCommentParamsDto, UpdateCommentRequestDto } from './dto/update-comment.dto';
-import { UpdateCommunityBodyDto } from '../../dto/update-community.dto';
 import { DeleteCommentParamsDto, DeleteCommentRequestDto } from './dto/delete-comment.dto';
 import { VoteCommentBodyDto, VoteCommentParamsDto, VoteCommentRequestDto } from './dto/vote-comment.dto';
 

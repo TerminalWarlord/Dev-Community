@@ -28,6 +28,6 @@ export class Post {
 export const PostSchema = SchemaFactory.createForClass(Post);
 
 PostSchema.index({
-  communityId: 1,
+  // communityId: 1,
   slug: 1
 }, { unique: true });

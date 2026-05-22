@@ -1,18 +1,19 @@
-import { ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Post } from 'src/schemas/post.schema';
-import { CreatePostBodyDto, CreatePostParamsDto, CreatePostRequestDto } from './dto/create-post.dto';
+import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { PostStatus, VoteType } from 'src/common/post.enum';
-import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
-import { GetPostParamsDto } from './dto/get-post.dto';
+import { GetPostsQueriesDto, GetPostsRequestDto } from './dto/get-posts.dto';
+import { GetPostParamsDto, GetPostQueriesDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
-import { DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
-import { castVote, managePost, PostOperationType } from './post.helper';
+import { DeletePostBodyDto, DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
+import { castVote, generatePostSlug, managePost, PostOperationType } from './post.helper';
 import { CommunityRole } from 'src/schemas/community-role.schema';
 import { User } from 'src/schemas/user.schema';
 import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
 import { PostVote } from 'src/schemas/post-votes.schema';
+import { Role } from 'src/common/community.enum';
 
 
 @Injectable()
@@ -30,11 +31,15 @@ export class PostService {
   ) { }
 
   async getPost(
+    getPostQueriesDto: GetPostQueriesDto,
     getPostParamsDto: GetPostParamsDto
   ) {
+    this.logger.log(getPostQueriesDto, getPostParamsDto)
     try {
+      const communityId = getPostQueriesDto.communityId ? new mongoose.Types.ObjectId(getPostQueriesDto.communityId) : undefined;
       // TODO: get post votes
       const post = await this.postModel.findOne({
+        communityId,
         slug: getPostParamsDto.postSlug,
         status: PostStatus.PUBLISHED
       })
@@ -81,20 +86,32 @@ export class PostService {
 
   async getAllPosts(
     getPostsQueriesDto: GetPostsQueriesDto,
-    getPostsParamsDto: GetPostsParamsDto,
+    getPostsRequestDto: GetPostsRequestDto
   ) {
     try {
-      const page = getPostsQueriesDto.page || 1;
-      const limit = getPostsQueriesDto.limit || 10;
+      const page = Math.max(parseInt(getPostsQueriesDto.page || "1"), 1);
+      const limit = Math.min(parseInt(getPostsQueriesDto.limit || "10"), 10);
       const query = getPostsQueriesDto.query;
+      const communityId = getPostsQueriesDto?.communityId ? new mongoose.Types.ObjectId(getPostsQueriesDto?.communityId) : undefined;
+      const userId = getPostsRequestDto?.userId ? new mongoose.Types.ObjectId(getPostsRequestDto?.userId) : undefined;
+      const postedBy = getPostsQueriesDto?.profileId ? new mongoose.Types.ObjectId(getPostsQueriesDto?.profileId) : undefined;
+      this.logger.log({
+        communityId,
+        userId,
+        postedBy
+      })
 
       let postFilter: {
-        communityId: mongoose.Types.ObjectId,
+        communityId?: mongoose.Types.ObjectId,
         status: PostStatus,
-        title?: object
+        title?: object,
+        postedBy?: mongoose.Types.ObjectId
       } = {
-        communityId: new mongoose.Types.ObjectId(getPostsParamsDto.communityId),
-        status: PostStatus.PUBLISHED
+        communityId,
+        status: PostStatus.PUBLISHED,
+      }
+      if (postedBy) {
+        postFilter.postedBy = postedBy
       }
       if (query) {
         postFilter = {
@@ -117,29 +134,33 @@ export class PostService {
         hasNextPage: posts.length > limit,
       }
     } catch (err) {
+      if (err instanceof UnauthorizedException) {
+        throw new UnauthorizedException(err.message);
+      }
       throw new InternalServerErrorException("Failed to get posts");
     }
   }
 
   async createCommunityPost(
     createPostBodyDto: CreatePostBodyDto,
-    createPostParamsDto: CreatePostParamsDto,
     createPostRequestDto: CreatePostRequestDto
   ) {
     try {
+      const slug = await generatePostSlug(createPostBodyDto.title, this.postModel);
+      const communityId = createPostBodyDto.communityId ? new mongoose.Types.ObjectId(createPostBodyDto.communityId) : undefined;
       const post = await this.postModel.insertOne({
+        slug,
+        communityId,
         title: createPostBodyDto.title,
-        slug: createPostBodyDto.slug,
         content: createPostBodyDto.content,
         status: PostStatus.PUBLISHED,
-        communityId: new mongoose.Types.ObjectId(createPostParamsDto.communityId),
         postedBy: new mongoose.Types.ObjectId(createPostRequestDto.userId),
       });
       return {
         message: "success",
+        slug,
         postId: post._id,
         title: createPostBodyDto.title,
-        slug: createPostBodyDto.slug,
         content: createPostBodyDto.content,
         status: PostStatus.PUBLISHED,
       }
@@ -161,9 +182,8 @@ export class PostService {
         this.communityRoleModel,
         this.userModel,
         updatePostRequestDto.userId,
-        updatePostRequestDto.userId,
         PostOperationType.UPDATE,
-        updatePostParamsDto.communityId,
+        updatePostBodyDto.communityId,
         updatePostBodyDto
       )
       return {
@@ -182,6 +202,7 @@ export class PostService {
   }
 
   async deleteCommunityPost(
+    deletePostBodyDto: DeletePostBodyDto,
     deletePostParamsDto: DeletePostParamsDto,
     deletePostRequestDto: DeletePostRequestDto,
   ) {
@@ -192,9 +213,8 @@ export class PostService {
         this.communityRoleModel,
         this.userModel,
         deletePostRequestDto.userId,
-        deletePostRequestDto.userId,
         PostOperationType.DELETION,
-        deletePostParamsDto.communityId
+        deletePostBodyDto?.communityId
       )
       return {
         message: "message"

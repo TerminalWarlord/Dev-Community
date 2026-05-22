@@ -6,8 +6,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Community, CommunitySchema } from 'src/schemas/community.schema';
 import { CommunityRole, CommunityRoleSchema } from 'src/schemas/community-role.schema';
 import { User, UserSchema } from 'src/schemas/user.schema';
-import { PostModule } from './post/post.module';
 import { Comment, CommentSchema } from 'src/schemas/comment.schema';
+import { PostModule } from '../post/post.module';
 
 @Module({
   imports: [

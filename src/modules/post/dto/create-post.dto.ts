@@ -1,4 +1,4 @@
-import { IsString, MaxLength, MinLength } from "class-validator";
+import { IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 export class CreatePostBodyDto {
   @IsString()
@@ -11,14 +11,7 @@ export class CreatePostBodyDto {
   @MaxLength(1000)
   content!: string;
 
-  // TODO: generate slug based on post title
-  @IsString()
-  @MinLength(10)
-  @MaxLength(255)
-  slug!: string;
-}
-
-export class CreatePostParamsDto {
+  @IsOptional()
   @IsString()
   communityId!: string;
 }
