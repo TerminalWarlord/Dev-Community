@@ -32,6 +32,9 @@ export class Post {
 
   @Prop({ type: Number, default: 0, required: true })
   totalDownvotes!: Number;
+
+  @Prop({ type: Date, default: Date.now, required: true })
+  publishAt!: Date;
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);
