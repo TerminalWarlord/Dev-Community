@@ -20,6 +20,15 @@ export class Comment {
 
   @Prop({ type: String, enum: CommentStatus, required: true, default: CommentStatus.PUBLISHED })
   status!: string;
+
+  @Prop({ type: Number, default: 0, required: true })
+  totalVotes!: Number;
+
+  @Prop({ type: Number, default: 0, required: true })
+  totalUpvotes!: Number;
+
+  @Prop({ type: Number, default: 0, required: true })
+  totalDownvotes!: Number;
 }
 
 export const CommentSchema = SchemaFactory.createForClass(Comment);
