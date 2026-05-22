@@ -8,7 +8,7 @@ import { GetPostsQueriesDto, GetPostsRequestDto } from './dto/get-posts.dto';
 import { GetPostParamsDto, GetPostQueriesDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 import { DeletePostBodyDto, DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
-import { castVote, generatePostSlug, managePost, PostOperationType } from './post.helper';
+import { castVoteOnPost, generatePostSlug, managePost, PostOperationType } from './post.helper';
 import { CommunityRole } from 'src/schemas/community-role.schema';
 import { User } from 'src/schemas/user.schema';
 import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
@@ -237,12 +237,14 @@ export class PostService {
     votePostRequestDto: VotePostRequestDto
   ) {
     try {
-      await castVote(
+      const communityId = votePostBodyDto?.communityId ? new mongoose.Types.ObjectId(votePostBodyDto?.communityId) : undefined;
+      await castVoteOnPost(
         votePostRequestDto.userId,
         votePostParamsDto.postSlug,
         votePostBodyDto?.voteType,
         this.postVoteModel,
-        this.postModel
+        this.postModel,
+        communityId
       );
       return {
         message: "success"
