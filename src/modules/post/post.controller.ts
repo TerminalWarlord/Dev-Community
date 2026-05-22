@@ -3,7 +3,7 @@ import { PostService } from './post.service';
 import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { GetPostsQueriesDto, GetPostsRequestDto } from './dto/get-posts.dto';
-import { GetPostParamsDto } from './dto/get-post.dto';
+import { GetPostParamsDto, GetPostQueriesDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 import { DeletePostBodyDto, DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
 import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
@@ -27,9 +27,13 @@ export class PostController {
   }
   @Get(":postSlug")
   async getPost(
-    @Param() getPostParamsDto: GetPostParamsDto
+    @Query() getPostQueriesDto: GetPostQueriesDto,
+    @Param() getPostParamsDto: GetPostParamsDto,
   ) {
-    return this.postService.getPost(getPostParamsDto);
+    return this.postService.getPost(
+      getPostQueriesDto,
+      getPostParamsDto
+    );
   }
 
 

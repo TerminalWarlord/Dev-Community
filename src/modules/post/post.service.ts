@@ -5,7 +5,7 @@ import { Post } from 'src/schemas/post.schema';
 import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { PostStatus, VoteType } from 'src/common/post.enum';
 import { GetPostsQueriesDto, GetPostsRequestDto } from './dto/get-posts.dto';
-import { GetPostParamsDto } from './dto/get-post.dto';
+import { GetPostParamsDto, GetPostQueriesDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 import { DeletePostBodyDto, DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
 import { castVote, generatePostSlug, managePost, PostOperationType } from './post.helper';
@@ -31,11 +31,15 @@ export class PostService {
   ) { }
 
   async getPost(
+    getPostQueriesDto: GetPostQueriesDto,
     getPostParamsDto: GetPostParamsDto
   ) {
+    this.logger.log(getPostQueriesDto, getPostParamsDto)
     try {
+      const communityId = getPostQueriesDto.communityId ? new mongoose.Types.ObjectId(getPostQueriesDto.communityId) : undefined;
       // TODO: get post votes
       const post = await this.postModel.findOne({
+        communityId,
         slug: getPostParamsDto.postSlug,
         status: PostStatus.PUBLISHED
       })

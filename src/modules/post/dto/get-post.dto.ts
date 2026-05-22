@@ -1,9 +1,12 @@
-import { IsString } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 
-export class GetPostParamsDto {
+export class GetPostQueriesDto {
+  @IsOptional()
   @IsString()
   communityId!: string;
+}
 
+export class GetPostParamsDto {
   @IsString()
   postSlug!: string;
 }
