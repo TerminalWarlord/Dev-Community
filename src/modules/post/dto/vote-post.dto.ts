@@ -15,4 +15,8 @@ export class VotePostBodyDto {
   @IsOptional()
   @IsString()
   voteType!: VoteType;
+
+  @IsOptional()
+  @IsString()
+  communityId!: string;
 }

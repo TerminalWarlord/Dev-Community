@@ -22,7 +22,16 @@ export class Post {
   communityId!: mongoose.Types.ObjectId;
 
   @Prop({ type: String, enum: PostStatus, default: PostStatus.PUBLISHED, required: true })
-  status!: string;
+  status!: PostStatus;
+
+  @Prop({ type: Number, default: 0, required: true })
+  totalVotes!: Number;
+
+  @Prop({ type: Number, default: 0, required: true })
+  totalUpvotes!: Number;
+
+  @Prop({ type: Number, default: 0, required: true })
+  totalDownvotes!: Number;
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);
