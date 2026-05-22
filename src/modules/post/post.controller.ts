@@ -31,8 +31,6 @@ export class PostController {
   }
 
 
-
-  // TODO: add checks
   @UseGuards(AuthGuard)
   @UseGuards(CommunityMembershipAuthGuard)
   @Post('create')

@@ -162,9 +162,8 @@ export class PostService {
         this.communityRoleModel,
         this.userModel,
         updatePostRequestDto.userId,
-        updatePostRequestDto.userId,
         PostOperationType.UPDATE,
-        updatePostParamsDto.communityId,
+        updatePostBodyDto.communityId,
         updatePostBodyDto
       )
       return {
@@ -192,7 +191,6 @@ export class PostService {
         this.postModel,
         this.communityRoleModel,
         this.userModel,
-        deletePostRequestDto.userId,
         deletePostRequestDto.userId,
         PostOperationType.DELETION,
         deletePostParamsDto.communityId

@@ -22,13 +22,11 @@ export async function managePost(
   communityRoleModel: Model<CommunityRole>,
   userModel: Model<User>,
   uId: string,
-  actingUId: string,
   operationType: PostOperationType = PostOperationType.DELETION,
   cId?: string,
   updatePostBodyDto?: UpdatePostBodyDto
 ) {
   const userId = new mongoose.Types.ObjectId(uId);
-  const actingUserId = new mongoose.Types.ObjectId(actingUId);
   const communityId = cId ? new mongoose.Types.ObjectId(cId) : undefined;
   async function performDeletion() {
     await postModel.findOneAndUpdate({
@@ -58,7 +56,7 @@ export async function managePost(
   }
 
   const communityRole = await communityRoleModel.findOne({
-    userId: actingUserId,
+    userId,
     communityId
   });
   if (communityRole && (communityRole.role === Role.ADMIN || communityRole.role === Role.MODERATOR)) {
@@ -66,7 +64,7 @@ export async function managePost(
   }
   // check actingUser is OWNER
   const user = await userModel.findOne({
-    userId: actingUserId,
+    userId,
   });
   if (user && user.status === UserStatus.OWNER) {
     operationType === PostOperationType.DELETION ? performDeletion() : performUpdate();
