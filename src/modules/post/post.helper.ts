@@ -8,7 +8,8 @@ import { UpdatePostBodyDto } from "./dto/update-post.dto";
 import { User } from "src/schemas/user.schema";
 import { UserStatus } from "src/common/user.enum";
 import { PostVote } from "src/schemas/post-votes.schema";
-
+import { nanoid } from "nanoid";
+import slugify from "slugify";
 
 export enum PostOperationType {
   DELETION = "DELETION",
@@ -93,4 +94,28 @@ export async function castVote(
   }, {
     voteType
   }, { upsert: true });
+}
+
+
+
+export async function generateSlug(name: string, postModel: Model<Post>) {
+  const slug = slugify(name, {
+    lower: true,
+  });
+  let checkedDefault = false;
+  while (true) {
+    let curSlug = slug;
+    if (checkedDefault) {
+      curSlug += "-" + nanoid();
+    }
+    else {
+      checkedDefault = true;
+    }
+    const community = await postModel.findOne({
+      slug: curSlug
+    });
+    if (!community) {
+      return curSlug;
+    }
+  }
 }
