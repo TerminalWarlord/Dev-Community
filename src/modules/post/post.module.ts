@@ -7,7 +7,7 @@ import { Post, PostSchema } from 'src/schemas/post.schema';
 import { User, UserSchema } from 'src/schemas/user.schema';
 import { CommunityRole, CommunityRoleSchema } from 'src/schemas/community-role.schema';
 import { PostVote, PostVoteSchema } from 'src/schemas/post-votes.schema';
-import { CommentModule } from './comment/comment.module';
+import { CommentModule } from '../comment/comment.module';
 
 @Module({
   imports: [
