@@ -2,25 +2,27 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseG
 import { PostService } from './post.service';
 import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
-import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
+import { GetPostsQueriesDto, GetPostsRequestDto } from './dto/get-posts.dto';
 import { GetPostParamsDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 import { DeletePostBodyDto, DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
 import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
 import { CommunityMembershipAuthGuard } from '../community/common/member.guard';
+import { OptionalReadAccessGuard } from '../community/common/optional-read.guard';
 
 @Controller('post')
 export class PostController {
   constructor(private postService: PostService) { }
 
+  @UseGuards(OptionalReadAccessGuard)
   @Get('all')
   async getAllPosts(
     @Query() getPostsQueriesDto: GetPostsQueriesDto,
-    @Param() getPostsParamsDto: GetPostsParamsDto,
+    @Request() getPostsRequestDto: GetPostsRequestDto
   ) {
     return this.postService.getAllPosts(
       getPostsQueriesDto,
-      getPostsParamsDto
+      getPostsRequestDto
     )
   }
   @Get(":postSlug")
@@ -60,7 +62,7 @@ export class PostController {
   }
 
   @UseGuards(AuthGuard)
-  @UseGuards(CommunityMembershipAuthGuard) 
+  @UseGuards(CommunityMembershipAuthGuard)
   @Delete(':postSlug/delete')
   async deleteCommunityPost(
     @Body() deletePostBodyDto: DeletePostBodyDto,

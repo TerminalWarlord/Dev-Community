@@ -1,10 +1,10 @@
-import { ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Post } from 'src/schemas/post.schema';
 import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { PostStatus, VoteType } from 'src/common/post.enum';
-import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
+import { GetPostsQueriesDto, GetPostsRequestDto } from './dto/get-posts.dto';
 import { GetPostParamsDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 import { DeletePostBodyDto, DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
@@ -13,6 +13,7 @@ import { CommunityRole } from 'src/schemas/community-role.schema';
 import { User } from 'src/schemas/user.schema';
 import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
 import { PostVote } from 'src/schemas/post-votes.schema';
+import { Role } from 'src/common/community.enum';
 
 
 @Injectable()
@@ -81,20 +82,32 @@ export class PostService {
 
   async getAllPosts(
     getPostsQueriesDto: GetPostsQueriesDto,
-    getPostsParamsDto: GetPostsParamsDto,
+    getPostsRequestDto: GetPostsRequestDto
   ) {
     try {
-      const page = getPostsQueriesDto.page || 1;
-      const limit = getPostsQueriesDto.limit || 10;
+      const page = Math.max(parseInt(getPostsQueriesDto.page || "1"), 1);
+      const limit = Math.min(parseInt(getPostsQueriesDto.limit || "10"), 10);
       const query = getPostsQueriesDto.query;
+      const communityId = getPostsQueriesDto?.communityId ? new mongoose.Types.ObjectId(getPostsQueriesDto?.communityId) : undefined;
+      const userId = getPostsRequestDto?.userId ? new mongoose.Types.ObjectId(getPostsRequestDto?.userId) : undefined;
+      const postedBy = getPostsQueriesDto?.profileId ? new mongoose.Types.ObjectId(getPostsQueriesDto?.profileId) : undefined;
+      this.logger.log({
+        communityId,
+        userId,
+        postedBy
+      })
 
       let postFilter: {
-        communityId: mongoose.Types.ObjectId,
+        communityId?: mongoose.Types.ObjectId,
         status: PostStatus,
-        title?: object
+        title?: object,
+        postedBy?: mongoose.Types.ObjectId
       } = {
-        communityId: new mongoose.Types.ObjectId(getPostsParamsDto.communityId),
-        status: PostStatus.PUBLISHED
+        communityId,
+        status: PostStatus.PUBLISHED,
+      }
+      if (postedBy) {
+        postFilter.postedBy = postedBy
       }
       if (query) {
         postFilter = {
@@ -117,6 +130,9 @@ export class PostService {
         hasNextPage: posts.length > limit,
       }
     } catch (err) {
+      if (err instanceof UnauthorizedException) {
+        throw new UnauthorizedException(err.message);
+      }
       throw new InternalServerErrorException("Failed to get posts");
     }
   }
