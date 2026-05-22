@@ -13,13 +13,16 @@ import { CommunityRole } from 'src/schemas/community-role.schema';
 import { JWT_SECRET } from 'src/common/constants';
 import { MembershipStatus } from 'src/common/community.enum';
 import { CommunityService } from '../community.service';
+import { User } from 'src/schemas/user.schema';
 
 @Injectable()
-export class CommunityMembershipAuthGuard implements CanActivate {
+export class OptionalReadAccessGuard implements CanActivate {
   private logger = new Logger(CommunityService.name);
   constructor(
     @InjectModel(CommunityRole.name)
     private readonly communityRoleModel: Model<CommunityRole>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>,
     private readonly jwtService: JwtService,
   ) { }
 
@@ -27,18 +30,28 @@ export class CommunityMembershipAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
     if (!token) {
-      throw new UnauthorizedException();
+      return true;
     }
     try {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: JWT_SECRET,
       });
-      if (!payload.userId) {
-        throw new UnauthorizedException();
+      if (payload.userId) {
+        const user = await this.userModel.find({
+          _id: new mongoose.Types.ObjectId(payload.userId)
+        });
+        if (!user) {
+          throw new UnauthorizedException();
+        }
+        request["userId"] = payload.userId;
       }
+
       // extract communityId from body or queries
-      const communityId = request.body?.communityId;
+      const communityId = request.body?.communityId ?? request.query?.communityId;
       if (communityId) {
+        if (!request["userId"]) {
+          throw new UnauthorizedException("You are not a member of this community!");
+        }
         const communityRole = await this.communityRoleModel.findOne({
           userId: new mongoose.Types.ObjectId(payload.userId),
           communityId: new mongoose.Types.ObjectId(communityId),
