@@ -98,7 +98,7 @@ export async function castVote(
 
 
 
-export async function generateSlug(name: string, postModel: Model<Post>) {
+export async function generatePostSlug(name: string, postModel: Model<Post>) {
   const slug = slugify(name, {
     lower: true,
   });
