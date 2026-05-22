@@ -7,7 +7,7 @@ import { PostStatus, VoteType } from 'src/common/post.enum';
 import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
 import { GetPostParamsDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
-import { DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
+import { DeletePostBodyDto, DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
 import { castVote, generatePostSlug, managePost, PostOperationType } from './post.helper';
 import { CommunityRole } from 'src/schemas/community-role.schema';
 import { User } from 'src/schemas/user.schema';
@@ -182,6 +182,7 @@ export class PostService {
   }
 
   async deleteCommunityPost(
+    deletePostBodyDto: DeletePostBodyDto,
     deletePostParamsDto: DeletePostParamsDto,
     deletePostRequestDto: DeletePostRequestDto,
   ) {
@@ -193,7 +194,7 @@ export class PostService {
         this.userModel,
         deletePostRequestDto.userId,
         PostOperationType.DELETION,
-        deletePostParamsDto.communityId
+        deletePostBodyDto?.communityId
       )
       return {
         message: "message"

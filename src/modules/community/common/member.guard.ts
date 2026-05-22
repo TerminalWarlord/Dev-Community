@@ -37,7 +37,7 @@ export class CommunityMembershipAuthGuard implements CanActivate {
         throw new UnauthorizedException();
       }
       // extract communityId from body
-      const communityId = request.body.communityId;
+      const communityId = request.body?.communityId;
       if (communityId) {
         const communityRole = await this.communityRoleModel.findOne({
           userId: new mongoose.Types.ObjectId(payload.userId),
