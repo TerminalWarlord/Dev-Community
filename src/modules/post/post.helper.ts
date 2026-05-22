@@ -73,25 +73,51 @@ export async function managePost(
 }
 
 
-export async function castVote(
+export async function castVoteOnPost(
   userId: string,
-  postSlug: string,
+  slug: string,
   voteType: VoteType = VoteType.NEUTRAL,
   postVoteModel: Model<PostVote>,
   postModel: Model<Post>,
+  communityId?: mongoose.Types.ObjectId
 ) {
   const post = await postModel.findOne({
-    slug: postSlug
+    communityId,
+    slug,
   });
   if (!post) {
     throw new NotFoundException("Post doesn't exist");
   }
-  await postVoteModel.updateOne({
+
+
+  await postVoteModel.findOneAndUpdate({
     postId: post._id,
     userId: new mongoose.Types.ObjectId(userId)
   }, {
     voteType
   }, { upsert: true });
+
+  const upvotes = await postVoteModel.countDocuments({
+    postId: post._id,
+    voteType: VoteType.UPVOTE
+  });
+
+  const downvotes = await postVoteModel.countDocuments({
+    postId: post._id,
+    voteType: VoteType.DOWNVOTE
+  });
+  const totalVotes = await postVoteModel.countDocuments({
+    postId: post._id,
+  });
+
+  await postModel.findOneAndUpdate({
+    communityId,
+    slug,
+  }, {
+    totalVotes: totalVotes,
+    totalDownvotes: downvotes,
+    totalUpvotes: upvotes
+  })
 }
 
 

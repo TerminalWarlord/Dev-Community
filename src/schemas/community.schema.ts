@@ -16,7 +16,7 @@ export class Community {
   description!: string;
 
   @Prop({ type: String, enum: CommunityStatus, default: CommunityStatus.ACTIVE, required: true })
-  status!: string;
+  status!: CommunityStatus;
 }
 
 export const CommunitySchema = SchemaFactory.createForClass(Community);
