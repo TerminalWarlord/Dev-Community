@@ -1,5 +1,5 @@
 import { IsString } from "class-validator";
-import { CreatePostBodyDto } from "src/modules/community/post/dto/create-post.dto";
+import { CreatePostBodyDto } from "src/modules/post/dto/create-post.dto";
 
 export class AddUserPostDto extends CreatePostBodyDto {
 }

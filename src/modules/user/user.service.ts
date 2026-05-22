@@ -20,11 +20,11 @@ import { Post as PostModel } from 'src/schemas/post.schema';
 import { GetUserPost } from './dto/get-user-post.dto';
 import { GetUserPostsParamsDto, GetUserPostsQueriesDto } from './dto/get-user-posts.dto';
 import { UpdateUserPostBodyDto, UpdateUserPostParamsDto, UpdateUserPostRequestDto } from './dto/update-user-post.dto';
-import { castVote, managePost, PostOperationType } from '../community/post/post.helper';
 import { CommunityRole } from 'src/schemas/community-role.schema';
 import { DeleteUserPostParamsDto, DeleteUserPostRequestDto } from './dto/delete-user-post.dto';
-import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from '../community/post/dto/vote-post.dto';
 import { PostVote } from 'src/schemas/post-votes.schema';
+import { castVote, managePost, PostOperationType } from '../post/post.helper';
+import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from '../post/dto/vote-post.dto';
 
 @Injectable()
 export class UserService {

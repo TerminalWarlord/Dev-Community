@@ -1,5 +1,5 @@
 import { IsString } from "class-validator";
-import { GetPostsQueriesDto } from "src/modules/community/post/dto/get-posts.dto";
+import { GetPostsQueriesDto } from "src/modules/post/dto/get-posts.dto";
 
 export class GetUserPostsQueriesDto extends GetPostsQueriesDto {
 }

@@ -21,7 +21,7 @@ import { GetUserPost } from './dto/get-user-post.dto';
 import { GetUserPostsParamsDto, GetUserPostsQueriesDto } from './dto/get-user-posts.dto';
 import { UpdateUserPostBodyDto, UpdateUserPostParamsDto, UpdateUserPostRequestDto } from './dto/update-user-post.dto';
 import { DeleteUserPostParamsDto, DeleteUserPostRequestDto } from './dto/delete-user-post.dto';
-import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from '../community/post/dto/vote-post.dto';
+import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from '../post/dto/vote-post.dto';
 
 @Controller('user')
 export class UserController {

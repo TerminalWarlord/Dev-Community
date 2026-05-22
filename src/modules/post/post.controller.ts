@@ -2,13 +2,12 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseG
 import { PostService } from './post.service';
 import { CreatePostBodyDto, CreatePostParamsDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
-import { CommunityMembershipAuthGuard } from '../common/member.guard';
 import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
 import { GetPostParamsDto } from './dto/get-post.dto';
-import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from '../dto/update-community.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 import { DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
 import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
+import { CommunityMembershipAuthGuard } from '../community/common/member.guard';
 
 @Controller('community/:communityId/post')
 export class PostController {
