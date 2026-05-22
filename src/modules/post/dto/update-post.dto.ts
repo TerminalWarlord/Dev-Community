@@ -13,6 +13,10 @@ export class UpdatePostBodyDto {
   @MaxLength(1000)
   content!: string;
 
+  @IsOptional()
+  @IsString()
+  communityId!: string;
+
   @ValidateIf(d => !d.title && !d.content)
   @IsDefined({
     message: "At least a value of title or content must be provided"
@@ -21,9 +25,6 @@ export class UpdatePostBodyDto {
 }
 
 export class UpdatePostParamsDto {
-  @IsString()
-  communityId!: string;
-
   @IsString()
   postSlug!: string;
 }

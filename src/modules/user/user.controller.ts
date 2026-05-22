@@ -21,7 +21,7 @@ import { GetUserPost } from './dto/get-user-post.dto';
 import { GetUserPostsParamsDto, GetUserPostsQueriesDto } from './dto/get-user-posts.dto';
 import { UpdateUserPostBodyDto, UpdateUserPostParamsDto, UpdateUserPostRequestDto } from './dto/update-user-post.dto';
 import { DeleteUserPostParamsDto, DeleteUserPostRequestDto } from './dto/delete-user-post.dto';
-import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from '../community/post/dto/vote-post.dto';
+import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from '../post/dto/vote-post.dto';
 
 @Controller('user')
 export class UserController {
@@ -60,78 +60,5 @@ export class UserController {
 
   ) {
     return this.userService.getUserExperiences(getUsersExperienceParamsDto, GetUsersExperiencesQueriesDto);
-  }
-
-  @UseGuards(AuthGuard)
-  @Post('profile/:userId/post')
-  async addUserPost(
-    @Body() addUserPostDto: AddUserPostDto,
-    @Request() addUserPostRequestDto: AddUserPostRequestDto,
-  ) {
-    return this.userService.addUserPost(
-      addUserPostDto,
-      addUserPostRequestDto
-    )
-  }
-
-  @Get('profile/:userId/post/all')
-  async getUserPosts(
-    @Query() getUserPostsQueriesDto: GetUserPostsQueriesDto,
-    @Param() getUserPostsParamsDto: GetUserPostsParamsDto
-  ) {
-    return this.userService.getUserPosts(
-      getUserPostsQueriesDto,
-      getUserPostsParamsDto
-    )
-  }
-
-  @Get('profile/:userId/post/:postSlug')
-  async getUserPost(
-    @Param() getUserPost: GetUserPost
-  ) {
-    return this.userService.getUserPost(getUserPost);
-  }
-
-
-
-  @UseGuards(AuthGuard)
-  @Patch('profile/:userId/post/:postSlug/update')
-  async updateUserPost(
-    @Body() updateUserPostBodyDto: UpdateUserPostBodyDto,
-    @Param() updateUserPostParamsDto: UpdateUserPostParamsDto,
-    @Request() updateUserPostRequestDto: UpdateUserPostRequestDto
-  ) {
-    return this.userService.updateUserPost(
-      updateUserPostBodyDto,
-      updateUserPostParamsDto,
-      updateUserPostRequestDto
-    );
-  }
-
-  @UseGuards(AuthGuard)
-  @Delete('profile/:userId/post/:postSlug/delete')
-  async deleteUserPost(
-    @Param() deleteUserPostParamsDto: DeleteUserPostParamsDto,
-    @Request() deleteUserPostRequestDto: DeleteUserPostRequestDto
-  ) {
-    return this.userService.deleteUserPost(
-      deleteUserPostParamsDto,
-      deleteUserPostRequestDto
-    )
-  }
-
-
-  @UseGuards(AuthGuard)
-  @Post('profile/:userId/post/:postSlug/vote')
-  async voteUserPost(
-    @Body() votePostBodyDto: VotePostBodyDto,
-    @Param() votePostParamsDto: VotePostParamsDto,
-    @Request() votePostRequestDto: VotePostRequestDto,
-  ) {
-    return this.userService.voteUserPost(
-      votePostBodyDto,
-      votePostParamsDto,
-      votePostRequestDto
-    )
   }
 }

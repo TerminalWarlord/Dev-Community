@@ -1,36 +1,40 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { PostService } from './post.service';
-import { CreatePostBodyDto, CreatePostParamsDto, CreatePostRequestDto } from './dto/create-post.dto';
+import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
-import { CommunityMembershipAuthGuard } from '../common/member.guard';
-import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
-import { GetPostParamsDto } from './dto/get-post.dto';
-import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from '../dto/update-community.dto';
+import { GetPostsQueriesDto, GetPostsRequestDto } from './dto/get-posts.dto';
+import { GetPostParamsDto, GetPostQueriesDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
-import { DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
+import { DeletePostBodyDto, DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
 import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
+import { CommunityMembershipAuthGuard } from '../community/common/member.guard';
+import { OptionalReadAccessGuard } from '../community/common/optional-read.guard';
 
-@Controller('community/:communityId/post')
+@Controller('post')
 export class PostController {
   constructor(private postService: PostService) { }
 
+  @UseGuards(OptionalReadAccessGuard)
   @Get('all')
   async getAllPosts(
     @Query() getPostsQueriesDto: GetPostsQueriesDto,
-    @Param() getPostsParamsDto: GetPostsParamsDto,
+    @Request() getPostsRequestDto: GetPostsRequestDto
   ) {
     return this.postService.getAllPosts(
       getPostsQueriesDto,
-      getPostsParamsDto
+      getPostsRequestDto
     )
   }
   @Get(":postSlug")
   async getPost(
-    @Param() getPostParamsDto: GetPostParamsDto
+    @Query() getPostQueriesDto: GetPostQueriesDto,
+    @Param() getPostParamsDto: GetPostParamsDto,
   ) {
-    return this.postService.getPost(getPostParamsDto);
+    return this.postService.getPost(
+      getPostQueriesDto,
+      getPostParamsDto
+    );
   }
-
 
 
   @UseGuards(AuthGuard)
@@ -38,12 +42,10 @@ export class PostController {
   @Post('create')
   async createCommunityPost(
     @Body() createPostBodyDto: CreatePostBodyDto,
-    @Param() createPostParamsDto: CreatePostParamsDto,
     @Request() createPostRequestDto: CreatePostRequestDto
   ) {
     return this.postService.createCommunityPost(
       createPostBodyDto,
-      createPostParamsDto,
       createPostRequestDto
     );
   }
@@ -64,13 +66,15 @@ export class PostController {
   }
 
   @UseGuards(AuthGuard)
-  // @UseGuards(CommunityMembershipAuthGuard) 
+  @UseGuards(CommunityMembershipAuthGuard)
   @Delete(':postSlug/delete')
   async deleteCommunityPost(
+    @Body() deletePostBodyDto: DeletePostBodyDto,
     @Param() deletePostParamsDto: DeletePostParamsDto,
     @Request() deletePostRequestDto: DeletePostRequestDto,
   ) {
     return this.postService.deleteCommunityPost(
+      deletePostBodyDto,
       deletePostParamsDto,
       deletePostRequestDto
     )
