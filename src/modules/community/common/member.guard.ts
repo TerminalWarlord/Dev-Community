@@ -36,21 +36,19 @@ export class CommunityMembershipAuthGuard implements CanActivate {
       if (!payload.userId) {
         throw new UnauthorizedException();
       }
-      // extract params
-      const communityId = request.params.communityId;
-      if (!communityId) {
-        throw new UnauthorizedException();
-      }
-      // check if userId
-      const communityRole = await this.communityRoleModel.findOne({
-        userId: new mongoose.Types.ObjectId(payload.userId),
-        communityId: new mongoose.Types.ObjectId(communityId),
-      });
-      if (!communityRole) {
-        throw new UnauthorizedException("You are not a member of this community!");
-      }
-      if (communityRole.status === MembershipStatus.BANNED) {
-        throw new UnauthorizedException("You are banned from the community!");
+      // extract communityId from body
+      const communityId = request.body.communityId;
+      if (communityId) {
+        const communityRole = await this.communityRoleModel.findOne({
+          userId: new mongoose.Types.ObjectId(payload.userId),
+          communityId: new mongoose.Types.ObjectId(communityId),
+        });
+        if (!communityRole) {
+          throw new UnauthorizedException("You are not a member of this community!");
+        }
+        if (communityRole.status === MembershipStatus.BANNED) {
+          throw new UnauthorizedException("You are banned from the community!");
+        }
       }
     } catch (err) {
       this.logger.error(err);

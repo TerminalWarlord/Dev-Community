@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { PostService } from './post.service';
-import { CreatePostBodyDto, CreatePostParamsDto, CreatePostRequestDto } from './dto/create-post.dto';
+import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
 import { GetPostParamsDto } from './dto/get-post.dto';
@@ -9,7 +9,7 @@ import { DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto
 import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
 import { CommunityMembershipAuthGuard } from '../community/common/member.guard';
 
-@Controller('community/:communityId/post')
+@Controller('post')
 export class PostController {
   constructor(private postService: PostService) { }
 
@@ -32,17 +32,16 @@ export class PostController {
 
 
 
+  // TODO: add checks
   @UseGuards(AuthGuard)
   @UseGuards(CommunityMembershipAuthGuard)
   @Post('create')
   async createCommunityPost(
     @Body() createPostBodyDto: CreatePostBodyDto,
-    @Param() createPostParamsDto: CreatePostParamsDto,
     @Request() createPostRequestDto: CreatePostRequestDto
   ) {
     return this.postService.createCommunityPost(
       createPostBodyDto,
-      createPostParamsDto,
       createPostRequestDto
     );
   }

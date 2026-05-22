@@ -2,13 +2,13 @@ import { ForbiddenException, Injectable, InternalServerErrorException, Logger, N
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Post } from 'src/schemas/post.schema';
-import { CreatePostBodyDto, CreatePostParamsDto, CreatePostRequestDto } from './dto/create-post.dto';
+import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { PostStatus, VoteType } from 'src/common/post.enum';
 import { GetPostsParamsDto, GetPostsQueriesDto } from './dto/get-posts.dto';
 import { GetPostParamsDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 import { DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
-import { castVote, managePost, PostOperationType } from './post.helper';
+import { castVote, generatePostSlug, managePost, PostOperationType } from './post.helper';
 import { CommunityRole } from 'src/schemas/community-role.schema';
 import { User } from 'src/schemas/user.schema';
 import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
@@ -123,23 +123,24 @@ export class PostService {
 
   async createCommunityPost(
     createPostBodyDto: CreatePostBodyDto,
-    createPostParamsDto: CreatePostParamsDto,
     createPostRequestDto: CreatePostRequestDto
   ) {
     try {
+      const slug = await generatePostSlug(createPostBodyDto.title, this.postModel);
+      const communityId = createPostBodyDto.communityId ? new mongoose.Types.ObjectId(createPostBodyDto.communityId) : undefined;
       const post = await this.postModel.insertOne({
+        slug,
+        communityId,
         title: createPostBodyDto.title,
-        slug: createPostBodyDto.slug,
         content: createPostBodyDto.content,
         status: PostStatus.PUBLISHED,
-        communityId: new mongoose.Types.ObjectId(createPostParamsDto.communityId),
         postedBy: new mongoose.Types.ObjectId(createPostRequestDto.userId),
       });
       return {
         message: "success",
+        slug,
         postId: post._id,
         title: createPostBodyDto.title,
-        slug: createPostBodyDto.slug,
         content: createPostBodyDto.content,
         status: PostStatus.PUBLISHED,
       }
