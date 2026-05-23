@@ -1,6 +1,7 @@
 export enum PostStatus {
   DELETED = "DELETED",
-  PUBLISHED = "PUBLISHED"
+  PUBLISHED = "PUBLISHED",
+  SCHEDULED = "SCHEDULED"
 }
 
 export enum VoteType {
