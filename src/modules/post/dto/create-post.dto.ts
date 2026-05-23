@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsDateString, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 export class CreatePostBodyDto {
   @IsString()
@@ -14,6 +14,10 @@ export class CreatePostBodyDto {
   @IsOptional()
   @IsString()
   communityId!: string;
+
+  @IsOptional()
+  @IsDateString()
+  publishAt!: string
 }
 
 

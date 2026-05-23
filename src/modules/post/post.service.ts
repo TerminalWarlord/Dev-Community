@@ -8,12 +8,14 @@ import { GetPostsQueriesDto, GetPostsRequestDto } from './dto/get-posts.dto';
 import { GetPostParamsDto, GetPostQueriesDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 import { DeletePostBodyDto, DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
-import { castVoteOnPost, generatePostSlug, managePost, PostOperationType } from './post.helper';
+import { castVoteOnPost, generatePostSlug, managePost, PostOperationType, schedulePost } from './post.helper';
 import { CommunityRole } from 'src/schemas/community-role.schema';
 import { User } from 'src/schemas/user.schema';
 import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
 import { PostVote } from 'src/schemas/post-votes.schema';
 import { Role } from 'src/common/community.enum';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 
 @Injectable()
@@ -28,6 +30,8 @@ export class PostService {
     private readonly communityRoleModel: Model<CommunityRole>,
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
+    @InjectQueue('posts')
+    private postQueue: Queue
   ) { }
 
   async getPost(
@@ -148,21 +152,37 @@ export class PostService {
     try {
       const slug = await generatePostSlug(createPostBodyDto.title, this.postModel);
       const communityId = createPostBodyDto.communityId ? new mongoose.Types.ObjectId(createPostBodyDto.communityId) : undefined;
+      // TODO: make sure used can't post with past publishAt
+      // TODO: fix off by 6hrs issue
+      const publishAt = new Date(createPostBodyDto?.publishAt || Date.now());
+      const postStatus = new Date().getTime() < publishAt.getTime() ? PostStatus.SCHEDULED : PostStatus.PUBLISHED;
       const post = await this.postModel.insertOne({
         slug,
         communityId,
         title: createPostBodyDto.title,
         content: createPostBodyDto.content,
-        status: PostStatus.PUBLISHED,
+        status: postStatus,
         postedBy: new mongoose.Types.ObjectId(createPostRequestDto.userId),
+        publishAt
       });
+      console.log(publishAt.getTime())
+      console.log(Date.now())
+      if (postStatus === PostStatus.SCHEDULED) {
+        const delay = new Date(publishAt).getTime() - Date.now();
+        console.log(new Date(publishAt), new Date(Date.now()), delay)
+        await schedulePost(
+          post._id.toString(),
+          this.postQueue,
+          delay
+        );
+      }
       return {
         message: "success",
         slug,
         postId: post._id,
         title: createPostBodyDto.title,
         content: createPostBodyDto.content,
-        status: PostStatus.PUBLISHED,
+        status: postStatus,
       }
     } catch (error) {
       this.logger.error(error);
