@@ -10,6 +10,7 @@ import { UserStatus } from "src/common/user.enum";
 import { PostVote } from "src/schemas/post-votes.schema";
 import { nanoid } from "nanoid";
 import slugify from "slugify";
+import { Queue } from "bullmq";
 
 export enum PostOperationType {
   DELETION = "DELETION",
@@ -88,14 +89,15 @@ export async function castVoteOnPost(
   if (!post) {
     throw new NotFoundException("Post doesn't exist");
   }
-
-
   await postVoteModel.findOneAndUpdate({
     postId: post._id,
     userId: new mongoose.Types.ObjectId(userId)
   }, {
     voteType
   }, { upsert: true });
+
+
+
 
   const upvotes = await postVoteModel.countDocuments({
     postId: post._id,
@@ -142,4 +144,22 @@ export async function generatePostSlug(name: string, postModel: Model<Post>) {
       return curSlug;
     }
   }
+}
+
+
+export async function schedulePost(
+  postId: string,
+  postQueue: Queue,
+  delay: number,
+) {
+  const job = await postQueue.add("publish-post", {
+    postId
+  }, {
+    delay,
+    jobId: postId,
+    attempts: 5,
+    removeOnComplete: true,
+  })
+
+
 }
