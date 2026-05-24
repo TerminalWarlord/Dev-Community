@@ -1,4 +1,5 @@
 import 'dotenv/config';
+export const PORT = 3000;
 export const REDIS_CONNECTION_URL = process.env.REDIS_CONNECTION_URL;
 
 if (!REDIS_CONNECTION_URL) {
