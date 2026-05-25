@@ -1,4 +1,36 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Delete, Param, UseGuards } from '@nestjs/common';
+import { SuperadminService } from './superadmin.service';
+import { SuperAdminAuthGuard } from './superadmin.guard';
+import { DeleteUserDto } from './dto/delete-user.dto';
 
 @Controller('superadmin')
-export class SuperadminController {}
+export class SuperadminController {
+  constructor(private superadminService: SuperadminService) { }
+
+  @UseGuards(SuperAdminAuthGuard)
+  @Delete()
+  async deleteUser(
+    @Param() deleteUserDto: DeleteUserDto
+  ) {
+    return this.superadminService.deleteUser(deleteUserDto);
+
+  }
+
+  @UseGuards(SuperAdminAuthGuard)
+  @Delete()
+  async deletePost() {
+
+  }
+
+  @UseGuards(SuperAdminAuthGuard)
+  @Delete()
+  async deleteComment() {
+
+  }
+
+  @UseGuards(SuperAdminAuthGuard)
+  @Delete()
+  async deleteCommunity() {
+
+  }
+}

@@ -6,6 +6,7 @@ import { ExperienceModule } from './modules/user/experience/experience.module';
 import { CommunityModule } from './modules/community/community.module';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { SuperadminModule } from './modules/superadmin/superadmin.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     AuthModule,
     ExperienceModule,
     CommunityModule,
+    SuperadminModule,
   ],
 })
 export class AppModule { }
