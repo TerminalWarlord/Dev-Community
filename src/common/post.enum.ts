@@ -9,3 +9,15 @@ export enum VoteType {
   DOWNVOTE = "DOWNVOTE",
   NEUTRAL = "NEUTRAL",
 }
+
+
+export enum PostFilter {
+  CREATED_AT = "CREATED_AT",
+  UPDATED_AT = "UPDATED_AT",
+  POPULARITY = "POPULARITY",
+}
+
+export enum PostOrderBy {
+  ASC = "ASC",
+  DESC = "DESC",
+}

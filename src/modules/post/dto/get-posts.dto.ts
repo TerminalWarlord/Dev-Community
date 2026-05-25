@@ -1,4 +1,5 @@
 import { IsNumber, IsNumberString, IsOptional, IsString, Max, Min } from "class-validator";
+import { PostFilter, PostOrderBy } from "src/common/post.enum";
 
 export class GetPostsQueriesDto {
   @IsOptional()
@@ -20,6 +21,14 @@ export class GetPostsQueriesDto {
   @IsOptional()
   @IsString()
   profileId!: string;
+
+  @IsOptional()
+  @IsString()
+  filter!: PostFilter;
+
+  @IsOptional()
+  @IsString()
+  orderBy!: PostOrderBy;
 }
 
 export class GetPostsRequestDto {
