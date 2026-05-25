@@ -101,21 +101,50 @@ export async function castVoteOnPost(
     voteType
   }, { upsert: true });
 
+  const votes = await postVoteModel.aggregate([
+    {
+      $group: {
+        _id: "$postId",
+        upvotes: {
+          $sum: {
+            $cond: [
+              {
+                $eq: ["$voteType", "UPVOTE"]
+              },
+              1,
+              0
+            ]
+          }
+        },
+        downvotes: {
+          $sum: {
+            $cond: [
+              {
+                $eq: ["$voteType", "DOWNVOTE"]
+              },
+              1,
+              0
+            ]
+          }
+        },
+        total: {
+          $sum: 1
+        }
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        upvotes: 1,
+        downvotes: 1,
+        total: 1,
+      }
+    }
+  ]);
 
-
-
-  const upvotes = await postVoteModel.countDocuments({
-    postId: post._id,
-    voteType: VoteType.UPVOTE
-  });
-
-  const downvotes = await postVoteModel.countDocuments({
-    postId: post._id,
-    voteType: VoteType.DOWNVOTE
-  });
-  const totalVotes = await postVoteModel.countDocuments({
-    postId: post._id,
-  });
+  const upvotes = votes?.length?votes[0].upvotes:0;
+  const downvotes = votes?.length?votes[0].downvotes:0;
+  const totalVotes = votes?.length?votes[0].total:0;
 
   if (downvotes > dislikeThreshold) {
     const user = await userModel.findById(new mongoose.Types.ObjectId(userId));
