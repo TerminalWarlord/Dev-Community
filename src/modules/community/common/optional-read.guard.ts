@@ -10,10 +10,10 @@ import { Request } from 'express';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { CommunityRole } from 'src/schemas/community-role.schema';
-import { JWT_SECRET } from 'src/common/constants';
 import { MembershipStatus } from 'src/common/community.enum';
 import { CommunityService } from '../community.service';
 import { User } from 'src/schemas/user.schema';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class OptionalReadAccessGuard implements CanActivate {
@@ -23,12 +23,13 @@ export class OptionalReadAccessGuard implements CanActivate {
     private readonly communityRoleModel: Model<CommunityRole>,
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
-    private readonly jwtService: JwtService,
+    private readonly jwtService: JwtService, private configService: ConfigService
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
+    const JWT_SECRET = this.configService.get<string>('JWT_SECRET');
     if (!token) {
       return true;
     }

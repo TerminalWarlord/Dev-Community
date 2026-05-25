@@ -7,11 +7,11 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { JWT_SECRET } from '../../common/constants';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/schemas/user.schema';
 import mongoose, { Model } from 'mongoose';
 import { AuthService } from './auth.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -20,11 +20,17 @@ export class AuthGuard implements CanActivate {
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
     private readonly jwtService: JwtService,
+    private configService: ConfigService
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
+    const JWT_SECRET = this.configService.get<string>("JWT_SECRET");
+    if (!JWT_SECRET) {
+      console.error('JWT_SECRET is not set');
+      process.exit(1);
+    }
     if (!token) {
       throw new UnauthorizedException();
     }
