@@ -34,6 +34,7 @@
     "dotenv": "^17.4.2",
     "mongoose": "^9.6.2",
     "nanoid": "^5.1.11",
+    "nodemailer": "^8.0.8",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "slugify": "^1.6.9"
@@ -49,6 +50,7 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
+    "@types/nodemailer": "^8.0.0",
     "@types/supertest": "^7.0.0",
     "eslint": "^9.39.4",
     "eslint-config-airbnb-extended": "^3.1.0",

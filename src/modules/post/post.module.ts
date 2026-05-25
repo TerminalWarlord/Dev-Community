@@ -10,6 +10,7 @@ import { PostVote, PostVoteSchema } from 'src/schemas/post-votes.schema';
 import { CommentModule } from '../comment/comment.module';
 import { BullModule } from '@nestjs/bullmq';
 import { PostProcessor } from './post.processor';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { PostProcessor } from './post.processor';
       { name: CommunityRole.name, schema: CommunityRoleSchema },
       { name: PostVote.name, schema: PostVoteSchema },
     ]),
-    CommentModule
+    CommentModule,
+    MailModule
   ],
   providers: [PostService, PostProcessor],
   controllers: [PostController]
