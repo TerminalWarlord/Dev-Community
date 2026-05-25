@@ -8,6 +8,7 @@ import { Comment } from 'src/schemas/comment.schema';
 import { Community } from 'src/schemas/community.schema';
 import { UserStatus } from 'src/common/user.enum';
 import { DeletePostDto } from './dto/delete-post.dto';
+import { DeleteCommentDto } from './dto/delete-comment.dto';
 
 
 @Injectable()
@@ -58,8 +59,23 @@ export class SuperadminService {
       throw new InternalServerErrorException("Failed to delete post");
     }
   }
-  async deleteComment() {
-
+  async deleteComment(deleteCommentDto: DeleteCommentDto) {
+    try {
+      const commentId = new mongoose.Types.ObjectId(deleteCommentDto.commentId);
+      const comment = await this.userModel.findOneAndUpdate({
+        _id: commentId
+      }, {
+        status: UserStatus.DELETED
+      });
+      if (!comment) {
+        throw new NotFoundException("Comment doesn't exist");
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to delete Comment");
+    }
   }
 
   async deleteCommunity() {
