@@ -7,6 +7,7 @@ import { Post } from 'src/schemas/post.schema';
 import { Comment } from 'src/schemas/comment.schema';
 import { Community } from 'src/schemas/community.schema';
 import { UserStatus } from 'src/common/user.enum';
+import { DeletePostDto } from './dto/delete-post.dto';
 
 
 @Injectable()
@@ -40,8 +41,22 @@ export class SuperadminService {
     }
   }
 
-  async deletePost() {
-
+  async deletePost(deletePostDto: DeletePostDto) {
+    try {
+      const post = await this.postModel.findOneAndUpdate({
+        slug: deletePostDto.postSlug
+      }, {
+        status: UserStatus.DELETED
+      });
+      if (!post) {
+        throw new NotFoundException("Post doesn't exist");
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to delete post");
+    }
   }
   async deleteComment() {
 
