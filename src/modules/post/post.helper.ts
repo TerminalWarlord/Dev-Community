@@ -69,7 +69,7 @@ export async function managePost(
   const user = await userModel.findOne({
     userId,
   });
-  if (user && user.status === UserStatus.OWNER) {
+  if (user && user.status === UserStatus.SUPERADMIN) {
     operationType === PostOperationType.DELETION ? performDeletion() : performUpdate();
   }
   throw new ForbiddenException("You can't perform this action");
