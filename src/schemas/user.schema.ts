@@ -22,7 +22,7 @@ export class User {
   avatar!: string;
 
   @Prop({ type: String, enum: UserStatus, default: UserStatus.USER, required: true })
-  status!: string;
+  status!: UserStatus;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

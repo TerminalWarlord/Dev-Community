@@ -79,8 +79,14 @@ For better view: https://dbdiagram.io/d/Dev-Community-6a02b9f454a51d93d3fe1826
 | DELETE | `/comment/:commentId/delete`  | `[ADMIN/MOD/User(itself)]` Delete a comment from a post |
 
 
+## Superadmin Endpoints
 
-
+| Method | Endpoint                           |    Description     |
+| ------ | ---------------------------------- | :----------------: |
+| DELETE | `/admin/user/:userId/delete`       |   Delete a user    |
+| DELETE | `/admin/post/:postSlug/delete`     |   Delete a post    |
+| DELETE | `/admin/comment/:commentId/delete` |  Delete a comment  |
+| DELETE | `/admin/user/:community/delete`    | Delete a community |
 
 
 
