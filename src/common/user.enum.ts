@@ -1,4 +1,4 @@
 export enum UserStatus {
-  OWNER = "OWNER",
+  SUPERADMIN = "SUPERADMIN",
   USER = "USER",
 }
