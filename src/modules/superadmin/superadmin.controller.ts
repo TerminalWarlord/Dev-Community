@@ -4,6 +4,7 @@ import { SuperAdminAuthGuard } from './superadmin.guard';
 import { DeleteUserDto } from './dto/delete-user.dto';
 import { DeletePostDto } from './dto/delete-post.dto';
 import { DeleteCommentDto } from './dto/delete-comment.dto';
+import { DeleteCommunityDto } from './dto/delete-community.dto';
 
 @Controller('superadmin')
 export class SuperadminController {
@@ -35,7 +36,9 @@ export class SuperadminController {
 
   @UseGuards(SuperAdminAuthGuard)
   @Delete()
-  async deleteCommunity() {
-
+  async deleteCommunity(
+    @Param() deleteCommunityDto: DeleteCommunityDto
+  ) {
+    return this.superadminService.deleteCommunity(deleteCommunityDto)
   }
 }

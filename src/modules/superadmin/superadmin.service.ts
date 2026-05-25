@@ -9,6 +9,7 @@ import { Community } from 'src/schemas/community.schema';
 import { UserStatus } from 'src/common/user.enum';
 import { DeletePostDto } from './dto/delete-post.dto';
 import { DeleteCommentDto } from './dto/delete-comment.dto';
+import { DeleteCommunityDto } from './dto/delete-community.dto';
 
 
 @Injectable()
@@ -78,7 +79,22 @@ export class SuperadminService {
     }
   }
 
-  async deleteCommunity() {
-
+  async deleteCommunity(deleteCommunityDto: DeleteCommunityDto) {
+    try {
+      const communityId = new mongoose.Types.ObjectId(deleteCommunityDto.communityId);
+      const community = await this.userModel.findOneAndUpdate({
+        _id: communityId
+      }, {
+        status: UserStatus.DELETED
+      });
+      if (!community) {
+        throw new NotFoundException("Community doesn't exist");
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to delete Community");
+    }
   }
 }
