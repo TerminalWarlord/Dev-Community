@@ -1,9 +1,9 @@
 import { ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import mongoose, { Model, SortOrder } from 'mongoose';
 import { Post } from 'src/schemas/post.schema';
 import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
-import { PostStatus, VoteType } from 'src/common/post.enum';
+import { PostFilter, PostOrderBy, PostStatus, VoteType } from 'src/common/post.enum';
 import { GetPostsQueriesDto, GetPostsRequestDto } from './dto/get-posts.dto';
 import { GetPostParamsDto, GetPostQueriesDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
@@ -18,6 +18,14 @@ import { Queue } from 'bullmq';
 import { MailService } from '../mail/mail.service';
 import { ConfigService } from '@nestjs/config';
 
+
+interface PostFilterQueryType {
+  communityId?: mongoose.Types.ObjectId,
+  status: PostStatus,
+  title?: object,
+  postedBy?: mongoose.Types.ObjectId
+}
+type PostSortFilterType = string | Record<string, SortOrder | { $meta: any; }> | [string, SortOrder][] | null | undefined;
 
 @Injectable()
 export class PostService {
@@ -105,37 +113,38 @@ export class PostService {
       const communityId = getPostsQueriesDto?.communityId ? new mongoose.Types.ObjectId(getPostsQueriesDto?.communityId) : undefined;
       const userId = getPostsRequestDto?.userId ? new mongoose.Types.ObjectId(getPostsRequestDto?.userId) : undefined;
       const postedBy = getPostsQueriesDto?.profileId ? new mongoose.Types.ObjectId(getPostsQueriesDto?.profileId) : undefined;
-      this.logger.log({
-        communityId,
-        userId,
-        postedBy
-      })
+      const postFilter = getPostsQueriesDto.filter || PostFilter.CREATED_AT;
+      const postOrderBy = getPostsQueriesDto.orderBy || PostOrderBy.ASC;
 
-      let postFilter: {
-        communityId?: mongoose.Types.ObjectId,
-        status: PostStatus,
-        title?: object,
-        postedBy?: mongoose.Types.ObjectId
-      } = {
+
+      let postSortFilter: PostSortFilterType = {};
+      if (postFilter === PostFilter.CREATED_AT) {
+        postSortFilter.createdAt = postOrderBy ? 1 : -1;
+      }
+      else if (postFilter === PostFilter.UPDATED_AT) {
+        postSortFilter.updatedAt = postOrderBy ? 1 : -1;
+      }
+      else if (postFilter === PostFilter.POPULARITY) {
+        postSortFilter.totalVotes = postOrderBy ? 1 : -1;
+      }
+      let postFilterQuery: PostFilterQueryType = {
         communityId,
         status: PostStatus.PUBLISHED,
       }
       if (postedBy) {
-        postFilter.postedBy = postedBy
+        postFilterQuery.postedBy = postedBy
       }
       if (query) {
-        postFilter = {
-          ...postFilter,
-          title: {
-            $regex: query,
-            $options: "i"
-          },
+        postFilterQuery.title = {
+          $regex: query,
+          $options: "i"
         }
       }
       const offset = (page - 1) * limit;
-      const posts = await this.postModel.find(postFilter)
+      const posts = await this.postModel.find(postFilterQuery)
         .select("-communityId -status -__v -_id")
         .populate("postedBy", "_id fname lname")
+        .sort(postSortFilter)
         .skip(offset)
         .limit(limit + 1);
       const results = posts.slice(0, limit);
