@@ -6,9 +6,13 @@ import SMTPTransport from 'nodemailer/lib/smtp-transport';
 @Injectable()
 export class MailService {
   private logger = new Logger(MailService.name);
-  private transporter: nodemailer.Transporter<SMTPTransport.SentMessageInfo, SMTPTransport.Options> | undefined;
+  private transporter: nodemailer.Transporter<SMTPTransport.SentMessageInfo, SMTPTransport.Options>;
   constructor() {
-    this.transporter = nodemailer.createTransport({
+    this.transporter = this.init();
+  }
+  init() {
+    this.logger.log("Mail service")
+    return nodemailer.createTransport({
       host: "smtp.zoho.com",
       port: 465,
       secure: true,
@@ -18,16 +22,16 @@ export class MailService {
       },
     });
   }
-
   async sendEmail(userEmail: string, subject: string, mailContent: string) {
-    const res = await this.transporter!.sendMail({
+    if (!this.transporter) this.transporter = this.init();
+    const res = await this.transporter.sendMail({
       from: ZOHO_MAIL,
       to: userEmail,
       subject: subject,
-      text: mailContent
+      html: mailContent
     });
     if (!res.accepted) {
-      throw new Error(`Failed to send email to ${userEmail}`);
+      this.logger.error(`Failed to send email to ${userEmail}`);
     }
   }
 }
