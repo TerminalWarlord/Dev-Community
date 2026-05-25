@@ -115,6 +115,11 @@ export class CommentService {
         parentId: parentId ? new mongoose.Types.ObjectId(parentId) : parentId,
         postId: post._id
       });
+      await this.postModel.updateOne({
+        _id: post._id
+      }, {
+        $inc: { totalComments: 1 }
+      });
       return {
         message: "success",
         commentId: comment._id
@@ -171,6 +176,13 @@ export class CommentService {
       if (!comment) {
         throw new NotFoundException("Comment doesn't exist");
       }
+      await this.postModel.updateOne({
+        _id: comment.postId
+      }, {
+        $inc: {
+          totalComments: -1
+        }
+      })
       return {
         message: "success"
       }

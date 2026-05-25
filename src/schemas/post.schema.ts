@@ -33,6 +33,9 @@ export class Post {
   @Prop({ type: Number, default: 0, required: true })
   totalDownvotes!: Number;
 
+  @Prop({ type: Number, default: 0, required: true })
+  totalComments!: Number;
+
   @Prop({ type: Date, default: Date.now, required: true })
   publishAt!: Date;
 }
