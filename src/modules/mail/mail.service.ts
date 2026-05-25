@@ -26,6 +26,8 @@ export class MailService {
       subject: subject,
       text: mailContent
     });
-    this.logger.log(res);
+    if (!res.accepted) {
+      throw new Error(`Failed to send email to ${userEmail}`);
+    }
   }
 }
