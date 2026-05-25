@@ -13,14 +13,15 @@ import { CommunityRole } from 'src/schemas/community-role.schema';
 import { User } from 'src/schemas/user.schema';
 import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
 import { PostVote } from 'src/schemas/post-votes.schema';
-import { Role } from 'src/common/community.enum';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { MailService } from '../mail/mail.service';
 
 
 @Injectable()
 export class PostService {
   private logger = new Logger()
+
   constructor(
     @InjectModel(Post.name)
     private readonly postModel: Model<Post>,
@@ -31,8 +32,13 @@ export class PostService {
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
     @InjectQueue('posts')
-    private postQueue: Queue
-  ) { }
+    private postQueue: Queue,
+    private mailService: MailService
+
+
+  ) {
+    this.logger.log("INITIALIZING post service")
+  }
 
   async getPost(
     getPostQueriesDto: GetPostQueriesDto,
@@ -264,6 +270,8 @@ export class PostService {
         votePostBodyDto?.voteType,
         this.postVoteModel,
         this.postModel,
+        this.userModel,
+        this.mailService,
         communityId
       );
       return {
