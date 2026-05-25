@@ -6,9 +6,11 @@ import { User, UserSchema } from 'src/schemas/user.schema';
 import { Post, PostSchema } from 'src/schemas/post.schema';
 import { Comment, CommentSchema } from 'src/schemas/comment.schema';
 import { Community, CommunitySchema } from 'src/schemas/community.schema';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    JwtModule,
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Post.name, schema: PostSchema },
