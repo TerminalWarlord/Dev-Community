@@ -69,7 +69,7 @@ export class SuperadminService {
   async deleteComment(deleteCommentDto: DeleteCommentDto) {
     try {
       const commentId = new mongoose.Types.ObjectId(deleteCommentDto.commentId);
-      const comment = await this.userModel.findOneAndUpdate({
+      const comment = await this.commentModel.findOneAndUpdate({
         _id: commentId
       }, {
         status: UserStatus.DELETED
@@ -91,7 +91,7 @@ export class SuperadminService {
   async deleteCommunity(deleteCommunityDto: DeleteCommunityDto) {
     try {
       const communityId = new mongoose.Types.ObjectId(deleteCommunityDto.communityId);
-      const community = await this.userModel.findOneAndUpdate({
+      const community = await this.communityModel.findOneAndUpdate({
         _id: communityId
       }, {
         status: UserStatus.DELETED
