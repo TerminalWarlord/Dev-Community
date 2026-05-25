@@ -10,12 +10,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { LoginUserDto } from 'src/modules/user/dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
-import {
-  ACCESS_TOKEN_EXPIRY,
-  JWT_SECRET,
-  REFRESH_TOKEN_EXPIRY,
-} from '../../common/constants';
 import { User } from 'src/schemas/user.schema';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +19,8 @@ export class AuthService {
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
     private jwtService: JwtService,
-  ) {}
+    private configService: ConfigService
+  ) { }
   async signUp(createUserDto: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
     const user = await this.userModel.insertOne({
@@ -54,15 +51,19 @@ export class AuthService {
         throw new BadRequestException('Password is invalid');
       }
       const payload = { userId: user._id };
+      const JWT_SECRET = this.configService.get<string>("JWT_SECRET");
+      if (!JWT_SECRET) {
+        throw new Error('JWT_SECRET is not set');
+      }
       return {
         userId: user._id,
         access_token: await this.jwtService.signAsync(payload, {
           secret: JWT_SECRET,
-          expiresIn: Number(ACCESS_TOKEN_EXPIRY),
+          expiresIn: Number(this.configService.get<string>('ACCESS_TOKEN_EXPIRY')),
         }),
         refresh_token: await this.jwtService.signAsync(payload, {
           secret: JWT_SECRET,
-          expiresIn: Number(REFRESH_TOKEN_EXPIRY),
+          expiresIn: Number(this.configService.get<string>('REFRESH_TOKEN_EXPIRY')),
         }),
       };
     } catch (err) {

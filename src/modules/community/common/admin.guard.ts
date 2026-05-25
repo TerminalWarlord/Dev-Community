@@ -7,12 +7,11 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { JWT_SECRET } from '../../../common/constants';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from 'src/schemas/user.schema';
 import mongoose, { Model } from 'mongoose';
 import { CommunityRole } from 'src/schemas/community-role.schema';
 import { CommunityService } from '../community.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CommunityAdminAuthGuard implements CanActivate {
@@ -21,6 +20,7 @@ export class CommunityAdminAuthGuard implements CanActivate {
     @InjectModel(CommunityRole.name)
     private readonly communityRoleModel: Model<CommunityRole>,
     private readonly jwtService: JwtService,
+    private configService: ConfigService
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -30,6 +30,7 @@ export class CommunityAdminAuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
     try {
+      const JWT_SECRET = this.configService.get<string>('JWT_SECRET');
       const payload = await this.jwtService.verifyAsync(token, {
         secret: JWT_SECRET,
       });

@@ -16,6 +16,7 @@ import { PostVote } from 'src/schemas/post-votes.schema';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { MailService } from '../mail/mail.service';
+import { ConfigService } from '@nestjs/config';
 
 
 @Injectable()
@@ -33,9 +34,8 @@ export class PostService {
     private readonly userModel: Model<User>,
     @InjectQueue('posts')
     private postQueue: Queue,
-    private mailService: MailService
-
-
+    private mailService: MailService,
+    private configService: ConfigService
   ) {
     this.logger.log("INITIALIZING post service")
   }
@@ -264,6 +264,7 @@ export class PostService {
   ) {
     try {
       const communityId = votePostBodyDto?.communityId ? new mongoose.Types.ObjectId(votePostBodyDto?.communityId) : undefined;
+      const DISLIKE_THRESHOLD = this.configService.get<number>('DISLIKE_THRESHOLD') || 10;
       await castVoteOnPost(
         votePostRequestDto.userId,
         votePostParamsDto.postSlug,
@@ -272,7 +273,8 @@ export class PostService {
         this.postModel,
         this.userModel,
         this.mailService,
-        communityId
+        communityId,
+        DISLIKE_THRESHOLD
       );
       return {
         message: "success"
