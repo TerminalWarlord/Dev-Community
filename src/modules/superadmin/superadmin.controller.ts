@@ -6,12 +6,12 @@ import { DeletePostDto } from './dto/delete-post.dto';
 import { DeleteCommentDto } from './dto/delete-comment.dto';
 import { DeleteCommunityDto } from './dto/delete-community.dto';
 
-@Controller('superadmin')
+@Controller('admin')
 export class SuperadminController {
   constructor(private superadminService: SuperadminService) { }
 
   @UseGuards(SuperAdminAuthGuard)
-  @Delete()
+  @Delete("user/:userId/delete")
   async deleteUser(
     @Param() deleteUserDto: DeleteUserDto
   ) {
@@ -19,7 +19,7 @@ export class SuperadminController {
   }
 
   @UseGuards(SuperAdminAuthGuard)
-  @Delete()
+  @Delete("post/:postSlug/delete")
   async deletePost(
     @Param() deletePostDto: DeletePostDto
   ) {
@@ -27,7 +27,7 @@ export class SuperadminController {
   }
 
   @UseGuards(SuperAdminAuthGuard)
-  @Delete()
+  @Delete("comment/:commentId/delete")
   async deleteComment(
     @Param() deleteCommentDto: DeleteCommentDto
   ) {
@@ -35,7 +35,7 @@ export class SuperadminController {
   }
 
   @UseGuards(SuperAdminAuthGuard)
-  @Delete()
+  @Delete("community/:communityId/delete")
   async deleteCommunity(
     @Param() deleteCommunityDto: DeleteCommunityDto
   ) {
