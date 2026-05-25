@@ -35,6 +35,9 @@ export class SuperadminService {
       if (!user) {
         throw new NotFoundException("User doesn't exist");
       }
+      return {
+        message: "success"
+      }
     } catch (err) {
       if (err instanceof NotFoundException) {
         throw new NotFoundException(err.message);
@@ -52,6 +55,9 @@ export class SuperadminService {
       });
       if (!post) {
         throw new NotFoundException("Post doesn't exist");
+      }
+      return {
+        message: "success"
       }
     } catch (err) {
       if (err instanceof NotFoundException) {
@@ -71,6 +77,9 @@ export class SuperadminService {
       if (!comment) {
         throw new NotFoundException("Comment doesn't exist");
       }
+      return {
+        message: "success"
+      }
     } catch (err) {
       if (err instanceof NotFoundException) {
         throw new NotFoundException(err.message);
@@ -89,6 +98,9 @@ export class SuperadminService {
       });
       if (!community) {
         throw new NotFoundException("Community doesn't exist");
+      }
+      return {
+        message: "success"
       }
     } catch (err) {
       if (err instanceof NotFoundException) {
