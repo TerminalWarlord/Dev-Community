@@ -12,7 +12,7 @@ import { nanoid } from "nanoid";
 import slugify from "slugify";
 import { Queue } from "bullmq";
 import { MailService } from "../mail/mail.service";
-import { DISLIKE_THRESHOLD } from "src/common/constants";
+
 
 export enum PostOperationType {
   DELETION = "DELETION",
@@ -85,6 +85,7 @@ export async function castVoteOnPost(
   userModel: Model<User>,
   mailService: MailService,
   communityId?: mongoose.Types.ObjectId,
+  dislikeThreshold: number = 10
 ) {
   const post = await postModel.findOne({
     communityId,
@@ -116,13 +117,13 @@ export async function castVoteOnPost(
     postId: post._id,
   });
 
-  if (downvotes > DISLIKE_THRESHOLD) {
+  if (downvotes > dislikeThreshold) {
     const user = await userModel.findById(new mongoose.Types.ObjectId(userId));
     await mailService.sendEmail(
       user?.email!,
       "Dev Community Post Notice",
       `<h1> IMPORTANT NOTICE</h1>
-      <p>Your post <strong>${post.title}</strong> has got more than ${DISLIKE_THRESHOLD} dislikes!</p>`
+      <p>Your post <strong>${post.title}</strong> has got more than ${dislikeThreshold} dislikes!</p>`
     )
   }
 

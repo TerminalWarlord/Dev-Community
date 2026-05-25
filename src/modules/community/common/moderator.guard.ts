@@ -7,11 +7,11 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { JWT_SECRET } from '../../../common/constants';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { CommunityRole } from 'src/schemas/community-role.schema';
 import { CommunityService } from '../community.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CommunityModeratorAuthGuard implements CanActivate {
@@ -20,11 +20,16 @@ export class CommunityModeratorAuthGuard implements CanActivate {
     @InjectModel(CommunityRole.name)
     private readonly communityRoleModel: Model<CommunityRole>,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
+    const JWT_SECRET = this.configService.get<string>('JWT_SECRET')
+    if (!JWT_SECRET) {
+      throw new Error("JWT_SECRET is not set");
+    }
     if (!token) {
       throw new UnauthorizedException();
     }

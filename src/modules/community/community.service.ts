@@ -13,7 +13,6 @@ import { GetCommunityMembersParamsDto, GetCommunityMembersQueriesDto } from './d
 import { BanACommunityMemberParamsDto, BanACommunityMemberRequestDto } from './dto/ban-community-member.dto';
 import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-community.dto';
 import { InviteModeratorParamsDto } from './dto/invite-moderator.dto';
-import { PORT } from 'src/common/constants';
 import { ManageInvitationParamsDto, ManageInvitationRequestDto } from './dto/manage-invitation.dto';
 
 @Injectable()
@@ -234,7 +233,7 @@ export class CommunityService {
       }
       return {
         message: "success",
-        invitationUrl: `http://localhost:${PORT}/community/${communityId}/invite/accept/${communityRole._id}`
+        invitationUrl: `/community/${communityId}/invite/accept/${communityRole._id}`
       }
 
     } catch (error) {

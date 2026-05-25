@@ -10,9 +10,9 @@ import { Request } from 'express';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { CommunityRole } from 'src/schemas/community-role.schema';
-import { JWT_SECRET } from 'src/common/constants';
 import { MembershipStatus } from 'src/common/community.enum';
 import { CommunityService } from '../community.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CommunityMembershipAuthGuard implements CanActivate {
@@ -21,6 +21,7 @@ export class CommunityMembershipAuthGuard implements CanActivate {
     @InjectModel(CommunityRole.name)
     private readonly communityRoleModel: Model<CommunityRole>,
     private readonly jwtService: JwtService,
+    private configService: ConfigService
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -30,6 +31,7 @@ export class CommunityMembershipAuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
     try {
+      const JWT_SECRET = this.configService.get<string>('JWT_SECRET');
       const payload = await this.jwtService.verifyAsync(token, {
         secret: JWT_SECRET,
       });
