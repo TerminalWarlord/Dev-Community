@@ -143,6 +143,9 @@ export class PostService {
       const offset = (page - 1) * limit;
       const posts = await this.postModel.aggregate([
         {
+          $match: postFilterQuery
+        },
+        {
           $addFields: {
             score: {
               $add: [
