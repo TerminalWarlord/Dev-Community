@@ -39,27 +39,27 @@ jobs:
               git pull origin main
             fi
 
-            cat > .env << 'ENVEOF'
+            cat > .env.production << 'ENVEOF'
           ${{ secrets.ENV_VALUES }}
           ENVEOF
 
-          #   # Load NVM
-          #   export NVM_DIR="$HOME/.nvm"
-          # [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          #   nvm use 22
+            # Load NVM
+            export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 22
 
-          #   npm i
+            npm i
 
-          #   if pm2 list | grep -Eq 'dev-community'; then
-          #     pm2 restart dev-community --update-env
-          #   else
-          #     pm2 start "npm start" --name dev-community
-          #   fi
+            if pm2 list | grep -Eq 'dev-community'; then
+              pm2 restart dev-community --update-env
+            else
+              pm2 start "npm start" --name dev-community
+            fi
 
-          #   pm2 save
-          docker compose down
-          docker compose build --no-cache
-          docker compose up -d
+            pm2 save
+          # docker compose down
+          # docker compose build --no-cache
+          # docker compose up -d
           EOF
 
       - name: Clean up SSH key
