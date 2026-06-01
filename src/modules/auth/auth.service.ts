@@ -22,20 +22,32 @@ export class AuthService {
     private configService: ConfigService
   ) { }
   async signUp(createUserDto: CreateUserDto) {
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    const user = await this.userModel.insertOne({
-      ...createUserDto,
-      password: hashedPassword,
-    });
-    if (!user) {
-      throw new InternalServerErrorException('Failed to save user');
+    try {
+      const user = await this.userModel.findOne({ email: createUserDto.email });
+      if (user) {
+        throw new BadRequestException("Email is already in use");
+      }
+      const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+      const newUser = await this.userModel.insertOne({
+        ...createUserDto,
+        password: hashedPassword,
+      });
+      if (!newUser) {
+        throw new InternalServerErrorException('Failed to save user');
+      }
+      return {
+        userId: newUser._id,
+        fname: newUser.fname,
+        lname: newUser.lname,
+        email: newUser.email,
+      };
     }
-    return {
-      userId: user._id,
-      fname: user.fname,
-      lname: user.lname,
-      email: user.email,
-    };
+    catch (err) {
+      if (err instanceof NotFoundException) throw new NotFoundException(err.message);
+      else if (err instanceof BadRequestException) throw new BadRequestException(err.message);
+      else throw new InternalServerErrorException("Failed to create user");
+
+    }
   }
   async logIn(loginUserDto: LoginUserDto) {
     const user = await this.userModel.findOne({ email: loginUserDto.email });
