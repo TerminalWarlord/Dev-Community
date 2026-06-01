@@ -1,9 +1,9 @@
 import { ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model, PipelineStage, SortOrder } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Post } from 'src/schemas/post.schema';
 import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
-import { PostFilter, PostOrderBy, PostStatus, VoteType } from 'src/common/post.enum';
+import { PostFilter, PostOrderBy, PostStatus } from 'src/common/post.enum';
 import { GetPostsQueriesDto, GetPostsRequestDto } from './dto/get-posts.dto';
 import { GetPostParamsDto, GetPostQueriesDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
@@ -55,7 +55,6 @@ export class PostService {
     this.logger.log(getPostQueriesDto, getPostParamsDto)
     try {
       const communityId = getPostQueriesDto.communityId ? new mongoose.Types.ObjectId(getPostQueriesDto.communityId) : undefined;
-      // TODO: get post votes
       const post = await this.postModel.findOne({
         communityId,
         slug: getPostParamsDto.postSlug,
@@ -67,34 +66,10 @@ export class PostService {
       if (!post) {
         throw new NotFoundException("Couldn't find any post with that slug");
       }
-
-      // TODO: use aggregation
-      // const postVotes = await this.postVoteModel.aggregate([
-      //   { $match: { postId: post._id } },
-      //   {
-      //     $group: { _id: "$voteType", upvotes: {$sum: "$UPVOTE"}}
-      //   }
-      // ]);
-      const upvotes = await this.postVoteModel.countDocuments({
-        postId: post._id,
-        voteType: VoteType.UPVOTE
-      });
-      const downvotes = await this.postVoteModel.countDocuments({
-        postId: post._id,
-        voteType: VoteType.DOWNVOTE
-      });
-      const neutralVotes = await this.postVoteModel.countDocuments({
-        postId: post._id,
-        voteType: VoteType.NEUTRAL
-      });
       return {
-        ...post,
-        upvotes,
-        downvotes,
-        neutralVotes
+        ...post
       };
     } catch (err) {
-      this.logger.error(err);
       if (err instanceof NotFoundException) {
         throw new NotFoundException(err.message);
       }
@@ -219,11 +194,11 @@ export class PostService {
         postedBy: new mongoose.Types.ObjectId(createPostRequestDto.userId),
         publishAt
       });
-      console.log(publishAt.getTime())
-      console.log(Date.now())
+      // console.log(publishAt.getTime())
+      // console.log(Date.now())
       if (postStatus === PostStatus.SCHEDULED) {
         const delay = new Date(publishAt).getTime() - Date.now();
-        console.log(new Date(publishAt), new Date(Date.now()), delay)
+        // console.log(new Date(publishAt), new Date(Date.now()), delay)
         await schedulePost(
           post._id.toString(),
           this.postQueue,
@@ -328,7 +303,7 @@ export class PostService {
         message: "success"
       }
     } catch (err) {
-      console.log(err)
+      // console.log(err)
       if (err instanceof NotFoundException) {
         throw new NotFoundException(err.message);
       }
@@ -336,5 +311,4 @@ export class PostService {
 
     }
   }
-
 }
