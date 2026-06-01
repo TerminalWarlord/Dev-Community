@@ -49,6 +49,7 @@ jobs:
             nvm use 22
 
             npm i
+            npm run test
 
             if pm2 list | grep -Eq 'dev-community'; then
               pm2 restart dev-community --update-env
