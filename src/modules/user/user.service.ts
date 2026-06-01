@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -28,8 +29,16 @@ export class UserService {
   ) { }
 
   async getUserProfile(userId: string) {
-    const user = await this.userModel.findById(new mongoose.Types.ObjectId(userId)).select("-password -__v -updatedAt");
-    return user;
+    try {
+      const user = await this.userModel.findById(new mongoose.Types.ObjectId(userId)).select("-password -__v -updatedAt");
+      if (!user) {
+        throw new NotFoundException("User not found");
+      }
+      return user;
+    } catch (err) {
+      if (err instanceof NotFoundException) throw new NotFoundException(err.message);
+      throw new InternalServerErrorException("Failed to get user profile");
+    }
   }
 
   async getUserSkills(getUsersSkillsParamsDto: GetUsersSkillsParamsDto, getUsersSkillsQueriesDto: GetUsersSkillsQueriesDto) {
@@ -121,7 +130,9 @@ export class UserService {
         );
       }
     } catch (err) {
-      throw new ForbiddenException('Old password is incorrect');
+      if (err instanceof UnauthorizedException) throw new UnauthorizedException(err.message);
+      else if (err instanceof ForbiddenException) throw new ForbiddenException(err.message);
+      throw new InternalServerErrorException('Failed to change password');
     }
   }
 }
