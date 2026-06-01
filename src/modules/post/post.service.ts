@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model, SortOrder } from 'mongoose';
+import mongoose, { Model, PipelineStage, SortOrder } from 'mongoose';
 import { Post } from 'src/schemas/post.schema';
 import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { PostFilter, PostOrderBy, PostStatus, VoteType } from 'src/common/post.enum';
@@ -25,7 +25,7 @@ interface PostFilterQueryType {
   title?: object,
   postedBy?: mongoose.Types.ObjectId
 }
-type PostSortFilterType = string | Record<string, SortOrder | { $meta: any; }> | [string, SortOrder][] | null | undefined;
+type PostSortFilterType = Record<string, number>;
 
 @Injectable()
 export class PostService {
@@ -119,13 +119,13 @@ export class PostService {
 
       let postSortFilter: PostSortFilterType = {};
       if (postFilter === PostFilter.CREATED_AT) {
-        postSortFilter.createdAt = postOrderBy ? 1 : -1;
+        postSortFilter.createdAt = postOrderBy === PostOrderBy.ASC ? 1 : -1;
       }
       else if (postFilter === PostFilter.UPDATED_AT) {
-        postSortFilter.updatedAt = postOrderBy ? 1 : -1;
+        postSortFilter.updatedAt = postOrderBy === PostOrderBy.ASC ? 1 : -1;
       }
       else if (postFilter === PostFilter.POPULARITY) {
-        postSortFilter.totalVotes = postOrderBy ? 1 : -1;
+        postSortFilter.score = postOrderBy === PostOrderBy.ASC ? 1 : -1;
       }
       let postFilterQuery: PostFilterQueryType = {
         communityId,
@@ -141,18 +141,57 @@ export class PostService {
         }
       }
       const offset = (page - 1) * limit;
-      const posts = await this.postModel.find(postFilterQuery)
-        .select("-communityId -status -__v -_id")
-        .populate("postedBy", "_id fname lname")
-        .sort(postSortFilter)
-        .skip(offset)
-        .limit(limit + 1);
+      const posts = await this.postModel.aggregate([
+        {
+          $match: postFilterQuery
+        },
+        {
+          $addFields: {
+            score: {
+              $add: [
+                { $multiply: [{ $ifNull: ["$totalUpvotes", 0], }, 1] },
+                { $multiply: [{ $ifNull: ["$totalDownvotes", 0], }, -1] },
+                { $multiply: [{ $ifNull: ["$totalComments", 0], }, 3] },
+              ]
+            }
+          }
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "postedBy",
+            foreignField: "_id",
+            as: "user",
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  fname: 1,
+                  lname: 1
+                }
+              }
+            ]
+          }
+        },
+        {
+          $unset: [
+            "__v",
+            "postedBy",
+          ]
+        },
+        {
+          $sort: postSortFilter as Record<string, 1 | -1>
+        },
+        { $skip: offset },
+        { $limit: limit + 1 }
+      ])
       const results = posts.slice(0, limit);
       return {
         results,
         hasNextPage: posts.length > limit,
       }
     } catch (err) {
+      this.logger.error(err);
       if (err instanceof UnauthorizedException) {
         throw new UnauthorizedException(err.message);
       }
