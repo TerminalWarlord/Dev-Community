@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -14,9 +15,6 @@ import { UserSkill } from 'src/schemas/user-skill.schema';
 import { GetUsersSkillsParamsDto, GetUsersSkillsQueriesDto } from './dto/get-users-skills.dto';
 import { GetUsersExperiencesParamsDto, GetUsersExperiencesQueriesDto } from './dto/get-users-experiences.dto';
 import { Experience } from 'src/schemas/experience.schema';
-import { Post as PostModel } from 'src/schemas/post.schema';
-import { CommunityRole } from 'src/schemas/community-role.schema';
-import { PostVote } from 'src/schemas/post-votes.schema';
 
 @Injectable()
 export class UserService {
@@ -28,17 +26,19 @@ export class UserService {
     private readonly userSkillModel: Model<UserSkill>,
     @InjectModel(Experience.name)
     private readonly experienceModel: Model<Experience>,
-    @InjectModel(PostModel.name)
-    private readonly postModel: Model<PostModel>,
-    @InjectModel(PostVote.name)
-    private readonly postVoteModel: Model<PostVote>,
-    @InjectModel(CommunityRole.name)
-    private readonly communityRoleModel: Model<CommunityRole>,
   ) { }
 
   async getUserProfile(userId: string) {
-    const user = await this.userModel.findById(new mongoose.Types.ObjectId(userId)).select("-password -__v -updatedAt");
-    return user;
+    try {
+      const user = await this.userModel.findById(new mongoose.Types.ObjectId(userId)).select("-password -__v -updatedAt");
+      if (!user) {
+        throw new NotFoundException("User not found");
+      }
+      return user;
+    } catch (err) {
+      if (err instanceof NotFoundException) throw new NotFoundException(err.message);
+      throw new InternalServerErrorException("Failed to get user profile");
+    }
   }
 
   async getUserSkills(getUsersSkillsParamsDto: GetUsersSkillsParamsDto, getUsersSkillsQueriesDto: GetUsersSkillsQueriesDto) {
@@ -130,7 +130,9 @@ export class UserService {
         );
       }
     } catch (err) {
-      throw new ForbiddenException('Old password is incorrect');
+      if (err instanceof UnauthorizedException) throw new UnauthorizedException(err.message);
+      else if (err instanceof ForbiddenException) throw new ForbiddenException(err.message);
+      throw new InternalServerErrorException('Failed to change password');
     }
   }
 }
