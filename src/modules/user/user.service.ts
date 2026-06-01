@@ -14,9 +14,6 @@ import { UserSkill } from 'src/schemas/user-skill.schema';
 import { GetUsersSkillsParamsDto, GetUsersSkillsQueriesDto } from './dto/get-users-skills.dto';
 import { GetUsersExperiencesParamsDto, GetUsersExperiencesQueriesDto } from './dto/get-users-experiences.dto';
 import { Experience } from 'src/schemas/experience.schema';
-import { Post as PostModel } from 'src/schemas/post.schema';
-import { CommunityRole } from 'src/schemas/community-role.schema';
-import { PostVote } from 'src/schemas/post-votes.schema';
 
 @Injectable()
 export class UserService {
@@ -28,12 +25,6 @@ export class UserService {
     private readonly userSkillModel: Model<UserSkill>,
     @InjectModel(Experience.name)
     private readonly experienceModel: Model<Experience>,
-    @InjectModel(PostModel.name)
-    private readonly postModel: Model<PostModel>,
-    @InjectModel(PostVote.name)
-    private readonly postVoteModel: Model<PostVote>,
-    @InjectModel(CommunityRole.name)
-    private readonly communityRoleModel: Model<CommunityRole>,
   ) { }
 
   async getUserProfile(userId: string) {
