@@ -67,21 +67,22 @@ export class SkillService {
   }
 
   async getAllSkills(getSkillsDto: GetSkillsDto) {
-    // const page = getSkillsDto.page || 1;
-    // const limit = getSkillsDto.limit || 10;
-    // const offset = (page - 1) * limit;
-    // try {
-    //   const skills = await this.skillModel.find()
-    //     .skip(offset)
-    //     .limit(limit + 1);
-    //   const results = skills.slice(0, limit);
-    //   return {
-    //     results: results,
-    //     hasNextPage: skills.length > limit
-    //   };
-    // } catch (error) {
-    //   throw new InternalServerErrorException("Failed to get skills")
-    // }
+    const page = parseInt(getSkillsDto.page || "1");
+    const limit = parseInt(getSkillsDto.limit || "10");
+    const offset = (page - 1) * limit;
+    try {
+      const skills = await this.skillRepo.find({
+        skip: offset,
+        take: limit + 1
+      })
+      const results = skills.slice(0, limit);
+      return {
+        results: results,
+        hasNextPage: skills.length > limit
+      };
+    } catch (error) {
+      throw new InternalServerErrorException("Failed to get skills")
+    }
   }
 
 
