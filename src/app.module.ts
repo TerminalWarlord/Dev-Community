@@ -7,12 +7,21 @@ import { CommunityModule } from './modules/community/community.module';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SuperadminModule } from './modules/superadmin/superadmin.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: `.env.${process.env.NODE_ENV}`,
       isGlobal: true
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        url: config.get<string>('POSTGRES_DATABASE_URL'),
+        type: "postgres"
+      }),
     }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
