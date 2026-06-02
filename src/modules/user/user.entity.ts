@@ -1,5 +1,7 @@
 import { UserStatus } from "src/common/user.enum"
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
+import { Experience } from "./experience/experience.entity"
+import { UserSkill } from "./skill/skill.entity"
 
 @Entity()
 export class User {
@@ -27,4 +29,16 @@ export class User {
     default: UserStatus.USER,
   })
   status!: UserStatus
+
+  @OneToMany(() => Experience, (experience) => experience.user, { onDelete: "CASCADE" })
+  experiences!: Experience[]
+
+  @OneToMany(() => UserSkill, (skill) => skill.user, { onDelete: "CASCADE" })
+  userSkills!: UserSkill[]
+
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
 }
