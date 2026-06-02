@@ -37,17 +37,15 @@ export class SkillService {
         throw new InternalServerErrorException("Failed to create skill");
       }
       try {
-        // const userSkill = await this.userSkillModel.insertOne({
-        //   userId: new mongoose.Types.ObjectId(createSkillDto.userId),
-        //   skillId: skill._id
-        // });
-
-        const userSkill = await this.userSkillRepo.create({
-          skill,
+        const newUserSkill = this.userSkillRepo.create({
           user: {
-            id: createSkillRequestDto.userId
+            id: createSkillRequestDto.userId,
+          },
+          skill: {
+            id: skill.id
           }
-        })
+        });
+        const userSkill = await this.userSkillRepo.save(newUserSkill);
 
         return {
           message: "success",
