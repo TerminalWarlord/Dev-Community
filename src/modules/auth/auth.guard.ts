@@ -7,18 +7,18 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { InjectModel } from '@nestjs/mongoose';
-import { User } from 'src/schemas/user.schema';
-import mongoose, { Model } from 'mongoose';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/entities/user.entity';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   private logger = new Logger(AuthService.name);
   constructor(
-    @InjectModel(User.name)
-    private readonly userModel: Model<User>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     private readonly jwtService: JwtService,
     private configService: ConfigService
   ) { }
@@ -38,13 +38,15 @@ export class AuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: JWT_SECRET,
       });
-      const user = await this.userModel.findById(
-        new mongoose.Types.ObjectId(payload.userId),
-      );
+      const user = await this.userRepo.findOne({
+        where: {
+          id: parseInt(payload.userId)
+        }
+      });
       if (!user) {
         throw new UnauthorizedException();
       }
-      request['userId'] = payload.userId;
+      request['userId'] = parseInt(payload.userId);
     } catch (err) {
       this.logger.error(err);
       throw new UnauthorizedException();
