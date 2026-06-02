@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { AuthGuard } from 'src/modules/auth/auth.guard';
+// import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { GetUsersSkillsParamsDto, GetUsersSkillsQueriesDto } from './dto/get-users-skills.dto';
 import { GetUsersExperiencesParamsDto, GetUsersExperiencesQueriesDto } from './dto/get-users-experiences.dto';
 import { AddUserPostDto, AddUserPostRequestDto } from './dto/add-user-post.dto';
@@ -27,7 +27,7 @@ import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from '../post/
 export class UserController {
   constructor(private userService: UserService) { }
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Patch('change-password')
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
@@ -38,7 +38,7 @@ export class UserController {
 
   @Get('profile/:userId')
   async getUserProfile(
-    @Param('userId') userId: string
+    @Param('userId', ParseIntPipe) userId: number
   ) {
     return this.userService.getUserProfile(userId);
   }
