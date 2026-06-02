@@ -11,8 +11,6 @@ import { UserSkill } from 'src/entities/user-skill.entity';
 export class SkillService {
   private logger = new Logger(SkillService.name);
   constructor(
-    // @InjectModel(Skill.name)
-    // private readonly skillModel: Model<Skill>,
     @InjectRepository(Skill)
     private readonly skillRepo: Repository<Skill>,
     @InjectRepository(UserSkill)
@@ -87,19 +85,22 @@ export class SkillService {
 
 
   async removeSkill(removeSkillParamsDto: RemoveSkillParamsDto, removeSkillRequestDto: RemoveSkillRequestDto) {
-    //   try {
-    //     const userSkill = await this.userSkillModel.findOneAndDelete({
-    //       _id: new mongoose.Types.ObjectId(removeSkillParamsDto.userSkillId),
-    //       userId: new mongoose.Types.ObjectId(removeSkillRequestDto.userId)
-    //     });
-    //     if (!userSkill) {
-    //       throw new NotFoundException("Couldn't find the user skill");
-    //     }
-    //     return {
-    //       message: "success"
-    //     };
-    //   } catch (error) {
-    //     throw new InternalServerErrorException("Failed to delete skill");
-    //   }
+    try {
+      // TODO: add soft deletion
+      const userSkill = await this.userSkillRepo.delete({
+        id: parseInt(removeSkillParamsDto.userSkillId),
+        user: {
+          id: parseInt(removeSkillRequestDto.userId)
+        }
+      })
+      if (!userSkill) {
+        throw new NotFoundException("Couldn't find the user skill");
+      }
+      return {
+        message: "success"
+      };
+    } catch (error) {
+      throw new InternalServerErrorException("Failed to delete skill");
+    }
   }
 }
