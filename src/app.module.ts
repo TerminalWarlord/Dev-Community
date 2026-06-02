@@ -56,7 +56,7 @@ import { SkillModule } from './modules/user/skill/skill.module';
     // ExperienceModule,
     // CommunityModule,
     SuperadminModule,
-    // SkillModule,
+    SkillModule,
     // ExperienceModule
   ],
 })

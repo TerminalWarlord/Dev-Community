@@ -1,44 +1,59 @@
 import { Injectable, InternalServerErrorException, Logger, NotFoundException, Request } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
-import { Skill } from 'src/schemas/skill.schema';
-import { UserSkill } from 'src/schemas/user-skill.schema';
-import { CreateSkillDto } from './dto/create-skill.dto';
+import { CreateSkillBodyDto, CreateSkillRequestDto } from './dto/create-skill.dto';
 import { RemoveSkillParamsDto, RemoveSkillRequestDto } from './dto/remove-skill.dto';
 import { GetSkillsDto } from './dto/get-skills.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Skill } from 'src/entities/skill.entity';
+import { Repository } from 'typeorm';
+import { UserSkill } from 'src/entities/user-skill.entity';
 
 @Injectable()
 export class SkillService {
   private logger = new Logger(SkillService.name);
   constructor(
-    @InjectModel(Skill.name)
-    private readonly skillModel: Model<Skill>,
-    @InjectModel(UserSkill.name)
-    private readonly userSkillModel: Model<UserSkill>,
+    // @InjectModel(Skill.name)
+    // private readonly skillModel: Model<Skill>,
+    @InjectRepository(Skill)
+    private readonly skillRepo: Repository<Skill>,
+    @InjectRepository(UserSkill)
+    private readonly userSkillRepo: Repository<UserSkill>,
   ) { }
   async addSkill(
-    createSkillDto: CreateSkillDto
+    createSkillDto: CreateSkillBodyDto,
+    createSkillRequestDto: CreateSkillRequestDto
   ) {
+    let skill;
     try {
-      let skill = await this.skillModel.findOne({
-        skillTitle: createSkillDto.skillTitle
+      skill = await this.skillRepo.findOne({
+        where: {
+          skillTitle: createSkillDto.skillTitle
+        }
       });
       if (!skill) {
-        skill = await this.skillModel.insertOne({
+        const newSkill = this.skillRepo.create({
           skillTitle: createSkillDto.skillTitle
         });
+        skill = await this.skillRepo.save(newSkill);
       }
       if (!skill) {
         throw new InternalServerErrorException("Failed to create skill");
       }
       try {
-        const userSkill = await this.userSkillModel.insertOne({
-          userId: new mongoose.Types.ObjectId(createSkillDto.userId),
-          skillId: skill._id
-        });
+        // const userSkill = await this.userSkillModel.insertOne({
+        //   userId: new mongoose.Types.ObjectId(createSkillDto.userId),
+        //   skillId: skill._id
+        // });
+
+        const userSkill = await this.userSkillRepo.create({
+          skill,
+          user: {
+            id: createSkillRequestDto.userId
+          }
+        })
+
         return {
           message: "success",
-          user_skill_id: userSkill._id
+          user_skill_id: userSkill.id
         }
       }
       catch (err) {
@@ -52,38 +67,38 @@ export class SkillService {
   }
 
   async getAllSkills(getSkillsDto: GetSkillsDto) {
-    const page = getSkillsDto.page || 1;
-    const limit = getSkillsDto.limit || 10;
-    const offset = (page - 1) * limit;
-    try {
-      const skills = await this.skillModel.find()
-        .skip(offset)
-        .limit(limit + 1);
-      const results = skills.slice(0, limit);
-      return {
-        results: results,
-        hasNextPage: skills.length > limit
-      };
-    } catch (error) {
-      throw new InternalServerErrorException("Failed to get skills")
-    }
+    // const page = getSkillsDto.page || 1;
+    // const limit = getSkillsDto.limit || 10;
+    // const offset = (page - 1) * limit;
+    // try {
+    //   const skills = await this.skillModel.find()
+    //     .skip(offset)
+    //     .limit(limit + 1);
+    //   const results = skills.slice(0, limit);
+    //   return {
+    //     results: results,
+    //     hasNextPage: skills.length > limit
+    //   };
+    // } catch (error) {
+    //   throw new InternalServerErrorException("Failed to get skills")
+    // }
   }
 
 
   async removeSkill(removeSkillParamsDto: RemoveSkillParamsDto, removeSkillRequestDto: RemoveSkillRequestDto) {
-    try {
-      const userSkill = await this.userSkillModel.findOneAndDelete({
-        _id: new mongoose.Types.ObjectId(removeSkillParamsDto.userSkillId),
-        userId: new mongoose.Types.ObjectId(removeSkillRequestDto.userId)
-      });
-      if (!userSkill) {
-        throw new NotFoundException("Couldn't find the user skill");
-      }
-      return {
-        message: "success"
-      };
-    } catch (error) {
-      throw new InternalServerErrorException("Failed to delete skill");
-    }
+    //   try {
+    //     const userSkill = await this.userSkillModel.findOneAndDelete({
+    //       _id: new mongoose.Types.ObjectId(removeSkillParamsDto.userSkillId),
+    //       userId: new mongoose.Types.ObjectId(removeSkillRequestDto.userId)
+    //     });
+    //     if (!userSkill) {
+    //       throw new NotFoundException("Couldn't find the user skill");
+    //     }
+    //     return {
+    //       message: "success"
+    //     };
+    //   } catch (error) {
+    //     throw new InternalServerErrorException("Failed to delete skill");
+    //   }
   }
 }
