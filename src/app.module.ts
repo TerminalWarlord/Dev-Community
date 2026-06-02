@@ -8,6 +8,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SuperadminModule } from './modules/superadmin/superadmin.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SkillModule } from './modules/user/skill/skill.module';
 
 @Module({
   imports: [
@@ -52,9 +53,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     }),
     UserModule,
     AuthModule,
-    ExperienceModule,
-    CommunityModule,
+    // ExperienceModule,
+    // CommunityModule,
     SuperadminModule,
+    // SkillModule,
+    // ExperienceModule
   ],
 })
 export class AppModule { }
