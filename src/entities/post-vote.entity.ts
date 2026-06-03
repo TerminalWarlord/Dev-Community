@@ -1,8 +1,9 @@
 import { VoteType } from 'src/common/post.enum';
-import { Column, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Post } from './post.entity';
 import { User } from './user.entity';
 
+@Entity()
 @Index(["post", "user"], { unique: true })
 export class PostVote {
   @PrimaryGeneratedColumn()
