@@ -7,11 +7,11 @@ import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delet
 import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
 import { GetCommunityMembersParamsDto, GetCommunityMembersQueriesDto } from './dto/get-community-members.dto';
 import { BanACommunityMemberParamsDto, BanACommunityMemberRequestDto } from './dto/ban-community-member.dto';
-// import { CommunityModeratorAuthGuard } from './common/moderator.guard';
 import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-community.dto';
 import { InviteModeratorParamsDto } from './dto/invite-moderator.dto';
 import { CommunityAdminAuthGuard } from './common/admin.guard';
 import { ManageInvitationParamsDto, ManageInvitationRequestDto } from './dto/manage-invitation.dto';
+import { CommunityModeratorAuthGuard } from './common/moderator.guard';
 
 @Controller('community')
 export class CommunityController {
@@ -74,7 +74,7 @@ export class CommunityController {
   }
 
   @UseGuards(AuthGuard)
-  // @UseGuards(CommunityModeratorAuthGuard)
+  @UseGuards(CommunityModeratorAuthGuard)
   @Post(':communityId/member/:memberId/ban')
   async banACommunityMember(
     @Param() banACommunityMemberParamsDto: BanACommunityMemberParamsDto,
@@ -99,7 +99,7 @@ export class CommunityController {
   }
 
   @UseGuards(AuthGuard)
-  // @UseGuards(CommunityAdminAuthGuard)
+  @UseGuards(CommunityAdminAuthGuard)
   @Post(':communityId/invite/:userId')
   async inviteModerator(
     @Param() inviteModeratorParamsDto: InviteModeratorParamsDto,
