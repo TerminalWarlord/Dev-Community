@@ -207,27 +207,31 @@ export class CommunityService {
     banACommunityMemberParamsDto: BanACommunityMemberParamsDto,
     banACommunityMemberRequestDto: BanACommunityMemberRequestDto
   ) {
-    // try {
-    //   const userId = new mongoose.Types.ObjectId(banACommunityMemberRequestDto.userId);
-    //   const memberId = new mongoose.Types.ObjectId(banACommunityMemberParamsDto.memberId);
-    //   const communityId = new mongoose.Types.ObjectId(banACommunityMemberParamsDto.communityId);
-    //   const communityRole = await this.communityRoleModel.findOneAndUpdate({
-    //     userId: memberId,
-    //     communityId: communityId
-    //   }, {
-    //     role: "BANNED"
-    //   });
-    //   if (!communityRole) {
-    //     throw new InternalServerErrorException("Failed to ban user");
-    //   }
-    //   return {
-    //     message: "success",
-    //   }
+    try {
+      const userId = banACommunityMemberRequestDto.userId;
+      const memberId = parseInt(banACommunityMemberParamsDto.memberId);
+      const communityId = parseInt(banACommunityMemberParamsDto.communityId);
+      const communityRole = await this.communityRoleRepo.update({
+        user: {
+          id: memberId
+        },
+        community: {
+          id: communityId
+        }
+      }, {
+        status: MembershipStatus.BANNED
+      });
+      if (!communityRole.affected) {
+        throw new InternalServerErrorException("Failed to ban user");
+      }
+      return {
+        message: "success",
+      }
 
-    // } catch (error) {
-    //   this.logger.error(error);
-    //   throw new InternalServerErrorException("Failed to ban user");
-    // }
+    } catch (error) {
+      this.logger.error(error);
+      throw new InternalServerErrorException("Failed to ban user");
+    }
   }
 
   async joinCommunity(
