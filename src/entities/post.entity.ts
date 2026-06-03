@@ -3,6 +3,7 @@ import { User } from "./user.entity";
 import { Community } from "./community.entity";
 import { PostStatus } from "src/common/post.enum";
 import { PostVote } from "./post-vote.entity";
+import { Comment } from "./comment.entity";
 
 @Entity()
 export class Post {
@@ -33,6 +34,9 @@ export class Post {
 
   @OneToMany(() => PostVote, (postVote) => postVote.post)
   votes!: PostVote[];
+
+  @OneToMany(() => Comment, (comment) => comment.post)
+  comments!: Comment[];
 
   @Column({ type: "number", default: 0 })
   totalVotes!: number;
