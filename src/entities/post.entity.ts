@@ -38,13 +38,13 @@ export class Post {
   @OneToMany(() => Comment, (comment) => comment.post)
   comments!: Comment[];
 
-  @Column({ type: "number", default: 0 })
+  @Column({ type: "int", default: 0 })
   totalVotes!: number;
 
-  @Column({ type: 'number', default: 0 })
+  @Column({ type: "int", default: 0 })
   totalDownvotes!: number;
 
-  @Column({ type: 'number', default: 0 })
+  @Column({ type: "int", default: 0 })
   totalComments!: number;
 
   @Column({ type: 'timestamptz', default: 'CURRENT_TIMESTAMP' })

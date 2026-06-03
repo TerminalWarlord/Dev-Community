@@ -35,13 +35,13 @@ export class Comment {
   @OneToMany(() => CommentVote, (commentVote) => commentVote.comment)
   votes!: CommentVote;
 
-  @Column({ type: "number", default: 0 })
+  @Column({ type: "int", default: 0 })
   totalVotes!: number;
 
-  @Column({ type: "number", default: 0 })
+  @Column({ type: "int", default: 0 })
   totalUpvotes!: number;
 
-  @Column({ type: "number", default: 0 })
+  @Column({ type: "int", default: 0 })
   totalDownvotes!: number;
 
   @CreateDateColumn()
