@@ -4,6 +4,7 @@ import { Experience } from "./experience.entity"
 import { UserSkill } from "./user-skill.entity"
 import { CommunityRole } from "./community-role.entity"
 import { Post } from "./post.entity"
+import { PostVote } from "./post-vote.entity"
 
 @Entity()
 export class User {
@@ -43,6 +44,9 @@ export class User {
 
   @OneToMany(() => Post, (post) => post.postedBy)
   posts!: Post[];
+
+  @OneToMany(()=>PostVote, (postVote)=>postVote.user)
+  votes!: PostVote[];
 
   @CreateDateColumn()
   createdAt!: Date;

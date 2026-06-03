@@ -1,7 +1,8 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
 import { User } from "./user.entity";
 import { Community } from "./community.entity";
 import { PostStatus } from "src/common/post.enum";
+import { PostVote } from "./post-vote.entity";
 
 @Entity()
 export class Post {
@@ -29,6 +30,9 @@ export class Post {
     default: PostStatus.PUBLISHED
   })
   status!: PostStatus;
+
+  @OneToMany(() => PostVote, (postVote) => postVote.post)
+  votes!: PostVote[];
 
   @Column({ type: "number", default: 0 })
   totalVotes!: number;
