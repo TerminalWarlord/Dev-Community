@@ -292,7 +292,7 @@ export class CommunityService {
           }
         }
       });
-      
+
       return {
         message: "success",
         invitationUrl: `/community/${communityId}/invite/accept/${communityRole!.id}`
@@ -311,40 +311,50 @@ export class CommunityService {
     manageInvitationParamsDto: ManageInvitationParamsDto,
     manageInvitationRequestDto: ManageInvitationRequestDto,
   ) {
-    // try {
-    //   const invitationId = new mongoose.Types.ObjectId(manageInvitationParamsDto.invitationId);
-    //   const communityId = new mongoose.Types.ObjectId(manageInvitationParamsDto.communityId);
-    //   const userId = new mongoose.Types.ObjectId(manageInvitationRequestDto.userId);
-    //   const communityRole = await this.communityRoleModel.findOne({
-    //     communityId,
-    //     userId,
-    //     _id: invitationId,
-    //   });
-    //   if (!communityRole || communityRole.status !== "INVITED") {
-    //     throw new ForbiddenException("Doesn't seem like you have any open invitation");
-    //   }
-    //   const updatedCommunityRole = await this.communityRoleModel.findOneAndUpdate({
-    //     userId,
-    //     communityId,
-    //     _id: invitationId,
-    //   }, {
-    //     role: "MODERATOR",
-    //     status: "REGULAR",
-    //   });
-    //   if (!updatedCommunityRole) {
-    //     throw new InternalServerErrorException("Failed to update user role");
-    //   }
-    //   return {
-    //     message: "success"
-    //   }
-    // } catch (error) {
-    //   if (error instanceof ForbiddenException) {
-    //     throw new ForbiddenException(error.message);
-    //   }
-    //   else if (error instanceof InternalServerErrorException) {
-    //     throw new InternalServerErrorException(error.message);
-    //   }
-    //   throw new InternalServerErrorException("Failed to accept invitation");
-    // }
+    try {
+      const invitationId = parseInt(manageInvitationParamsDto.invitationId);
+      const communityId = parseInt(manageInvitationParamsDto.communityId);
+      const userId = manageInvitationRequestDto.userId;
+      const communityRole = await this.communityRoleRepo.findOne({
+        where: {
+          id: invitationId,
+          user: {
+            id: userId
+          },
+          community: {
+            id: communityId
+          }
+        }
+      });
+      if (!communityRole || communityRole.status !== MembershipStatus.INVITED) {
+        throw new ForbiddenException("Doesn't seem like you have any open invitation");
+      }
+      const updatedCommunityRole = await this.communityRoleRepo.update({
+        id: invitationId,
+        user: {
+          id: userId
+        },
+        community: {
+          id: communityId
+        }
+      }, {
+        role: Role.MODERATOR,
+        status: MembershipStatus.REGULAR,
+      });
+      if (!updatedCommunityRole || !updatedCommunityRole.affected) {
+        throw new InternalServerErrorException("Failed to update user role");
+      }
+      return {
+        message: "success"
+      }
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw new ForbiddenException(error.message);
+      }
+      else if (error instanceof InternalServerErrorException) {
+        throw new InternalServerErrorException(error.message);
+      }
+      throw new InternalServerErrorException("Failed to accept invitation");
+    }
   }
 }
