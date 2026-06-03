@@ -29,7 +29,7 @@ export class CommunityRole {
   @ManyToOne(() => Community, (community) => community.communityRoles)
   community!: Community;
 
-  @Column({ type: "timestamptz" })
+  @Column({ type: "timestamptz", nullable: true })
   joinedAt!: Date;
 
   @CreateDateColumn()
