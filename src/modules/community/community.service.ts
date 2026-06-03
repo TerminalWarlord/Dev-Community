@@ -1,6 +1,4 @@
 import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
 import { CreateCommunityBodyDto, CreateCommunityRequestDto } from './dto/create-community.dto';
 import { CommunityStatus, MembershipStatus, Role } from 'src/common/community.enum';
 import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from './dto/update-community.dto';
@@ -54,7 +52,6 @@ export class CommunityService {
     }
   }
 
-
   async createCommunity(
     createCommunityBodyDto: CreateCommunityBodyDto,
     createCommunityRequestDto: CreateCommunityRequestDto,
@@ -72,6 +69,7 @@ export class CommunityService {
         },
         role: Role.ADMIN,
         status: MembershipStatus.REGULAR,
+        joinedAt: Date.now(),
         user: {
           id: createCommunityRequestDto.userId
         }
@@ -163,26 +161,36 @@ export class CommunityService {
     getCommunityMembersQueriesDto: GetCommunityMembersQueriesDto,
     getCommunityMembersParamsDto: GetCommunityMembersParamsDto
   ) {
-    // try {
-    //   const page = getCommunityMembersQueriesDto.page || 1;
-    //   const limit = getCommunityMembersQueriesDto.limit || 10;
-    //   const offset = (page - 1) * limit;
-    //   const members = await this.communityRoleModel.find({
-    //     communityId: new mongoose.Types.ObjectId(getCommunityMembersParamsDto.communityId)
-    //   })
-    //     .populate("userId", "-password -createdAt -updatedAt -__v -email")
-    //     .select("-_id -__v -createdAt -updatedAt -communityId")
-    //     .skip(offset)
-    //     .limit(limit + 1);
-    //   const results = members.slice(0, limit);
-    //   return {
-    //     results,
-    //     hasNextPage: members.length > limit
-    //   }
-    // } catch (error) {
-    //   this.logger.error(error)
-    //   throw new InternalServerErrorException("Failed to get community members");
-    // }
+    try {
+      const page = getCommunityMembersQueriesDto.page || 1;
+      const limit = getCommunityMembersQueriesDto.limit || 10;
+      const offset = (page - 1) * limit;
+      const members = await this.communityRoleRepo.find({
+        where: {
+          community: {
+            id: parseInt(getCommunityMembersParamsDto.communityId)
+          }
+        },
+        select: {
+          id: false,
+          user: {
+            id: true,
+            fname: true,
+            lname: true
+          }
+        },
+        skip: offset,
+        take: limit + 1
+      });
+      const results = members.slice(0, limit);
+      return {
+        results,
+        hasNextPage: members.length > limit
+      }
+    } catch (error) {
+      this.logger.error(error)
+      throw new InternalServerErrorException("Failed to get community members");
+    }
   }
 
   async banACommunityMember(
