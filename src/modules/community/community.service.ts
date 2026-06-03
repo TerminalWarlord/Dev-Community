@@ -1,8 +1,4 @@
 import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
-import { CommunityRole } from 'src/schemas/community-role.schema';
-import { Community } from 'src/schemas/community.schema';
 import { CreateCommunityBodyDto, CreateCommunityRequestDto } from './dto/create-community.dto';
 import { CommunityStatus, MembershipStatus, Role } from 'src/common/community.enum';
 import { UpdateCommunityBodyDto, UpdateCommunityParamsDto, UpdateCommunityRequestDto } from './dto/update-community.dto';
@@ -14,34 +10,38 @@ import { BanACommunityMemberParamsDto, BanACommunityMemberRequestDto } from './d
 import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-community.dto';
 import { InviteModeratorParamsDto } from './dto/invite-moderator.dto';
 import { ManageInvitationParamsDto, ManageInvitationRequestDto } from './dto/manage-invitation.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { FindOperator, ILike, QueryFailedError, Repository } from 'typeorm';
+import { Community } from 'src/entities/community.entity';
+import { CommunityRole } from 'src/entities/community-role.entity';
 
 @Injectable()
 export class CommunityService {
   private logger = new Logger(CommunityService.name);
   constructor(
-    @InjectModel(Community.name)
-    private readonly communityModel: Model<Community>,
-    @InjectModel(CommunityRole.name)
-    private readonly communityRoleModel: Model<CommunityRole>,
+    @InjectRepository(Community)
+    private readonly communityRepo: Repository<Community>,
+    @InjectRepository(CommunityRole)
+    private readonly communityRoleRepo: Repository<CommunityRole>,
   ) { }
   async getAllCommunities(getCommunitiesQueriesDto: GetCommunitiesQueriesDto) {
-    const page = getCommunitiesQueriesDto.page || 1;
-    const limit = getCommunitiesQueriesDto.limit || 1;
+    const page = parseInt(getCommunitiesQueriesDto.page || "1");
+    const limit = parseInt(getCommunitiesQueriesDto.limit || "10");
     const offset = (page - 1) * limit;
     const query = getCommunitiesQueriesDto.query;
     try {
-      // Add query
-      let filter = {};
+      const filter: {
+        name?: FindOperator<string>
+      } = {};
       if (query) {
-        filter = {
-          name: {
-            $regex: getCommunitiesQueriesDto.query
-          }
-        }
+        filter.name = ILike(query)
       }
-      const communities = await this.communityModel.find(filter)
-        .skip(offset)
-        .limit(limit + 1);
+      const communities = await this.communityRepo.find({
+        skip: offset,
+        take: limit + 1,
+        where: filter
+      })
+
       const results = communities.slice(0, limit);
       return {
         results,
@@ -52,31 +52,37 @@ export class CommunityService {
     }
   }
 
-
   async createCommunity(
     createCommunityBodyDto: CreateCommunityBodyDto,
     createCommunityRequestDto: CreateCommunityRequestDto,
   ) {
     try {
-      const slug = await generateSlug(createCommunityBodyDto.name, this.communityModel);
-      const community = await this.communityModel.insertOne({
+      const slug = await generateSlug(createCommunityBodyDto.name, this.communityRepo);
+      const newCommunity = this.communityRepo.create({
         slug,
         ...createCommunityBodyDto,
-
       });
-      const communityRole = await this.communityRoleModel.insertOne({
-        communityId: new mongoose.Types.ObjectId(community._id),
+      const community = await this.communityRepo.save(newCommunity);
+      const communityRole = this.communityRoleRepo.create({
+        community: {
+          id: community.id
+        },
         role: Role.ADMIN,
         status: MembershipStatus.REGULAR,
-        userId: new mongoose.Types.ObjectId(createCommunityRequestDto.userId)
+        joinedAt: Date.now(),
+        user: {
+          id: createCommunityRequestDto.userId
+        }
       });
+      await this.communityRoleRepo.save(communityRole);
 
       return {
         message: "success",
-        communityId: community._id,
+        communityId: community.id,
         communitySlug: slug
       }
-    } catch (error) {
+    } catch (err) {
+      this.logger.log(err);
       throw new InternalServerErrorException("Failed to create community");
     }
   }
@@ -86,17 +92,34 @@ export class CommunityService {
     updateCommunityParamsDto: UpdateCommunityParamsDto,
     updateCommunityRequestDto: UpdateCommunityRequestDto,
   ) {
+    const communityId = parseInt(updateCommunityParamsDto.communityId);
     try {
-      const communityRole = await this.communityRoleModel.findOne({
-        communityId: new mongoose.Types.ObjectId(updateCommunityParamsDto.communityId),
-        userId: new mongoose.Types.ObjectId(updateCommunityRequestDto.userId)
+      const communityRole = await this.communityRoleRepo.findOne({
+        where: {
+          community: {
+            id: communityId,
+          },
+          user: {
+            id: updateCommunityRequestDto.userId
+          }
+        }
       });
       if (!communityRole || communityRole.role !== Role.ADMIN) {
         throw new UnauthorizedException("You can't perform this action");
       }
-      const community = await this.communityModel.updateOne({
-        _id: updateCommunityParamsDto.communityId,
-      }, updateCommunityBodyDto);
+      const updatedData: {
+        description?: string,
+        name?: string,
+      } = {};
+      if (updateCommunityBodyDto.description) {
+        updatedData.description = updateCommunityBodyDto.description;
+      }
+      if (updateCommunityBodyDto.name) {
+        updatedData.name = updateCommunityBodyDto.name;
+      }
+      await this.communityRepo.update({
+        id: communityId
+      }, updatedData);
       return {
         message: "success"
       }
@@ -111,26 +134,36 @@ export class CommunityService {
     deleteCommunityRequestDto: DeleteCommunityRequestDto,
   ) {
     try {
-      const communityId = new mongoose.Types.ObjectId(deleteCommunityParamsDto.communityId);
-      const userId = new mongoose.Types.ObjectId(deleteCommunityRequestDto.userId);
-      const communityRole = await this.communityRoleModel.findOne({
-        communityId,
-        userId,
+      const communityId = parseInt(deleteCommunityParamsDto.communityId);
+      const userId = deleteCommunityRequestDto.userId;
+      const communityRole = await this.communityRoleRepo.findOne({
+        where: {
+          community: {
+            id: communityId
+          },
+          user: {
+            id: userId
+          }
+        }
       });
       if (!communityRole || communityRole.role !== Role.ADMIN) {
         throw new UnauthorizedException("You can't perform this action");
       }
-      await this.communityModel.findOneAndUpdate(communityId, {
+      const communityUpdate = await this.communityRepo.update({
+        id: communityId
+      }, {
         status: CommunityStatus.DELETED
       });
+      if (!communityUpdate.affected) {
+        throw new InternalServerErrorException("Failed to delete community");
+      }
       return {
         message: "success"
       }
-
-    } catch (error) {
-      this.logger.error(error);
+    } catch (err) {
+      this.logger.error(err);
+      if (err instanceof UnauthorizedException) throw new UnauthorizedException(err.message);
       throw new InternalServerErrorException("Failed to delete community");
-
     }
   }
 
@@ -142,13 +175,23 @@ export class CommunityService {
       const page = getCommunityMembersQueriesDto.page || 1;
       const limit = getCommunityMembersQueriesDto.limit || 10;
       const offset = (page - 1) * limit;
-      const members = await this.communityRoleModel.find({
-        communityId: new mongoose.Types.ObjectId(getCommunityMembersParamsDto.communityId)
-      })
-        .populate("userId", "-password -createdAt -updatedAt -__v -email")
-        .select("-_id -__v -createdAt -updatedAt -communityId")
-        .skip(offset)
-        .limit(limit + 1);
+      const members = await this.communityRoleRepo.find({
+        where: {
+          community: {
+            id: parseInt(getCommunityMembersParamsDto.communityId)
+          }
+        },
+        select: {
+          id: false,
+          user: {
+            id: true,
+            fname: true,
+            lname: true
+          }
+        },
+        skip: offset,
+        take: limit + 1
+      });
       const results = members.slice(0, limit);
       return {
         results,
@@ -165,16 +208,20 @@ export class CommunityService {
     banACommunityMemberRequestDto: BanACommunityMemberRequestDto
   ) {
     try {
-      const userId = new mongoose.Types.ObjectId(banACommunityMemberRequestDto.userId);
-      const memberId = new mongoose.Types.ObjectId(banACommunityMemberParamsDto.memberId);
-      const communityId = new mongoose.Types.ObjectId(banACommunityMemberParamsDto.communityId);
-      const communityRole = await this.communityRoleModel.findOneAndUpdate({
-        userId: memberId,
-        communityId: communityId
+      const userId = banACommunityMemberRequestDto.userId;
+      const memberId = parseInt(banACommunityMemberParamsDto.memberId);
+      const communityId = parseInt(banACommunityMemberParamsDto.communityId);
+      const communityRole = await this.communityRoleRepo.update({
+        user: {
+          id: memberId
+        },
+        community: {
+          id: communityId
+        }
       }, {
-        role: "BANNED"
+        status: MembershipStatus.BANNED
       });
-      if (!communityRole) {
+      if (!communityRole.affected) {
         throw new InternalServerErrorException("Failed to ban user");
       }
       return {
@@ -192,24 +239,37 @@ export class CommunityService {
     joinCommunityRequestDto: JoinCommunityRequestDto
   ) {
     try {
-      const userId = new mongoose.Types.ObjectId(joinCommunityRequestDto.userId);
-      const communityId = new mongoose.Types.ObjectId(joinCommunityParamsDto.communityId);
+      const userId = joinCommunityRequestDto.userId;
+      const communityId = parseInt(joinCommunityParamsDto.communityId);
       // check if community exists
-      const community = await this.communityModel.findById(communityId);
+      const community = await this.communityRepo.findOne({
+        where: {
+          id: communityId
+        }
+      });
       if (!community) {
         throw new BadRequestException("Community doesn't exist");
       }
-      await this.communityRoleModel.insertOne({
-        userId,
-        communityId,
-        joinedAt: new Date()
-      })
+      const communityRole = this.communityRoleRepo.create({
+        user: {
+          id: userId
+        },
+        community: {
+          id: communityId
+        },
+        joinedAt: new Date(Date.now())
+      });
+      await this.communityRoleRepo.save(communityRole);
       return {
         message: "success",
       }
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw new BadRequestException(error.message);
+    } catch (err) {
+      this.logger.error(err)
+      if (err instanceof QueryFailedError && err.driverError.code === '23505') {
+        throw new BadRequestException("Seems like you have already joined the community")
+      }
+      if (err instanceof BadRequestException) {
+        throw new BadRequestException(err.message);
       }
       throw new InternalServerErrorException("Failed to join community");
     }
@@ -218,22 +278,38 @@ export class CommunityService {
   async inviteModerator(
     inviteModeratorParamsDto: InviteModeratorParamsDto,
   ) {
-    const userId = new mongoose.Types.ObjectId(inviteModeratorParamsDto.userId);
-    const communityId = new mongoose.Types.ObjectId(inviteModeratorParamsDto.communityId);
+    const userId = parseInt(inviteModeratorParamsDto.userId);
+    const communityId = parseInt(inviteModeratorParamsDto.communityId);
     try {
-      const communityRole = await this.communityRoleModel.findOneAndUpdate({
-        userId,
-        communityId
+      const communityRoleUpdate = await this.communityRoleRepo.update({
+        user: {
+          id: userId
+        },
+        community: {
+          id: communityId
+        }
       }, {
-        status: "INVITED"
+        status: MembershipStatus.INVITED
       });
 
-      if (!communityRole) {
+      if (!communityRoleUpdate || !communityRoleUpdate.affected) {
         throw new InternalServerErrorException("User is not a member of the community");
       }
+
+      const communityRole = await this.communityRoleRepo.findOne({
+        where: {
+          user: {
+            id: userId
+          },
+          community: {
+            id: communityId
+          }
+        }
+      });
+
       return {
         message: "success",
-        invitationUrl: `/community/${communityId}/invite/accept/${communityRole._id}`
+        invitationUrl: `/community/${communityId}/invite/accept/${communityRole!.id}`
       }
 
     } catch (error) {
@@ -250,26 +326,36 @@ export class CommunityService {
     manageInvitationRequestDto: ManageInvitationRequestDto,
   ) {
     try {
-      const invitationId = new mongoose.Types.ObjectId(manageInvitationParamsDto.invitationId);
-      const communityId = new mongoose.Types.ObjectId(manageInvitationParamsDto.communityId);
-      const userId = new mongoose.Types.ObjectId(manageInvitationRequestDto.userId);
-      const communityRole = await this.communityRoleModel.findOne({
-        communityId,
-        userId,
-        _id: invitationId,
+      const invitationId = parseInt(manageInvitationParamsDto.invitationId);
+      const communityId = parseInt(manageInvitationParamsDto.communityId);
+      const userId = manageInvitationRequestDto.userId;
+      const communityRole = await this.communityRoleRepo.findOne({
+        where: {
+          id: invitationId,
+          user: {
+            id: userId
+          },
+          community: {
+            id: communityId
+          }
+        }
       });
-      if (!communityRole || communityRole.status !== "INVITED") {
+      if (!communityRole || communityRole.status !== MembershipStatus.INVITED) {
         throw new ForbiddenException("Doesn't seem like you have any open invitation");
       }
-      const updatedCommunityRole = await this.communityRoleModel.findOneAndUpdate({
-        userId,
-        communityId,
-        _id: invitationId,
+      const updatedCommunityRole = await this.communityRoleRepo.update({
+        id: invitationId,
+        user: {
+          id: userId
+        },
+        community: {
+          id: communityId
+        }
       }, {
-        role: "MODERATOR",
-        status: "REGULAR",
+        role: Role.MODERATOR,
+        status: MembershipStatus.REGULAR,
       });
-      if (!updatedCommunityRole) {
+      if (!updatedCommunityRole || !updatedCommunityRole.affected) {
         throw new InternalServerErrorException("Failed to update user role");
       }
       return {

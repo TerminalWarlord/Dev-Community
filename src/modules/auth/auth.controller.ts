@@ -7,7 +7,6 @@ import { LoginUserDto } from 'src/modules/user/dto/login-user.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
   @Post('signup')
-  // TODO: add user input validation
   async signUp(@Body() createUserDto: CreateUserDto) {
     return this.authService.signUp(createUserDto);
   }

@@ -1,14 +1,11 @@
-import { IsNumber, IsOptional, Max, Min } from "class-validator";
+import { IsNumber, IsNumberString, IsOptional, Max, Min } from "class-validator";
 
 export class GetSkillsDto {
   @IsOptional()
-  @IsNumber()
-  @Min(1)
-  page!: number;
+  @IsNumberString()
+  page!: string;
 
   @IsOptional()
-  @IsNumber()
-  @Min(1)
-  @Max(20)
-  limit!: number;
+  @IsNumberString()
+  limit!: string;
 }

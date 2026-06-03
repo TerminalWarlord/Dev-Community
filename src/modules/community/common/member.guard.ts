@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   Injectable,
@@ -8,18 +9,19 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
-import { CommunityRole } from 'src/schemas/community-role.schema';
 import { MembershipStatus } from 'src/common/community.enum';
 import { CommunityService } from '../community.service';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CommunityRole } from 'src/entities/community-role.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class CommunityMembershipAuthGuard implements CanActivate {
   private logger = new Logger(CommunityService.name);
   constructor(
-    @InjectModel(CommunityRole.name)
-    private readonly communityRoleModel: Model<CommunityRole>,
+    @InjectRepository(CommunityRole)
+    private readonly communityRoleRepo: Repository<CommunityRole>,
     private readonly jwtService: JwtService,
     private configService: ConfigService
   ) { }
@@ -39,11 +41,20 @@ export class CommunityMembershipAuthGuard implements CanActivate {
         throw new UnauthorizedException();
       }
       // extract communityId from body or queries
-      const communityId = request.body?.communityId;
+      const communityId = parseInt(request.body?.communityId);
+      if (Number.isNaN(communityId)) {
+        throw new BadRequestException("Provide a valid communityId!");
+      }
       if (communityId) {
-        const communityRole = await this.communityRoleModel.findOne({
-          userId: new mongoose.Types.ObjectId(payload.userId),
-          communityId: new mongoose.Types.ObjectId(communityId),
+        const communityRole = await this.communityRoleRepo.findOne({
+          where: {
+            user: {
+              id: parseInt(payload.userId)
+            },
+            community: {
+              id: communityId
+            }
+          }
         });
         if (!communityRole) {
           throw new UnauthorizedException("You are not a member of this community!");

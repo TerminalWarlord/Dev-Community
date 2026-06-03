@@ -12,8 +12,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ChangePasswordDto } from './dto/change-password.dto';
-import { AuthGuard } from 'src/modules/auth/auth.guard';
+import { ChangePasswordBodyDto, ChangePasswordRequestDto } from './dto/change-password.dto';
+// import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { GetUsersSkillsParamsDto, GetUsersSkillsQueriesDto } from './dto/get-users-skills.dto';
 import { GetUsersExperiencesParamsDto, GetUsersExperiencesQueriesDto } from './dto/get-users-experiences.dto';
 import { AddUserPostDto, AddUserPostRequestDto } from './dto/add-user-post.dto';
@@ -27,18 +27,18 @@ import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from '../post/
 export class UserController {
   constructor(private userService: UserService) { }
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Patch('change-password')
   async changePassword(
-    @Body() changePasswordDto: ChangePasswordDto,
-    @Request() req: { userId: string },
+    @Body() changePasswordBodyDto: ChangePasswordBodyDto,
+    @Request() changePasswordRequestDto: ChangePasswordRequestDto,
   ) {
-    return this.userService.changePassword(changePasswordDto, req.userId);
+    return this.userService.changePassword(changePasswordBodyDto, changePasswordRequestDto);
   }
 
   @Get('profile/:userId')
   async getUserProfile(
-    @Param('userId') userId: string
+    @Param('userId', ParseIntPipe) userId: number
   ) {
     return this.userService.getUserProfile(userId);
   }

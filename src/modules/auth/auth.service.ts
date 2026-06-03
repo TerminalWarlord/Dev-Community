@@ -6,51 +6,62 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from 'src/modules/user/dto/create-user.dto';
 import bcrypt from 'bcrypt';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { LoginUserDto } from 'src/modules/user/dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/schemas/user.schema';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from '../../entities/user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User.name)
-    private readonly userModel: Model<User>,
+    @InjectRepository(User) private readonly userRepo: Repository<User>,
     private jwtService: JwtService,
     private configService: ConfigService
   ) { }
   async signUp(createUserDto: CreateUserDto) {
     try {
-      const user = await this.userModel.findOne({ email: createUserDto.email });
+      const user = await this.userRepo.findOne({
+        where: {
+          email: createUserDto.email
+        }
+      });
       if (user) {
         throw new BadRequestException("Email is already in use");
       }
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-      const newUser = await this.userModel.insertOne({
-        ...createUserDto,
-        password: hashedPassword,
-      });
+      const newUser = await this.userRepo
+        .createQueryBuilder()
+        .insert()
+        .values({
+          ...createUserDto,
+          password: hashedPassword
+        }).returning(["id", "fname", "lname", "email"]).execute();
+
       if (!newUser) {
         throw new InternalServerErrorException('Failed to save user');
       }
       return {
-        userId: newUser._id,
-        fname: newUser.fname,
-        lname: newUser.lname,
-        email: newUser.email,
+        userId: newUser.raw[0].id,
+        fname: newUser.raw[0].fname,
+        lname: newUser.raw[0].lname,
+        email: newUser.raw[0].email,
       };
+
     }
     catch (err) {
       if (err instanceof NotFoundException) throw new NotFoundException(err.message);
       else if (err instanceof BadRequestException) throw new BadRequestException(err.message);
       else throw new InternalServerErrorException("Failed to create user");
-
     }
   }
   async logIn(loginUserDto: LoginUserDto) {
-    const user = await this.userModel.findOne({ email: loginUserDto.email });
+    const user = await this.userRepo.findOne({
+      where: {
+        email: loginUserDto.email
+      }
+    });
     if (!user) {
       throw new NotFoundException("User with that email doesn't exist");
     }
@@ -62,13 +73,13 @@ export class AuthService {
       if (!passwordMatches) {
         throw new BadRequestException('Password is invalid');
       }
-      const payload = { userId: user._id };
+      const payload = { userId: user.id };
       const JWT_SECRET = this.configService.get<string>("JWT_SECRET");
       if (!JWT_SECRET) {
         throw new Error('JWT_SECRET is not set');
       }
       return {
-        userId: user._id,
+        userId: user.id,
         access_token: await this.jwtService.signAsync(payload, {
           secret: JWT_SECRET,
           expiresIn: Number(this.configService.get<string>('ACCESS_TOKEN_EXPIRY')),
