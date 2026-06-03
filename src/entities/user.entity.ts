@@ -16,7 +16,7 @@ export class User {
   @Column()
   fname!: string
 
-  @Column()
+  @Column({ nullable: true })
   lname!: string
 
   @Column()
