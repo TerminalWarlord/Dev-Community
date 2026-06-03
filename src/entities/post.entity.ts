@@ -47,7 +47,7 @@ export class Post {
   @Column({ type: "int", default: 0 })
   totalComments!: number;
 
-  @Column({ type: 'timestamptz', default: 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'timestamptz', default: () => Date.now() })
   publishAt!: Date;
 
   @CreateDateColumn()
