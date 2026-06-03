@@ -1,4 +1,4 @@
-import { IsString, MaxLength, MinLength } from "class-validator";
+import { IsNumber, IsString, MaxLength, MinLength } from "class-validator";
 
 export class CreateCommunityBodyDto{
   @IsString()
@@ -13,6 +13,6 @@ export class CreateCommunityBodyDto{
 }
 
 export class CreateCommunityRequestDto{
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }

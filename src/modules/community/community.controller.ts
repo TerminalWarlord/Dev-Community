@@ -7,7 +7,7 @@ import { DeleteCommunityParamsDto, DeleteCommunityRequestDto } from './dto/delet
 import { GetCommunitiesQueriesDto } from './dto/get-all-communities.dto';
 import { GetCommunityMembersParamsDto, GetCommunityMembersQueriesDto } from './dto/get-community-members.dto';
 import { BanACommunityMemberParamsDto, BanACommunityMemberRequestDto } from './dto/ban-community-member.dto';
-import { CommunityModeratorAuthGuard } from './common/moderator.guard';
+// import { CommunityModeratorAuthGuard } from './common/moderator.guard';
 import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-community.dto';
 import { InviteModeratorParamsDto } from './dto/invite-moderator.dto';
 import { CommunityAdminAuthGuard } from './common/admin.guard';
@@ -74,7 +74,7 @@ export class CommunityController {
   }
 
   @UseGuards(AuthGuard)
-  @UseGuards(CommunityModeratorAuthGuard)
+  // @UseGuards(CommunityModeratorAuthGuard)
   @Post(':communityId/member/:memberId/ban')
   async banACommunityMember(
     @Param() banACommunityMemberParamsDto: BanACommunityMemberParamsDto,
@@ -99,7 +99,7 @@ export class CommunityController {
   }
 
   @UseGuards(AuthGuard)
-  @UseGuards(CommunityAdminAuthGuard)
+  // @UseGuards(CommunityAdminAuthGuard)
   @Post(':communityId/invite/:userId')
   async inviteModerator(
     @Param() inviteModeratorParamsDto: InviteModeratorParamsDto,
@@ -120,47 +120,4 @@ export class CommunityController {
       manageInvitationRequestDto
     );
   }
-
-  // @Post(':communityId/post/create')
-  // async createCommunityPost() {
-  //   return this.communityService.createCommunityPost();
-  // }
-
-  // @Patch(':communityId/post/:postId/update')
-  // async updateCommunityPost() {
-  //   return this.communityService.updateCommunityPost();
-  // }
-
-  // @Post(':communityId/post/:postId/vote')
-  // async voteCommunityPost() {
-  //   return this.communityService.voteCommunityPost();
-  // }
-
-
-  // @Delete(':communityId/post/:postId/delete')
-  // async deleteCommunityPost() {
-  //   return this.communityService.deleteCommunityPost();
-  // }
-
-
-
-  // @Get(':communityId/post/:postId/comment/all')
-  // async getCommunityPostComments() {
-  //   return this.communityService.getCommunityPostComments();
-  // }
-
-  // @Post(':communityId/post/:postId/comment/add')
-  // async addACommunityPostComment() {
-  //   return this.communityService.addACommunityPostComment();
-  // }
-
-  // @Patch(':communityId/post/:postId/comment/update')
-  // async updateACommunityPostComment() {
-  //   return this.communityService.updateACommunityPostComment();
-  // }
-
-  // @Delete(':communityId/post/:postId/comment/update')
-  // async deleteACommunityPostComment() {
-  //   return this.communityService.deleteACommunityPostComment();
-  // }
 }
