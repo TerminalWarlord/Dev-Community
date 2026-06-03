@@ -1,11 +1,11 @@
-import { IsString } from "class-validator";
+import { IsNumber, IsNumberString, } from "class-validator";
 
 export class DeleteCommunityParamsDto {
-  @IsString()
+  @IsNumberString()
   communityId!: string;
 }
 
 export class DeleteCommunityRequestDto {
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }

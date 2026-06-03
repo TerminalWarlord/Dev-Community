@@ -58,7 +58,7 @@ export class CommunityService {
   ) {
     try {
       const slug = await generateSlug(createCommunityBodyDto.name, this.communityRepo);
-      const newCommunity = await this.communityRepo.create({
+      const newCommunity = this.communityRepo.create({
         slug,
         ...createCommunityBodyDto,
       });
@@ -133,28 +133,38 @@ export class CommunityService {
     deleteCommunityParamsDto: DeleteCommunityParamsDto,
     deleteCommunityRequestDto: DeleteCommunityRequestDto,
   ) {
-    // try {
-    //   const communityId = new mongoose.Types.ObjectId(deleteCommunityParamsDto.communityId);
-    //   const userId = new mongoose.Types.ObjectId(deleteCommunityRequestDto.userId);
-    //   const communityRole = await this.communityRoleModel.findOne({
-    //     communityId,
-    //     userId,
-    //   });
-    //   if (!communityRole || communityRole.role !== Role.ADMIN) {
-    //     throw new UnauthorizedException("You can't perform this action");
-    //   }
-    //   await this.communityModel.findOneAndUpdate(communityId, {
-    //     status: CommunityStatus.DELETED
-    //   });
-    //   return {
-    //     message: "success"
-    //   }
-
-    // } catch (error) {
-    //   this.logger.error(error);
-    //   throw new InternalServerErrorException("Failed to delete community");
-
-    // }
+    try {
+      const communityId = parseInt(deleteCommunityParamsDto.communityId);
+      const userId = deleteCommunityRequestDto.userId;
+      const communityRole = await this.communityRoleRepo.findOne({
+        where: {
+          community: {
+            id: communityId
+          },
+          user: {
+            id: userId
+          }
+        }
+      });
+      if (!communityRole || communityRole.role !== Role.ADMIN) {
+        throw new UnauthorizedException("You can't perform this action");
+      }
+      const communityUpdate = await this.communityRepo.update({
+        id: communityId
+      }, {
+        status: CommunityStatus.DELETED
+      });
+      if (!communityUpdate.affected) {
+        throw new InternalServerErrorException("Failed to delete community");
+      }
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      this.logger.error(err);
+      if (err instanceof UnauthorizedException) throw new UnauthorizedException(err.message);
+      throw new InternalServerErrorException("Failed to delete community");
+    }
   }
 
   async getCommunityMembers(
