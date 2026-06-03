@@ -1,4 +1,4 @@
-import { UserStatus } from "src/common/user.enum"
+import { UserProvider, UserStatus } from "src/common/user.enum"
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
 import { Experience } from "./experience.entity"
 import { UserSkill } from "./user-skill.entity"
@@ -22,8 +22,15 @@ export class User {
   @Column()
   email!: string
 
-  @Column()
+  @Column({ nullable: true })
   password!: string
+
+  @Column({
+    type: "enum",
+    enum: UserProvider,
+    default: UserProvider.CREDENTIAL
+  })
+  provider!: UserProvider
 
   @Column({ nullable: true })
   avatar!: string
