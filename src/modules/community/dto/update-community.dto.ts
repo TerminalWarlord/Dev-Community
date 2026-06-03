@@ -1,4 +1,4 @@
-import { IsDefined, IsString, MaxLength, MinLength, ValidateIf } from "class-validator";
+import { IsDefined, IsNumber, IsNumberString, IsString, MaxLength, MinLength, ValidateIf } from "class-validator";
 
 export class UpdateCommunityBodyDto{
   @IsString()
@@ -19,11 +19,11 @@ export class UpdateCommunityBodyDto{
 }
 
 export class UpdateCommunityRequestDto{
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }
 
 export class UpdateCommunityParamsDto{
-  @IsString()
+  @IsNumberString()
   communityId!: string;
 }

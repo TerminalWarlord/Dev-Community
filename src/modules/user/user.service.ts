@@ -6,31 +6,42 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ChangePasswordDto } from './dto/change-password.dto';
-import mongoose, { Model } from 'mongoose';
-import { InjectModel } from '@nestjs/mongoose';
+import { ChangePasswordBodyDto, ChangePasswordRequestDto } from './dto/change-password.dto';
 import bcrypt from 'bcrypt';
-import { User } from 'src/schemas/user.schema';
-import { UserSkill } from 'src/schemas/user-skill.schema';
 import { GetUsersSkillsParamsDto, GetUsersSkillsQueriesDto } from './dto/get-users-skills.dto';
 import { GetUsersExperiencesParamsDto, GetUsersExperiencesQueriesDto } from './dto/get-users-experiences.dto';
-import { Experience } from 'src/schemas/experience.schema';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from 'src/entities/user.entity';
+import { UserSkill } from 'src/entities/user-skill.entity';
+import { Experience } from 'src/entities/experience.entity';
 
 @Injectable()
 export class UserService {
   private logger = new Logger(UserService.name)
   constructor(
-    @InjectModel(User.name)
-    private readonly userModel: Model<User>,
-    @InjectModel(UserSkill.name)
-    private readonly userSkillModel: Model<UserSkill>,
-    @InjectModel(Experience.name)
-    private readonly experienceModel: Model<Experience>,
+    @InjectRepository(UserSkill)
+    private readonly userSkillRepo: Repository<UserSkill>,
+    @InjectRepository(Experience)
+    private readonly experienceRepo: Repository<Experience>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>
   ) { }
 
-  async getUserProfile(userId: string) {
+  async getUserProfile(userId: number) {
     try {
-      const user = await this.userModel.findById(new mongoose.Types.ObjectId(userId)).select("-password -__v -updatedAt");
+      const user = await this.userRepo.findOne({
+        where: {
+          id: userId
+        },
+        select: {
+          id: true,
+          avatar: true,
+          email: true,
+          fname: true,
+          lname: true,
+        }
+      })
       if (!user) {
         throw new NotFoundException("User not found");
       }
@@ -42,23 +53,29 @@ export class UserService {
   }
 
   async getUserSkills(getUsersSkillsParamsDto: GetUsersSkillsParamsDto, getUsersSkillsQueriesDto: GetUsersSkillsQueriesDto) {
-    const page = getUsersSkillsQueriesDto.page || 1;
-    const limit = getUsersSkillsQueriesDto.limit || 10;
+    const page = parseInt(getUsersSkillsQueriesDto.page || "1");
+    const limit = parseInt(getUsersSkillsQueriesDto.limit || "10");
     const offset = (page - 1) * limit;
     try {
-      const userSkills = await this.userSkillModel.find({
-        userId: new mongoose.Types.ObjectId(getUsersSkillsParamsDto.userId)
+      console.log(parseInt(getUsersSkillsParamsDto.userId))
+      const userSkills = await this.userSkillRepo.find({
+        where: {
+          user: {
+            id: parseInt(getUsersSkillsParamsDto.userId)
+          }
+        },
+        skip: offset,
+        take: limit + 1,
+        relations: {
+          skill: true,
+          user: true
+        }
       })
-        .populate("skillId", "skillTitle")
-        .select("-userId -__v")
-        .skip(offset)
-        .limit(limit + 1);
-
       const results = userSkills.slice(0, limit).map(item => {
         return {
-          userSkillId: item._id,
-          skillId: (item.skillId as unknown as { _id: string })._id,
-          skillTitle: (item.skillId as unknown as { skillTitle: string }).skillTitle
+          userSkillId: item.id,
+          skillId: item.skill.id,
+          skillTitle: item.skill.skillTitle
         }
       });
       return {
@@ -71,17 +88,19 @@ export class UserService {
   }
 
   async getUserExperiences(getUsersExperienceParamsDto: GetUsersExperiencesParamsDto, getUsersExperiencesQueriesDto: GetUsersExperiencesQueriesDto) {
-    const page = getUsersExperiencesQueriesDto.page || 1;
-    const limit = getUsersExperiencesQueriesDto.limit || 10;
+    const page = parseInt(getUsersExperiencesQueriesDto.page || "1");
+    const limit = parseInt(getUsersExperiencesQueriesDto.limit || "10");
     const offset = (page - 1) * limit;
     try {
-      const userExperiences = await this.experienceModel.find({
-        userId: new mongoose.Types.ObjectId(getUsersExperienceParamsDto.userId)
-      })
-        .select("-createdAt -updatedAt -userId -__v")
-        .skip(offset)
-        .limit(limit + 1);
-
+      const userExperiences = await this.experienceRepo.find({
+        where: {
+          user: {
+            id: parseInt(getUsersExperienceParamsDto.userId)
+          }
+        },
+        skip: offset,
+        take: limit + 1,
+      });
       const results = userExperiences.slice(0, limit);
       return {
         results,
@@ -92,31 +111,38 @@ export class UserService {
     }
   }
 
-  async changePassword(changePasswordDto: ChangePasswordDto, userId: string) {
+  async changePassword(
+    changePasswordBodyDto: ChangePasswordBodyDto,
+    changePasswordRequestDto: ChangePasswordRequestDto,
+  ) {
+    const userId = parseInt(changePasswordRequestDto.userId);
     if (!userId) {
       throw new UnauthorizedException();
     }
-    const user = await this.userModel.findById(
-      new mongoose.Types.ObjectId(userId),
+    const user = await this.userRepo.findOne({
+      where: {
+        id: userId
+      }
+    }
     );
     if (!user) {
       throw new UnauthorizedException();
     }
     try {
       const passwordMatches = await bcrypt.compare(
-        changePasswordDto.oldPassword,
+        changePasswordBodyDto.oldPassword,
         user.password,
       );
       if (!passwordMatches) {
         throw new ForbiddenException('Old password is incorrect');
       }
       const hashedPassword = await bcrypt.hash(
-        changePasswordDto.newPassword,
+        changePasswordBodyDto.newPassword,
         10,
       );
       try {
-        await this.userModel.updateOne(
-          { _id: user._id },
+        await this.userRepo.update(
+          { id: user.id },
           {
             password: hashedPassword,
           },

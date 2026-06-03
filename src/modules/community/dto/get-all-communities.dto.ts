@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
+import { IsNumber, IsNumberString, IsOptional, IsString } from "class-validator";
 
 export class GetCommunitiesQueriesDto {
   @IsOptional()
@@ -6,19 +6,16 @@ export class GetCommunitiesQueriesDto {
   query!: string;
 
   @IsOptional()
-  @IsNumber()
-  @Min(1)
-  @Max(20)
-  limit!: number;
+  @IsNumberString()
+  limit!: string;
 
   @IsOptional()
-  @IsNumber()
-  @Min(1)
-  page!: number;
+  @IsNumberString()
+  page!: string;
 }
 
 
 export class GetCommunitiesRequestDto {
-  @IsString()
+  @IsNumber()
   userId!: number;
 }

@@ -1,14 +1,14 @@
-import { IsString } from "class-validator";
+import { IsNumber, IsNumberString } from "class-validator";
 
 export class BanACommunityMemberParamsDto {
-  @IsString()
+  @IsNumberString()
   communityId!: string;
 
-  @IsString()
+  @IsNumberString()
   memberId!: string;
 }
 
 export class BanACommunityMemberRequestDto {
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }

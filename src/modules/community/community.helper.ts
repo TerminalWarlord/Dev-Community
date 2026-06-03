@@ -1,9 +1,10 @@
 import { Model } from "mongoose";
 import { nanoid } from "nanoid";
 import slugify from "slugify";
-import { Community } from "src/schemas/community.schema";
+import { Community } from "src/entities/community.entity";
+import { Repository } from "typeorm";
 
-export async function generateSlug(name: string, communityModel: Model<Community>) {
+export async function generateSlug(name: string, communityRepo: Repository<Community>) {
   const slug = slugify(name, {
     lower: true,
   });
@@ -16,8 +17,10 @@ export async function generateSlug(name: string, communityModel: Model<Community
     else {
       checkedDefault = true;
     }
-    const community = await communityModel.findOne({
-      slug: curSlug
+    const community = await communityRepo.findOne({
+      where: {
+        slug: curSlug
+      }
     });
     if (!community) {
       return curSlug;

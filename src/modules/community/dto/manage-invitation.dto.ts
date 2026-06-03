@@ -1,14 +1,14 @@
-import { IsString } from "class-validator";
+import { IsNumber, IsNumberString } from "class-validator";
 
 export class ManageInvitationParamsDto {
-  @IsString()
+  @IsNumberString()
   invitationId!: string;
 
-  @IsString()
+  @IsNumberString()
   communityId!: string;
 }
 
 export class ManageInvitationRequestDto {
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }

@@ -1,20 +1,17 @@
-import { IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
+import { IsNumber, IsNumberString, IsOptional, IsString, Max, Min } from "class-validator";
 
 export class GetUsersExperiencesParamsDto {
-  @IsString()
+  @IsNumberString()
   userId!: string;
 }
 
 
 export class GetUsersExperiencesQueriesDto {
   @IsOptional()
-  @IsNumber()
-  @Min(1)
-  page!: number;
+  @IsNumberString()
+  page!: string;
 
   @IsOptional()
-  @IsNumber()
-  @Min(1)
-  @Max(10)
-  limit!: number;
+  @IsNumberString()
+  limit!: string;
 }

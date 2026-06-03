@@ -1,9 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { SkillService } from './skill.service';
-import { CreateSkillDto } from './dto/create-skill.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { RemoveSkillParamsDto, RemoveSkillRequestDto } from './dto/remove-skill.dto';
 import { GetSkillsDto } from './dto/get-skills.dto';
+import { CreateSkillBodyDto, CreateSkillRequestDto } from './dto/create-skill.dto';
 
 @Controller('user/skill')
 export class SkillController {
@@ -19,10 +19,10 @@ export class SkillController {
   @UseGuards(AuthGuard)
   @Post('add')
   async addSkill(
-    @Body() createSkillDto: CreateSkillDto,
-    @Request() req: { userId: string }
+    @Body() createSkillDto: CreateSkillBodyDto,
+    @Request() createSkillRequestDto: CreateSkillRequestDto
   ) {
-    return this.skillService.addSkill({ ...createSkillDto, userId: req.userId });
+    return this.skillService.addSkill(createSkillDto, createSkillRequestDto);
   }
 
   @UseGuards(AuthGuard)

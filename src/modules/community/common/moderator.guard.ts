@@ -7,18 +7,19 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
-import { CommunityRole } from 'src/schemas/community-role.schema';
 import { CommunityService } from '../community.service';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CommunityRole } from 'src/entities/community-role.entity';
+import { Repository } from 'typeorm';
+import { Role } from 'src/common/community.enum';
 
 @Injectable()
 export class CommunityModeratorAuthGuard implements CanActivate {
   private logger = new Logger(CommunityService.name);
   constructor(
-    @InjectModel(CommunityRole.name)
-    private readonly communityRoleModel: Model<CommunityRole>,
+    @InjectRepository(CommunityRole)
+    private readonly communityRoleRepo: Repository<CommunityRole>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) { }
@@ -41,17 +42,23 @@ export class CommunityModeratorAuthGuard implements CanActivate {
         throw new UnauthorizedException();
       }
       // extract params
-      const communityId = request.params.communityId;
-      if (!communityId) {
-        throw new UnauthorizedException();
+      const communityId = parseInt(request.params.communityId);
+      if (!communityId || Number.isNaN(communityId)) {
+        throw new UnauthorizedException("Please provide a valid communityId");
       }
       // check if userId
-      const communityRole = await this.communityRoleModel.findOne({
-        userId: new mongoose.Types.ObjectId(payload.userId),
-        communityId: new mongoose.Types.ObjectId(communityId),
+      const communityRole = await this.communityRoleRepo.findOne({
+        where: {
+          user: {
+            id: parseInt(payload.userId)
+          },
+          community: {
+            id: communityId
+          }
+        }
       });
-      if (!communityRole || (communityRole.role !== "ADMIN" && communityRole.role !== "MODERATOR")) {
-        throw new UnauthorizedException("You are not a moderator!");
+      if (!communityRole || (communityRole.role !== Role.ADMIN && communityRole.role !== Role.MODERATOR)) {
+        throw new UnauthorizedException("You are not an Admin nor a moderator!");
       }
     } catch (err) {
       this.logger.error(err);

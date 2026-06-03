@@ -1,9 +1,12 @@
-import { IsString } from "class-validator";
+import { IsNumber, IsString } from "class-validator";
 
-export class CreateSkillDto {
+export class CreateSkillBodyDto {
   @IsString()
   skillTitle!: string;
-  
-  @IsString()
-  userId!: string;
+}
+
+
+export class CreateSkillRequestDto {
+  @IsNumber()
+  userId!: number;
 }
