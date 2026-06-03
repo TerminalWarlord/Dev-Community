@@ -6,5 +6,5 @@ export enum UserStatus {
 
 export enum UserProvider {
   GOOGLE = "GOOGLE",
-  CREDENTIAL = "CREDENTIAL"
+  CREDENTIALS = "CREDENTIALS"
 }

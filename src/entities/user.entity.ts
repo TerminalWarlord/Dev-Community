@@ -28,7 +28,7 @@ export class User {
   @Column({
     type: "enum",
     enum: UserProvider,
-    default: UserProvider.CREDENTIAL
+    default: UserProvider.CREDENTIALS
   })
   provider!: UserProvider
 
