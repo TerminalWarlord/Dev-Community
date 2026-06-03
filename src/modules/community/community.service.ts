@@ -13,7 +13,7 @@ import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-comm
 import { InviteModeratorParamsDto } from './dto/invite-moderator.dto';
 import { ManageInvitationParamsDto, ManageInvitationRequestDto } from './dto/manage-invitation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOperator, ILike, Repository } from 'typeorm';
 import { Community } from 'src/entities/community.entity';
 import { CommunityRole } from 'src/entities/community-role.entity';
 
@@ -21,41 +21,37 @@ import { CommunityRole } from 'src/entities/community-role.entity';
 export class CommunityService {
   private logger = new Logger(CommunityService.name);
   constructor(
-    // @InjectModel(Community.name)
-    // private readonly communityModel: Model<Community>,
     @InjectRepository(Community)
     private readonly communityRepo: Repository<Community>,
     @InjectRepository(CommunityRole)
     private readonly communityRoleRepo: Repository<CommunityRole>,
-    // @InjectModel(CommunityRole.name)
-    // private readonly communityRoleModel: Model<>,
   ) { }
   async getAllCommunities(getCommunitiesQueriesDto: GetCommunitiesQueriesDto) {
-    // const page = getCommunitiesQueriesDto.page || 1;
-    // const limit = getCommunitiesQueriesDto.limit || 1;
-    // const offset = (page - 1) * limit;
-    // const query = getCommunitiesQueriesDto.query;
-    // try {
-    //   // Add query
-    //   let filter = {};
-    //   if (query) {
-    //     filter = {
-    //       name: {
-    //         $regex: getCommunitiesQueriesDto.query
-    //       }
-    //     }
-    //   }
-    //   const communities = await this.communityModel.find(filter)
-    //     .skip(offset)
-    //     .limit(limit + 1);
-    //   const results = communities.slice(0, limit);
-    //   return {
-    //     results,
-    //     hasNextPage: communities.length > limit
-    //   }
-    // } catch (error) {
-    //   throw new InternalServerErrorException("Failed to get communities");
-    // }
+    const page = parseInt(getCommunitiesQueriesDto.page || "1");
+    const limit = parseInt(getCommunitiesQueriesDto.limit || "10");
+    const offset = (page - 1) * limit;
+    const query = getCommunitiesQueriesDto.query;
+    try {
+      const filter: {
+        name?: FindOperator<string>
+      } = {};
+      if (query) {
+        filter.name = ILike(query)
+      }
+      const communities = await this.communityRepo.find({
+        skip: offset,
+        take: limit + 1,
+        where: filter
+      })
+
+      const results = communities.slice(0, limit);
+      return {
+        results,
+        hasNextPage: communities.length > limit
+      }
+    } catch (error) {
+      throw new InternalServerErrorException("Failed to get communities");
+    }
   }
 
 
