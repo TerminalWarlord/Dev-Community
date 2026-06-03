@@ -98,24 +98,41 @@ export class CommunityService {
     updateCommunityParamsDto: UpdateCommunityParamsDto,
     updateCommunityRequestDto: UpdateCommunityRequestDto,
   ) {
-    // try {
-    //   const communityRole = await this.communityRoleModel.findOne({
-    //     communityId: new mongoose.Types.ObjectId(updateCommunityParamsDto.communityId),
-    //     userId: new mongoose.Types.ObjectId(updateCommunityRequestDto.userId)
-    //   });
-    //   if (!communityRole || communityRole.role !== Role.ADMIN) {
-    //     throw new UnauthorizedException("You can't perform this action");
-    //   }
-    //   const community = await this.communityModel.updateOne({
-    //     _id: updateCommunityParamsDto.communityId,
-    //   }, updateCommunityBodyDto);
-    //   return {
-    //     message: "success"
-    //   }
-    // } catch (error) {
-    //   console.error(error)
-    //   throw new InternalServerErrorException("Failed to update community");
-    // }
+    const communityId = parseInt(updateCommunityParamsDto.communityId);
+    try {
+      const communityRole = await this.communityRoleRepo.findOne({
+        where: {
+          community: {
+            id: communityId,
+          },
+          user: {
+            id: updateCommunityRequestDto.userId
+          }
+        }
+      });
+      if (!communityRole || communityRole.role !== Role.ADMIN) {
+        throw new UnauthorizedException("You can't perform this action");
+      }
+      const updatedData: {
+        description?: string,
+        name?: string,
+      } = {};
+      if (updateCommunityBodyDto.description) {
+        updatedData.description = updateCommunityBodyDto.description;
+      }
+      if (updateCommunityBodyDto.name) {
+        updatedData.name = updateCommunityBodyDto.name;
+      }
+      await this.communityRepo.update({
+        id: communityId
+      }, updatedData);
+      return {
+        message: "success"
+      }
+    } catch (error) {
+      console.error(error)
+      throw new InternalServerErrorException("Failed to update community");
+    }
   }
 
   async deleteCommunity(
