@@ -264,31 +264,47 @@ export class CommunityService {
   async inviteModerator(
     inviteModeratorParamsDto: InviteModeratorParamsDto,
   ) {
-    // const userId = new mongoose.Types.ObjectId(inviteModeratorParamsDto.userId);
-    // const communityId = new mongoose.Types.ObjectId(inviteModeratorParamsDto.communityId);
-    // try {
-    //   const communityRole = await this.communityRoleModel.findOneAndUpdate({
-    //     userId,
-    //     communityId
-    //   }, {
-    //     status: "INVITED"
-    //   });
+    const userId = parseInt(inviteModeratorParamsDto.userId);
+    const communityId = parseInt(inviteModeratorParamsDto.communityId);
+    try {
+      const communityRoleUpdate = await this.communityRoleRepo.update({
+        user: {
+          id: userId
+        },
+        community: {
+          id: communityId
+        }
+      }, {
+        status: MembershipStatus.INVITED
+      });
 
-    //   if (!communityRole) {
-    //     throw new InternalServerErrorException("User is not a member of the community");
-    //   }
-    //   return {
-    //     message: "success",
-    //     invitationUrl: `/community/${communityId}/invite/accept/${communityRole._id}`
-    //   }
+      if (!communityRoleUpdate || !communityRoleUpdate.affected) {
+        throw new InternalServerErrorException("User is not a member of the community");
+      }
 
-    // } catch (error) {
-    //   if (error instanceof Error) {
-    //     throw new InternalServerErrorException(error.message);
-    //   }
-    //   this.logger.error(error);
-    //   throw new InternalServerErrorException("Failed to invite user");
-    // }
+      const communityRole = await this.communityRoleRepo.findOne({
+        where: {
+          user: {
+            id: userId
+          },
+          community: {
+            id: communityId
+          }
+        }
+      });
+      
+      return {
+        message: "success",
+        invitationUrl: `/community/${communityId}/invite/accept/${communityRole!.id}`
+      }
+
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(error.message);
+      }
+      this.logger.error(error);
+      throw new InternalServerErrorException("Failed to invite user");
+    }
   }
 
   async acceptModeratorInvitation(

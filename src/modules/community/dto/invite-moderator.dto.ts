@@ -1,9 +1,9 @@
-import { IsString } from "class-validator";
+import { IsNumberString } from "class-validator";
 
 export class InviteModeratorParamsDto {
-  @IsString()
+  @IsNumberString()
   communityId!: string;
 
-  @IsString()
+  @IsNumberString()
   userId!: string;
 }
