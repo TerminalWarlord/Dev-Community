@@ -11,7 +11,7 @@ import { JoinCommunityParamsDto, JoinCommunityRequestDto } from './dto/join-comm
 import { InviteModeratorParamsDto } from './dto/invite-moderator.dto';
 import { ManageInvitationParamsDto, ManageInvitationRequestDto } from './dto/manage-invitation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOperator, ILike, Repository } from 'typeorm';
+import { FindOperator, ILike, QueryFailedError, Repository } from 'typeorm';
 import { Community } from 'src/entities/community.entity';
 import { CommunityRole } from 'src/entities/community-role.entity';
 
@@ -224,28 +224,41 @@ export class CommunityService {
     joinCommunityParamsDto: JoinCommunityParamsDto,
     joinCommunityRequestDto: JoinCommunityRequestDto
   ) {
-    // try {
-    //   const userId = new mongoose.Types.ObjectId(joinCommunityRequestDto.userId);
-    //   const communityId = new mongoose.Types.ObjectId(joinCommunityParamsDto.communityId);
-    //   // check if community exists
-    //   const community = await this.communityModel.findById(communityId);
-    //   if (!community) {
-    //     throw new BadRequestException("Community doesn't exist");
-    //   }
-    //   await this.communityRoleModel.insertOne({
-    //     userId,
-    //     communityId,
-    //     joinedAt: new Date()
-    //   })
-    //   return {
-    //     message: "success",
-    //   }
-    // } catch (error) {
-    //   if (error instanceof BadRequestException) {
-    //     throw new BadRequestException(error.message);
-    //   }
-    //   throw new InternalServerErrorException("Failed to join community");
-    // }
+    try {
+      const userId = joinCommunityRequestDto.userId;
+      const communityId = parseInt(joinCommunityParamsDto.communityId);
+      // check if community exists
+      const community = await this.communityRepo.findOne({
+        where: {
+          id: communityId
+        }
+      });
+      if (!community) {
+        throw new BadRequestException("Community doesn't exist");
+      }
+      const communityRole = this.communityRoleRepo.create({
+        user: {
+          id: userId
+        },
+        community: {
+          id: communityId
+        },
+        joinedAt: new Date(Date.now())
+      });
+      await this.communityRoleRepo.save(communityRole);
+      return {
+        message: "success",
+      }
+    } catch (err) {
+      this.logger.error(err)
+      if (err instanceof QueryFailedError && err.driverError.code === '23505') {
+        throw new BadRequestException("Seems like you have already joined the community")
+      }
+      if (err instanceof BadRequestException) {
+        throw new BadRequestException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to join community");
+    }
   }
 
   async inviteModerator(

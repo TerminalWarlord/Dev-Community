@@ -1,11 +1,11 @@
-import { IsString } from "class-validator";
+import { IsNumber, IsNumberString } from "class-validator";
 
 export class JoinCommunityRequestDto {
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }
 
 export class JoinCommunityParamsDto {
-  @IsString()
+  @IsNumberString()
   communityId!: string;
 }
