@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, ManyToMany, ManyToOne, OneToMany, Pri
 import { Post } from "./post.entity";
 import { User } from "./user.entity";
 import { CommentStatus } from "src/common/comment.enum";
+import { CommentVote } from "./comment-vote.entity";
 
 
 @Entity()
@@ -30,6 +31,9 @@ export class Comment {
     default: CommentStatus.PUBLISHED
   })
   status!: CommentStatus;
+
+  @OneToMany(() => CommentVote, (commentVote) => commentVote.comment)
+  votes!: CommentVote;
 
   @Column({ type: "number", default: 0 })
   totalVotes!: number;

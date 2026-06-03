@@ -6,6 +6,7 @@ import { CommunityRole } from "./community-role.entity"
 import { Post } from "./post.entity"
 import { PostVote } from "./post-vote.entity"
 import { Comment } from "./comment.entity"
+import { CommentVote } from "./comment-vote.entity"
 
 @Entity()
 export class User {
@@ -51,6 +52,9 @@ export class User {
 
   @OneToMany(() => PostVote, (postVote) => postVote.user)
   votes!: PostVote[];
+
+  @OneToMany(() => CommentVote, (comment) => comment.user)
+  commentVotes!: CommentVote
 
   @CreateDateColumn()
   createdAt!: Date;
