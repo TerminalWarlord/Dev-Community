@@ -1,6 +1,7 @@
 import { CommunityStatus } from "src/common/community.enum";
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
 import { CommunityRole } from "./community-role.entity";
+import { Post } from "./post.entity";
 
 @Entity()
 export class Community {
@@ -18,6 +19,9 @@ export class Community {
 
   @OneToMany(() => CommunityRole, (communityRole) => communityRole.community)
   communityRoles!: CommunityRole[]
+
+  @OneToMany(() => Post, (post) => post.community)
+  posts!: Post[]
 
   @Column({
     type: "enum",

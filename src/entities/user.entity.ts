@@ -3,6 +3,7 @@ import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Up
 import { Experience } from "./experience.entity"
 import { UserSkill } from "./user-skill.entity"
 import { CommunityRole } from "./community-role.entity"
+import { Post } from "./post.entity"
 
 @Entity()
 export class User {
@@ -39,6 +40,9 @@ export class User {
 
   @OneToMany(() => CommunityRole, (communityRole) => communityRole.community)
   communityRoles!: CommunityRole[]
+
+  @OneToMany(() => Post, (post) => post.postedBy)
+  posts!: Post[];
 
   @CreateDateColumn()
   createdAt!: Date;
