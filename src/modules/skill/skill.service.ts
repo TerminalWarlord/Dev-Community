@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, Logger, NotFoundException, Request } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreateSkillBodyDto, CreateSkillRequestDto } from './dto/create-skill.dto';
 import { RemoveSkillParamsDto, RemoveSkillRequestDto } from './dto/remove-skill.dto';
 import { GetSkillsDto } from './dto/get-skills.dto';

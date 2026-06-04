@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { SkillController } from './skill.controller';
 import { SkillService } from './skill.service';
-import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Skill } from 'src/entities/skill.entity';

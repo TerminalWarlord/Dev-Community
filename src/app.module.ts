@@ -8,7 +8,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SuperadminModule } from './modules/superadmin/superadmin.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SkillModule } from './modules/user/skill/skill.module';
+import { SkillModule } from './modules/skill/skill.module';
 import AppDataSource from "./data-source";
 
 @Module({
