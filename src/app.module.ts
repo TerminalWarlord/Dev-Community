@@ -10,6 +10,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SkillModule } from './modules/skill/skill.module';
 import AppDataSource from "./data-source";
 import { ExperienceModule } from './modules/experience/experience.module';
+import { PostModule } from './modules/post/post.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { ExperienceModule } from './modules/experience/experience.module';
     CommunityModule,
     SuperadminModule,
     SkillModule,
+    PostModule
   ],
 })
 export class AppModule { }

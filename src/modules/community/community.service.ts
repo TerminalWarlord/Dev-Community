@@ -14,6 +14,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOperator, ILike, QueryFailedError, Repository } from 'typeorm';
 import { Community } from 'src/entities/community.entity';
 import { CommunityRole } from 'src/entities/community-role.entity';
+import { formatDate } from 'src/common/format-date';
 
 @Injectable()
 export class CommunityService {
@@ -69,7 +70,7 @@ export class CommunityService {
         },
         role: Role.ADMIN,
         status: MembershipStatus.REGULAR,
-        joinedAt: Date.now(),
+        joinedAt: formatDate(new Date(Date.now()).toDateString()),
         user: {
           id: createCommunityRequestDto.userId
         }

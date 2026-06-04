@@ -1,31 +1,38 @@
 import { Processor, WorkerHost } from "@nestjs/bullmq";
-import { InjectModel } from "@nestjs/mongoose";
+import { InjectRepository } from "@nestjs/typeorm";
 import { Job } from "bullmq";
-import { Model } from "mongoose";
+import { formatDate } from "src/common/format-date";
 import { PostStatus } from "src/common/post.enum";
-import { Post } from "src/schemas/post.schema";
+import { Post } from "src/entities/post.entity";
+import { Repository } from "typeorm";
 
 @Processor('posts')
 export class PostProcessor extends WorkerHost {
   constructor(
-    @InjectModel(Post.name)
-    private readonly postModel: Model<Post>
+    @InjectRepository(Post)
+    private readonly postRepo: Repository<Post>
   ) {
     super();
     console.log("WORKER instantiated")
   }
   async process(job: Job): Promise<any> {
     const { postId } = job.data;
-    const post = await this.postModel.findById(postId);
+    const post = await this.postRepo.findOne({
+      where: {
+        id: parseInt(postId)
+      }
+    });
     if (!post) {
       return;
     }
     if (post.status === PostStatus.SCHEDULED) {
-      await this.postModel.findByIdAndUpdate(
-        postId,
+      await this.postRepo.update(
+        {
+          id: parseInt(postId)
+        },
         {
           status: PostStatus.PUBLISHED,
-          publishedAt: new Date(),
+          publishAt: formatDate((new Date()).toDateString()),
         },
       );
     }
