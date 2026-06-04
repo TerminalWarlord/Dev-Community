@@ -11,6 +11,7 @@ import { Post } from 'src/entities/post.entity';
 import { Comment } from 'src/entities/comment.entity';
 import { Community } from 'src/entities/community.entity';
 import { PostStatus } from 'src/common/post.enum';
+import { CommentStatus } from 'src/common/comment.enum';
 
 
 @Injectable()
@@ -68,25 +69,25 @@ export class SuperadminService {
     }
   }
   async deleteComment(deleteCommentDto: DeleteCommentDto) {
-    // try {
-    //   const commentId = new mongoose.Types.ObjectId(deleteCommentDto.commentId);
-    //   const comment = await this.commentModel.findOneAndUpdate({
-    //     _id: commentId
-    //   }, {
-    //     status: UserStatus.DELETED
-    //   });
-    //   if (!comment) {
-    //     throw new NotFoundException("Comment doesn't exist");
-    //   }
-    //   return {
-    //     message: "success"
-    //   }
-    // } catch (err) {
-    //   if (err instanceof NotFoundException) {
-    //     throw new NotFoundException(err.message);
-    //   }
-    //   throw new InternalServerErrorException("Failed to delete Comment");
-    // }
+    try {
+      const commentId = parseInt(deleteCommentDto.commentId);
+      const comment = await this.commentRepo.update({
+        id: commentId
+      }, {
+        status: CommentStatus.DELETED
+      });
+      if (!comment) {
+        throw new NotFoundException("Comment doesn't exist");
+      }
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to delete Comment");
+    }
   }
 
   async deleteCommunity(deleteCommunityDto: DeleteCommunityDto) {
