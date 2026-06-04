@@ -3,3 +3,8 @@ export enum UserStatus {
   USER = "USER",
   DELETED = "DELETED"
 }
+
+export enum UserProvider {
+  GOOGLE = "GOOGLE",
+  CREDENTIALS = "CREDENTIALS"
+}
