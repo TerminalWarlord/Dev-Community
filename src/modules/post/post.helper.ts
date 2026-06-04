@@ -3,7 +3,6 @@ import mongoose, { Model } from "mongoose";
 import { Role } from "src/common/community.enum";
 import { PostStatus, VoteType } from "src/common/post.enum";
 import { CommunityRole } from "src/schemas/community-role.schema";
-import { Post } from "src/schemas/post.schema";
 import { UpdatePostBodyDto } from "./dto/update-post.dto";
 import { User } from "src/schemas/user.schema";
 import { UserStatus } from "src/common/user.enum";
@@ -12,6 +11,8 @@ import { nanoid } from "nanoid";
 import slugify from "slugify";
 import { Queue } from "bullmq";
 import { MailService } from "../mail/mail.service";
+import { Repository } from "typeorm";
+import { Post } from "src/entities/post.entity";
 
 
 export enum PostOperationType {
@@ -168,7 +169,7 @@ export async function castVoteOnPost(
 
 
 
-export async function generatePostSlug(name: string, postModel: Model<Post>) {
+export async function generatePostSlug(name: string, postRepo: Repository<Post>) {
   const slug = slugify(name, {
     lower: true,
   });
@@ -181,8 +182,10 @@ export async function generatePostSlug(name: string, postModel: Model<Post>) {
     else {
       checkedDefault = true;
     }
-    const community = await postModel.findOne({
-      slug: curSlug
+    const community = await postRepo.findOne({
+      where:{
+        slug: curSlug
+      }
     });
     if (!community) {
       return curSlug;
@@ -196,12 +199,14 @@ export async function schedulePost(
   postQueue: Queue,
   delay: number,
 ) {
+  console.log(postId, typeof postId)
   const job = await postQueue.add("publish-post", {
     postId
   }, {
     delay,
     jobId: postId,
     attempts: 5,
+    removeOnFail: true,
     removeOnComplete: true,
   })
 
