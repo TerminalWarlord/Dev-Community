@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { Post } from 'src/entities/post.entity';
 import { Comment } from 'src/entities/comment.entity';
 import { Community } from 'src/entities/community.entity';
+import { PostStatus } from 'src/common/post.enum';
 
 
 @Injectable()
@@ -47,24 +48,24 @@ export class SuperadminService {
   }
 
   async deletePost(deletePostDto: DeletePostDto) {
-    // try {
-    //   const post = await this.postModel.findOneAndUpdate({
-    //     slug: deletePostDto.postSlug
-    //   }, {
-    //     status: UserStatus.DELETED
-    //   });
-    //   if (!post) {
-    //     throw new NotFoundException("Post doesn't exist");
-    //   }
-    //   return {
-    //     message: "success"
-    //   }
-    // } catch (err) {
-    //   if (err instanceof NotFoundException) {
-    //     throw new NotFoundException(err.message);
-    //   }
-    //   throw new InternalServerErrorException("Failed to delete post");
-    // }
+    try {
+      const post = await this.postRepo.update({
+        slug: deletePostDto.postSlug
+      }, {
+        status: PostStatus.DELETED
+      });
+      if (!post) {
+        throw new NotFoundException("Post doesn't exist");
+      }
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to delete post");
+    }
   }
   async deleteComment(deleteCommentDto: DeleteCommentDto) {
     // try {
