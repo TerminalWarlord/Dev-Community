@@ -305,30 +305,30 @@ export class PostService {
     votePostParamsDto: VotePostParamsDto,
     votePostRequestDto: VotePostRequestDto
   ) {
-    // try {
-    //   const communityId = votePostBodyDto?.communityId ? new mongoose.Types.ObjectId(votePostBodyDto?.communityId) : undefined;
-    //   const DISLIKE_THRESHOLD = this.configService.get<number>('DISLIKE_THRESHOLD') || 10;
-    //   await castVoteOnPost(
-    //     votePostRequestDto.userId,
-    //     votePostParamsDto.postSlug,
-    //     votePostBodyDto?.voteType,
-    //     this.postVoteModel,
-    //     this.postModel,
-    //     this.userModel,
-    //     this.mailService,
-    //     communityId,
-    //     DISLIKE_THRESHOLD
-    //   );
-    //   return {
-    //     message: "success"
-    //   }
-    // } catch (err) {
-    //   // console.log(err)
-    //   if (err instanceof NotFoundException) {
-    //     throw new NotFoundException(err.message);
-    //   }
-    //   throw new InternalServerErrorException("Failed to cast vote");
+    try {
+      const { communityId } = votePostBodyDto;
+      const DISLIKE_THRESHOLD = this.configService.get<number>('DISLIKE_THRESHOLD') || 10;
+      await castVoteOnPost(
+        votePostRequestDto.userId,
+        votePostParamsDto.postSlug,
+        votePostBodyDto?.voteType,
+        this.postVoteRepo,
+        this.postRepo,
+        this.userRepo,
+        this.mailService,
+        communityId,
+        DISLIKE_THRESHOLD
+      );
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      // console.log(err)
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to cast vote");
 
-    // }
+    }
   }
 }

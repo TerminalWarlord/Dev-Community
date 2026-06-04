@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from "class-validator";
+import { IsNumber, IsOptional, IsString } from "class-validator";
 import { VoteType } from "src/common/post.enum";
 
 export class VotePostParamsDto {
@@ -7,8 +7,8 @@ export class VotePostParamsDto {
 }
 
 export class VotePostRequestDto {
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }
 
 export class VotePostBodyDto {
@@ -17,6 +17,6 @@ export class VotePostBodyDto {
   voteType!: VoteType;
 
   @IsOptional()
-  @IsString()
-  communityId!: string;
+  @IsNumber()
+  communityId!: number;
 }
