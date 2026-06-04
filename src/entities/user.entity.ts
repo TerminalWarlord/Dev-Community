@@ -19,7 +19,7 @@ export class User {
   @Column({ nullable: true })
   lname!: string
 
-  @Column()
+  @Column({ unique: true })
   email!: string
 
   @Column({ nullable: true })
