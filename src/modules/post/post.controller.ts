@@ -66,7 +66,7 @@ export class PostController {
   }
 
   @UseGuards(AuthGuard)
-  @UseGuards(CommunityMembershipAuthGuard)
+  @UseGuards(OptionalAccessGuard)
   @Delete(':postSlug/delete')
   async deleteCommunityPost(
     @Body() deletePostBodyDto: DeletePostBodyDto,

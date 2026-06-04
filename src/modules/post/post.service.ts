@@ -273,29 +273,31 @@ export class PostService {
     deletePostParamsDto: DeletePostParamsDto,
     deletePostRequestDto: DeletePostRequestDto,
   ) {
-    // try {
-    //   await managePost(
-    //     deletePostParamsDto.postSlug,
-    //     this.postModel,
-    //     this.communityRoleModel,
-    //     this.userModel,
-    //     deletePostRequestDto.userId,
-    //     PostOperationType.DELETION,
-    //     deletePostBodyDto?.communityId
-    //   )
-    //   return {
-    //     message: "message"
-    //   }
-    // }
-    // catch (err) {
-    //   if (err instanceof NotFoundException) {
-    //     throw new NotFoundException(err.message)
-    //   }
-    //   else if (err instanceof ForbiddenException) {
-    //     throw new ForbiddenException(err.message)
-    //   }
-    //   throw new InternalServerErrorException("Failed to delete post");
-    // }
+    try {
+      const communityId = deletePostBodyDto?.communityId ? parseInt(deletePostBodyDto?.communityId) : undefined;
+      await managePost(
+        deletePostParamsDto.postSlug,
+        this.postRepo,
+        this.communityRoleRepo,
+        this.userRepo,
+        deletePostRequestDto.userId,
+        PostOperationType.DELETION,
+        communityId
+      )
+      return {
+        message: "message"
+      }
+    }
+    catch (err) {
+      this.logger.error(err)
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message)
+      }
+      else if (err instanceof ForbiddenException) {
+        throw new ForbiddenException(err.message)
+      }
+      throw new InternalServerErrorException("Failed to delete post");
+    }
   }
 
   async votePost(
