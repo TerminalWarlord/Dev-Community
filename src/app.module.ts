@@ -9,6 +9,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SuperadminModule } from './modules/superadmin/superadmin.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SkillModule } from './modules/user/skill/skill.module';
+import AppDataSource from "./data-source";
 
 @Module({
   imports: [
@@ -19,17 +20,7 @@ import { SkillModule } from './modules/user/skill/skill.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        host: config.get("DATABASE_HOST"),
-        username: config.get("DATABASE_USER"),
-        password: config.get("DATABASE_PASSWORD"),
-        database: config.get("DATABASE_NAME"),
-        port: config.get<number>("DATABASE_PORT"),
-        type: "postgres",
-        ssl: process.env.NODE_ENV === 'production',
-        synchronize: process.env.NODE_ENV !== 'production',
-        entities: [__dirname + '/entities/*.entity.{js,ts}'],
-      }),
+      useFactory: (config: ConfigService) => AppDataSource.options,
     }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
