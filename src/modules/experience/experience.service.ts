@@ -5,6 +5,7 @@ import { RemoveExperienceParamsDto, RemoveExperienceRequestDto } from './dto/rem
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Experience } from 'src/entities/experience.entity';
+import { formatDate } from '../../common/format-date';
 
 
 
@@ -21,13 +22,13 @@ export class ExperienceService {
     createExperienceRequestDto: CreateExperienceRequestDto
   ) {
     try {
-      const endDate = createExperienceBodyDto.endDate?new Date(createExperienceBodyDto.endDate):undefined;
+      const endDate = createExperienceBodyDto.endDate ? formatDate(createExperienceBodyDto.endDate) : undefined;
       const experience = await this.experienceRepo.save(this.experienceRepo.create({
         user: {
           id: parseInt(createExperienceRequestDto.userId)
         },
         ...createExperienceBodyDto,
-        startDate: new Date(createExperienceBodyDto.startDate),
+        startDate: formatDate(createExperienceBodyDto.startDate),
         endDate: endDate,
       }))
       return {
@@ -46,26 +47,30 @@ export class ExperienceService {
     updateExperienceParamsDto: UpdateExperienceParamsDto,
     updateExperienceRequestDto: UpdateExperienceRequestDto
   ) {
-    // try {
-    //   const experience = await this.experienceModel.findOneAndUpdate({
-    //     _id: new mongoose.Types.ObjectId(updateExperienceParamsDto.experienceId),
-    //     userId: new mongoose.Types.ObjectId(updateExperienceRequestDto.userId),
-    //   }, {
-    //     ...updateExperienceBodyDto,
-    //     userId: new mongoose.Types.ObjectId(updateExperienceRequestDto.userId),
-    //   })
+    try {
+      const endDate = updateExperienceBodyDto.endDate ? formatDate(updateExperienceBodyDto.endDate) : undefined;
+      const experience = await this.experienceRepo.update({
+        id: parseInt(updateExperienceParamsDto.experienceId),
+        user: {
+          id: updateExperienceRequestDto.userId
+        }
+      }, {
+        ...updateExperienceBodyDto,
+        endDate,
+        startDate: formatDate(updateExperienceBodyDto.startDate),
+      })
 
-    //   if (!experience) {
-    //     throw new NotFoundException("Experience doesn't exist");
-    //   }
-    //   return {
-    //     message: "success",
-    //   }
+      if (!experience) {
+        throw new NotFoundException("Experience doesn't exist");
+      }
+      return {
+        message: "success",
+      }
 
-    // } catch (error) {
-    //   this.logger.error(error)
-    //   throw new InternalServerErrorException("Failed to update experience");
-    // }
+    } catch (error) {
+      this.logger.error(error)
+      throw new InternalServerErrorException("Failed to update experience");
+    }
   }
 
   async removeExperience(

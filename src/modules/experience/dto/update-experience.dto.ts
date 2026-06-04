@@ -1,29 +1,27 @@
-import { IsDate, IsString } from "class-validator";
+import { IsDate, IsDateString, IsNumber, IsNumberString, IsOptional, IsString } from "class-validator";
 
 export class UpdateExperienceBodyDto {
   @IsString()
   companyName!: string;
 
   @IsString()
-  userId!: string;
-
-  @IsString()
   experienceTitle!: string;
 
-  @IsDate()
+  @IsDateString()
   startDate!: string;
 
-  @IsDate()
+  @IsOptional()
+  @IsDateString()
   endDate!: string;
 }
 
 export class UpdateExperienceRequestDto {
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }
 
 
 export class UpdateExperienceParamsDto {
-  @IsString()
+  @IsNumberString()
   experienceId!: string;
 }
