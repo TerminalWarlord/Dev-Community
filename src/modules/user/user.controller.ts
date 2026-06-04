@@ -1,33 +1,25 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   ParseIntPipe,
   Patch,
-  Post,
   Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ChangePasswordBodyDto, ChangePasswordRequestDto } from './dto/change-password.dto';
-// import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { GetUsersSkillsParamsDto, GetUsersSkillsQueriesDto } from './dto/get-users-skills.dto';
 import { GetUsersExperiencesParamsDto, GetUsersExperiencesQueriesDto } from './dto/get-users-experiences.dto';
-import { AddUserPostDto, AddUserPostRequestDto } from './dto/add-user-post.dto';
-import { GetUserPost } from './dto/get-user-post.dto';
-import { GetUserPostsParamsDto, GetUserPostsQueriesDto } from './dto/get-user-posts.dto';
-import { UpdateUserPostBodyDto, UpdateUserPostParamsDto, UpdateUserPostRequestDto } from './dto/update-user-post.dto';
-import { DeleteUserPostParamsDto, DeleteUserPostRequestDto } from './dto/delete-user-post.dto';
-import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from '../post/dto/vote-post.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) { }
 
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Patch('change-password')
   async changePassword(
     @Body() changePasswordBodyDto: ChangePasswordBodyDto,
