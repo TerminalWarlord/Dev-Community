@@ -1,8 +1,8 @@
-import { IsOptional, IsString } from "class-validator";
+import { IsDateString, IsOptional, IsString } from "class-validator";
 
 export class GetPostQueriesDto {
   @IsOptional()
-  @IsString()
+  @IsDateString()
   communityId!: string;
 }
 

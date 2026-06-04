@@ -54,28 +54,27 @@ export class PostService {
     getPostParamsDto: GetPostParamsDto
   ) {
     this.logger.log(getPostQueriesDto, getPostParamsDto)
-    // try {
-    //   const communityId = getPostQueriesDto.communityId ? new mongoose.Types.ObjectId(getPostQueriesDto.communityId) : undefined;
-    //   const post = await this.postModel.findOne({
-    //     communityId,
-    //     slug: getPostParamsDto.postSlug,
-    //     status: PostStatus.PUBLISHED
-    //   })
-    //     .select("-__v -status -communityId")
-    //     .populate("postedBy", "_id fname lname")
-    //     .lean();
-    //   if (!post) {
-    //     throw new NotFoundException("Couldn't find any post with that slug");
-    //   }
-    //   return {
-    //     ...post
-    //   };
-    // } catch (err) {
-    //   if (err instanceof NotFoundException) {
-    //     throw new NotFoundException(err.message);
-    //   }
-    //   throw new InternalServerErrorException("Failed to get post");
-    // }
+    try {
+      const communityId = getPostQueriesDto?.communityId ? parseInt(getPostQueriesDto.communityId) : undefined;
+      const post = await this.postRepo.findOne({
+        where: {
+          community: {
+            id: communityId
+          },
+          slug: getPostParamsDto.postSlug,
+          status: PostStatus.PUBLISHED
+        }
+      });
+      if (!post) {
+        throw new NotFoundException("Couldn't find any post with that slug");
+      }
+      return post;
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to get post");
+    }
   }
 
   async getAllPosts(
