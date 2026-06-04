@@ -1,18 +1,17 @@
 import { ForbiddenException, NotFoundException } from "@nestjs/common";
-import mongoose, { Model } from "mongoose";
 import { Role } from "src/common/community.enum";
 import { PostStatus, VoteType } from "src/common/post.enum";
-import { CommunityRole } from "src/schemas/community-role.schema";
 import { UpdatePostBodyDto } from "./dto/update-post.dto";
-import { User } from "src/schemas/user.schema";
 import { UserStatus } from "src/common/user.enum";
-import { PostVote } from "src/schemas/post-votes.schema";
 import { nanoid } from "nanoid";
 import slugify from "slugify";
 import { Queue } from "bullmq";
 import { MailService } from "../mail/mail.service";
 import { Repository } from "typeorm";
 import { Post } from "src/entities/post.entity";
+import { CommunityRole } from "src/entities/community-role.entity";
+import { User } from "src/entities/user.entity";
+import { PostVote } from "src/entities/post-vote.entity";
 
 
 export enum PostOperationType {
@@ -22,53 +21,75 @@ export enum PostOperationType {
 
 export async function managePost(
   slug: string,
-  postModel: Model<Post>,
-  communityRoleModel: Model<CommunityRole>,
-  userModel: Model<User>,
-  uId: string,
+  postRepo: Repository<Post>,
+  communityRoleRepo: Repository<CommunityRole>,
+  userRepo: Repository<User>,
+  uId: number,
   operationType: PostOperationType = PostOperationType.DELETION,
-  cId?: string,
+  cId?: number,
   updatePostBodyDto?: UpdatePostBodyDto
 ) {
-  const userId = new mongoose.Types.ObjectId(uId);
-  const communityId = cId ? new mongoose.Types.ObjectId(cId) : undefined;
+  const userId = uId;
+  const communityId = cId ? cId : undefined;
   async function performDeletion() {
-    await postModel.findOneAndUpdate({
+    const postUpdate = await postRepo.update({
       slug,
-      communityId
+      community: {
+        id: communityId
+      }
     }, {
       status: PostStatus.DELETED
     });
+    if (!postUpdate.affected) {
+      throw new Error("Failed to update post");
+    }
   }
 
   async function performUpdate() {
-    await postModel.findOneAndUpdate({
+    await postRepo.update({
       slug,
-      communityId: communityId ? new mongoose.Types.ObjectId(communityId) : undefined
-    }, updatePostBodyDto);
+      community: {
+        id: communityId
+      }
+    }, {
+      title: updatePostBodyDto?.title,
+      content: updatePostBodyDto?.content
+    });
   }
   // check user is admin/mod or the poster itself
-  const post = await postModel.findOne({
-    slug,
-    communityId,
+  const post = await postRepo.findOne({
+    where: {
+      slug,
+      community: {
+        id: communityId
+      }
+    }
   });
   if (!post) {
     throw new NotFoundException("Post doesn't exist");
   }
-  if (post.postedBy.toString() === uId) {
+  if (post.postedBy.id === uId) {
     return operationType === PostOperationType.DELETION ? performDeletion() : performUpdate();
   }
 
-  const communityRole = await communityRoleModel.findOne({
-    userId,
-    communityId
+  const communityRole = await communityRoleRepo.findOne({
+    where: {
+      user: {
+        id: userId
+      },
+      community: {
+        id: communityId
+      }
+    }
   });
   if (communityRole && (communityRole.role === Role.ADMIN || communityRole.role === Role.MODERATOR)) {
     return operationType === PostOperationType.DELETION ? performDeletion() : performUpdate();
   }
   // check actingUser is OWNER
-  const user = await userModel.findOne({
-    userId,
+  const user = await userRepo.findOne({
+    where: {
+      id: userId
+    },
   });
   if (user && user.status === UserStatus.SUPERADMIN) {
     operationType === PostOperationType.DELETION ? performDeletion() : performUpdate();
@@ -78,77 +99,111 @@ export async function managePost(
 
 
 export async function castVoteOnPost(
-  userId: string,
+  userId: number,
   slug: string,
   voteType: VoteType = VoteType.NEUTRAL,
-  postVoteModel: Model<PostVote>,
-  postModel: Model<Post>,
-  userModel: Model<User>,
+  postVoteRepo: Repository<PostVote>,
+  postRepo: Repository<Post>,
+  userRepo: Repository<User>,
   mailService: MailService,
-  communityId?: mongoose.Types.ObjectId,
+  communityId?: number,
   dislikeThreshold: number = 10
 ) {
-  const post = await postModel.findOne({
-    communityId,
-    slug,
+  const post = await postRepo.findOne({
+    where: {
+      community: {
+        id: communityId
+      },
+      slug
+    }
   });
   if (!post) {
     throw new NotFoundException("Post doesn't exist");
   }
-  await postVoteModel.findOneAndUpdate({
-    postId: post._id,
-    userId: new mongoose.Types.ObjectId(userId)
+  const postVoteUpdate = await postVoteRepo.update({
+    post: {
+      id: post.id
+    },
+    user: {
+      id: userId
+    }
   }, {
     voteType
-  }, { upsert: true });
+  });
+  if (!postVoteUpdate.affected) {
+    return;
+  }
 
-  const votes = await postVoteModel.aggregate([
-    {
-      $group: {
-        _id: "$postId",
-        upvotes: {
-          $sum: {
-            $cond: [
-              {
-                $eq: ["$voteType", "UPVOTE"]
-              },
-              1,
-              0
-            ]
-          }
-        },
-        downvotes: {
-          $sum: {
-            $cond: [
-              {
-                $eq: ["$voteType", "DOWNVOTE"]
-              },
-              1,
-              0
-            ]
-          }
-        },
-        total: {
-          $sum: 1
-        }
+  // TODO: optimize query to get votes
+  const upvotes = await postVoteRepo.count({
+    where: {
+      post: {
+        id: post.id
       },
-    },
-    {
-      $project: {
-        _id: 1,
-        upvotes: 1,
-        downvotes: 1,
-        total: 1,
-      }
+      voteType: VoteType.UPVOTE
     }
-  ]);
+  });
 
-  const upvotes = votes?.length?votes[0].upvotes:0;
-  const downvotes = votes?.length?votes[0].downvotes:0;
-  const totalVotes = votes?.length?votes[0].total:0;
+  const downvotes = await postVoteRepo.count({
+    where: {
+      post: {
+        id: post.id
+      },
+      voteType: VoteType.DOWNVOTE
+    }
+  });
+
+  // const votes = await postVoteRepo.aggregate([
+  //   {
+  //     $group: {
+  //       _id: "$postId",
+  //       upvotes: {
+  //         $sum: {
+  //           $cond: [
+  //             {
+  //               $eq: ["$voteType", "UPVOTE"]
+  //             },
+  //             1,
+  //             0
+  //           ]
+  //         }
+  //       },
+  //       downvotes: {
+  //         $sum: {
+  //           $cond: [
+  //             {
+  //               $eq: ["$voteType", "DOWNVOTE"]
+  //             },
+  //             1,
+  //             0
+  //           ]
+  //         }
+  //       },
+  //       total: {
+  //         $sum: 1
+  //       }
+  //     },
+  //   },
+  //   {
+  //     $project: {
+  //       _id: 1,
+  //       upvotes: 1,
+  //       downvotes: 1,
+  //       total: 1,
+  //     }
+  //   }
+  // ]);
+
+  // const upvotes = votes?.length ? votes[0].upvotes : 0;
+  // const downvotes = votes?.length ? votes[0].downvotes : 0;
+  const totalVotes = upvotes + downvotes;
 
   if (downvotes > dislikeThreshold) {
-    const user = await userModel.findById(new mongoose.Types.ObjectId(userId));
+    const user = await userRepo.findOne({
+      where: {
+        id: userId
+      }
+    });
     await mailService.sendEmail(
       user?.email!,
       "Dev Community Post Notice",
@@ -157,8 +212,10 @@ export async function castVoteOnPost(
     )
   }
 
-  await postModel.findOneAndUpdate({
-    communityId,
+  await postRepo.update({
+    community: {
+      id: communityId
+    },
     slug,
   }, {
     totalVotes: totalVotes,
@@ -183,7 +240,7 @@ export async function generatePostSlug(name: string, postRepo: Repository<Post>)
       checkedDefault = true;
     }
     const community = await postRepo.findOne({
-      where:{
+      where: {
         slug: curSlug
       }
     });
