@@ -17,7 +17,7 @@ import { Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 
 @Injectable()
-export class OptionalReadAccessGuard implements CanActivate {
+export class OptionalAccessGuard implements CanActivate {
   private logger = new Logger(CommunityService.name);
   constructor(
     @InjectRepository(CommunityRole)
