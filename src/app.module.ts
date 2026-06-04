@@ -44,7 +44,7 @@ import { ExperienceModule } from './modules/experience/experience.module';
     }),
     UserModule,
     AuthModule,
-    // ExperienceModule,
+    ExperienceModule,
     CommunityModule,
     SuperadminModule,
     SkillModule,
