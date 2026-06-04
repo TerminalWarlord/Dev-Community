@@ -44,7 +44,7 @@ export class PostController {
     @Body() createPostBodyDto: CreatePostBodyDto,
     @Request() createPostRequestDto: CreatePostRequestDto
   ) {
-    return this.postService.createCommunityPost(
+    return this.postService.createPost(
       createPostBodyDto,
       createPostRequestDto
     );
@@ -58,7 +58,7 @@ export class PostController {
     @Param() updatePostParamsDto: UpdatePostParamsDto,
     @Request() updatePostRequestDto: UpdatePostRequestDto,
   ) {
-    return this.postService.updateCommunityPost(
+    return this.postService.updatePost(
       updatePostBodyDto,
       updatePostParamsDto,
       updatePostRequestDto
@@ -73,7 +73,7 @@ export class PostController {
     @Param() deletePostParamsDto: DeletePostParamsDto,
     @Request() deletePostRequestDto: DeletePostRequestDto,
   ) {
-    return this.postService.deleteCommunityPost(
+    return this.postService.deletePost(
       deletePostBodyDto,
       deletePostParamsDto,
       deletePostRequestDto
@@ -89,7 +89,7 @@ export class PostController {
     @Param() votePostParamsDto: VotePostParamsDto,
     @Request() votePostRequestDto: VotePostRequestDto
   ) {
-    return this.postService.voteCommunityPost(
+    return this.postService.votePost(
       votePostBodyDto,
       votePostParamsDto,
       votePostRequestDto

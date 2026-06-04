@@ -174,7 +174,7 @@ export class PostService {
     }
   }
 
-  async createCommunityPost(
+  async createPost(
     createPostBodyDto: CreatePostBodyDto,
     createPostRequestDto: CreatePostRequestDto
   ) {
@@ -219,7 +219,7 @@ export class PostService {
     }
   }
 
-  async updateCommunityPost(
+  async updatePost(
     updatePostBodyDto: UpdatePostBodyDto,
     updatePostParamsDto: UpdatePostParamsDto,
     updatePostRequestDto: UpdatePostRequestDto,
@@ -250,7 +250,7 @@ export class PostService {
     }
   }
 
-  async deleteCommunityPost(
+  async deletePost(
     deletePostBodyDto: DeletePostBodyDto,
     deletePostParamsDto: DeletePostParamsDto,
     deletePostRequestDto: DeletePostRequestDto,
@@ -280,7 +280,7 @@ export class PostService {
     }
   }
 
-  async voteCommunityPost(
+  async votePost(
     votePostBodyDto: VotePostBodyDto,
     votePostParamsDto: VotePostParamsDto,
     votePostRequestDto: VotePostRequestDto
