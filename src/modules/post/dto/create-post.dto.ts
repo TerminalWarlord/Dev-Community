@@ -1,4 +1,4 @@
-import { IsDateString, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsDateString, IsNumber, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 export class CreatePostBodyDto {
   @IsString()
@@ -22,6 +22,6 @@ export class CreatePostBodyDto {
 
 
 export class CreatePostRequestDto {
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }

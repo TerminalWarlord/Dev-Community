@@ -22,7 +22,7 @@ export class Post {
   @ManyToOne(() => User, (user) => user.posts)
   postedBy!: User;
 
-  @ManyToOne(() => Community, (community) => community.posts)
+  @ManyToOne(() => Community, (community) => community.posts, { nullable: true })
   community!: Community;
 
   @Column({
@@ -42,12 +42,15 @@ export class Post {
   totalVotes!: number;
 
   @Column({ type: "int", default: 0 })
+  totalUpvotes!: number;
+
+  @Column({ type: "int", default: 0 })
   totalDownvotes!: number;
 
   @Column({ type: "int", default: 0 })
   totalComments!: number;
 
-  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP'  })
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   publishAt!: Date;
 
   @CreateDateColumn()

@@ -14,4 +14,7 @@ export default new DataSource({
   synchronize: process.env.NODE_ENV !== 'production',
   entities: [__dirname + '/entities/*.entity.{js,ts}'],
   migrations: [__dirname + "/migrations/**/*{.js,.ts}"],
+  invalidWhereValuesBehavior: {
+        undefined: "ignore" 
+    }
 })

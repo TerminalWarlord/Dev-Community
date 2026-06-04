@@ -1,4 +1,4 @@
-import { IsDefined, IsOptional, IsString, MaxLength, MinLength, ValidateIf } from "class-validator";
+import { IsDefined, IsNumber, IsNumberString, IsOptional, IsString, MaxLength, MinLength, ValidateIf } from "class-validator";
 
 export class UpdatePostBodyDto {
   @IsOptional()
@@ -14,7 +14,7 @@ export class UpdatePostBodyDto {
   content!: string;
 
   @IsOptional()
-  @IsString()
+  @IsNumberString()
   communityId!: string;
 
   @ValidateIf(d => !d.title && !d.content)
@@ -31,6 +31,6 @@ export class UpdatePostParamsDto {
 
 
 export class UpdatePostRequestDto {
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }

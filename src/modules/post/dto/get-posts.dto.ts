@@ -15,11 +15,11 @@ export class GetPostsQueriesDto {
   query!: string;
 
   @IsOptional()
-  @IsString()
+  @IsNumberString()
   communityId!: string;
 
   @IsOptional()
-  @IsString()
+  @IsNumberString()
   profileId!: string;
 
   @IsOptional()
@@ -33,6 +33,6 @@ export class GetPostsQueriesDto {
 
 export class GetPostsRequestDto {
   @IsOptional()
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }

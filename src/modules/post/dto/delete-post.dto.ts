@@ -1,8 +1,8 @@
-import { IsOptional, IsString } from "class-validator";
+import { IsNumber, IsNumberString, IsOptional, IsString } from "class-validator";
 
 export class DeletePostBodyDto {
   @IsOptional()
-  @IsString()
+  @IsNumberString()
   communityId!: string;
 }
 
@@ -14,6 +14,6 @@ export class DeletePostParamsDto {
 
 
 export class DeletePostRequestDto {
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }
