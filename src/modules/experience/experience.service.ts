@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Experience } from 'src/entities/experience.entity';
 import { formatDate } from '../../common/format-date';
+import { ExperienceStatus } from 'src/common/experience.enum';
 
 
 
@@ -77,26 +78,30 @@ export class ExperienceService {
     removeExperienceParamsDto: RemoveExperienceParamsDto,
     removeExperienceRequestDto: RemoveExperienceRequestDto
   ) {
-    // try {
-    //   const experience = await this.experienceModel.findOneAndDelete({
-    //     userId: new mongoose.Types.ObjectId(removeExperienceRequestDto.userId),
-    //     _id: new mongoose.Types.ObjectId(removeExperienceParamsDto.experienceId)
-    //   })
-    //   if (!experience) {
-    //     throw new NotFoundException("Experience doesn't exist");
-    //   }
-    //   return {
-    //     message: "success"
-    //   }
-    // }
-    // catch (err) {
-    //   this.logger.error(err)
-    //   if (err instanceof Error) {
-    //     throw new InternalServerErrorException(err.message);
-    //   }
-    //   else {
-    //     throw new InternalServerErrorException("Failed to delete experience");
-    //   }
-    // }
+    try {
+      const experience = await this.experienceRepo.update({
+        user: {
+          id: removeExperienceRequestDto.userId
+        },
+        id: parseInt(removeExperienceParamsDto.experienceId)
+      }, {
+        status: ExperienceStatus.DELETED
+      })
+      if (!experience) {
+        throw new NotFoundException("Experience doesn't exist");
+      }
+      return {
+        message: "success"
+      }
+    }
+    catch (err) {
+      this.logger.error(err)
+      if (err instanceof Error) {
+        throw new InternalServerErrorException(err.message);
+      }
+      else {
+        throw new InternalServerErrorException("Failed to delete experience");
+      }
+    }
   }
 }

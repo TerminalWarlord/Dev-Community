@@ -1,11 +1,11 @@
-import { IsString } from "class-validator";
+import { IsNumber, IsNumberString, IsString } from "class-validator";
 
 export class RemoveExperienceParamsDto {
-  @IsString()
+  @IsNumberString()
   experienceId!: string;
 }
 
 export class RemoveExperienceRequestDto {
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }
