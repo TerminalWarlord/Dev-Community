@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, Logger, NotFoundException, Request } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreateSkillBodyDto, CreateSkillRequestDto } from './dto/create-skill.dto';
 import { RemoveSkillParamsDto, RemoveSkillRequestDto } from './dto/remove-skill.dto';
 import { GetSkillsDto } from './dto/get-skills.dto';
@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Skill } from 'src/entities/skill.entity';
 import { Repository } from 'typeorm';
 import { UserSkill } from 'src/entities/user-skill.entity';
+import { SkillStatus } from 'src/common/skill.enum';
 
 @Injectable()
 export class SkillService {
@@ -84,14 +85,15 @@ export class SkillService {
 
   async removeSkill(removeSkillParamsDto: RemoveSkillParamsDto, removeSkillRequestDto: RemoveSkillRequestDto) {
     try {
-      // TODO: add soft deletion
-      const userSkill = await this.userSkillRepo.delete({
+      const userSkill = await this.userSkillRepo.update({
         id: parseInt(removeSkillParamsDto.userSkillId),
         user: {
           id: parseInt(removeSkillRequestDto.userId)
         }
+      }, {
+        status: SkillStatus.DELETED
       })
-      if (!userSkill) {
+      if (!userSkill.affected) {
         throw new NotFoundException("Couldn't find the user skill");
       }
       return {

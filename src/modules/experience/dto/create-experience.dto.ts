@@ -1,4 +1,4 @@
-import { IsDate, IsString } from "class-validator";
+import { IsDate, IsDateString, IsNumberString, IsOptional, IsString } from "class-validator";
 
 export class CreateExperienceBodyDto {
   @IsString()
@@ -7,14 +7,15 @@ export class CreateExperienceBodyDto {
   @IsString()
   experienceTitle!: string;
 
-  @IsDate()
+  @IsDateString()
   startDate!: string;
 
-  @IsDate()
+  @IsOptional()
+  @IsDateString()
   endDate!: string;
 }
 
 export class CreateExperienceRequestDto {
-  @IsString()
+  @IsNumberString()
   userId!: string;
 }

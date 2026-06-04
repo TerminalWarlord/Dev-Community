@@ -1,6 +1,7 @@
 import { UserStatus } from "src/common/user.enum"
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
 import { User } from "./user.entity";
+import { ExperienceStatus } from "src/common/experience.enum";
 
 @Entity()
 export class Experience {
@@ -16,7 +17,14 @@ export class Experience {
   @Column()
   experienceTitle!: string;
 
-  @Column({ nullable: true })
+  @Column({
+    type: "enum",
+    enum: ExperienceStatus,
+    default: ExperienceStatus.ACTIVE
+  })
+  status!: ExperienceStatus;
+
+  @Column()
   startDate!: Date;
 
   @Column({ nullable: true })

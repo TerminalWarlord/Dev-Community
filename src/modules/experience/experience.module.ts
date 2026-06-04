@@ -2,16 +2,20 @@ import { Module } from '@nestjs/common';
 import { ExperienceController } from './experience.controller';
 import { ExperienceService } from './experience.service';
 import { JwtModule } from '@nestjs/jwt';
-import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from 'src/schemas/user.schema';
-import { Experience, ExperienceSchema } from 'src/schemas/experience.schema';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from 'src/entities/user.entity';
+import { Experience } from 'src/entities/experience.entity';
 
 @Module({
   imports: [
     JwtModule.register({}),
-    MongooseModule.forFeature([
-      { name: User.name, schema: UserSchema },
-      { name: Experience.name, schema: ExperienceSchema },
+    // MongooseModule.forFeature([
+    //   { name: User.name, schema: UserSchema },
+    //   { name: Experience.name, schema: ExperienceSchema },
+    // ]),
+    TypeOrmModule.forFeature([
+      User,
+      Experience
     ])
   ],
   controllers: [ExperienceController],
