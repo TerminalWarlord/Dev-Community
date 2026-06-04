@@ -87,7 +87,7 @@ export class ExperienceService {
       }, {
         status: ExperienceStatus.DELETED
       })
-      if (!experience) {
+      if (!experience.affected) {
         throw new NotFoundException("Experience doesn't exist");
       }
       return {
