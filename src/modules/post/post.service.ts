@@ -13,19 +13,23 @@ import { MailService } from '../mail/mail.service';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from 'src/entities/post.entity';
-import { Repository } from 'typeorm';
+import { FindOperator, ILike, Repository } from 'typeorm';
 import { formatDate } from 'src/common/format-date';
 import { PostVote } from 'src/entities/post-vote.entity';
 import { CommunityRole } from 'src/entities/community-role.entity';
 import { User } from 'src/entities/user.entity';
 
 
-// interface PostFilterQueryType {
-//   communityId?: mongoose.Types.ObjectId,
-//   status: PostStatus,
-//   title?: object,
-//   postedBy?: mongoose.Types.ObjectId
-// }
+interface PostFilterQueryType {
+  community?: {
+    id?: number
+  },
+  status: PostStatus,
+  title?: FindOperator<string>,
+  postedBy?: {
+    id?: number
+  }
+}
 type PostSortFilterType = Record<string, number>;
 
 @Injectable()
@@ -81,97 +85,105 @@ export class PostService {
     getPostsQueriesDto: GetPostsQueriesDto,
     getPostsRequestDto: GetPostsRequestDto
   ) {
-    // try {
-    //   const page = Math.max(parseInt(getPostsQueriesDto.page || "1"), 1);
-    //   const limit = Math.min(parseInt(getPostsQueriesDto.limit || "10"), 10);
-    //   const query = getPostsQueriesDto.query;
-    //   const communityId = getPostsQueriesDto?.communityId ? new mongoose.Types.ObjectId(getPostsQueriesDto?.communityId) : undefined;
-    //   const userId = getPostsRequestDto?.userId ? new mongoose.Types.ObjectId(getPostsRequestDto?.userId) : undefined;
-    //   const postedBy = getPostsQueriesDto?.profileId ? new mongoose.Types.ObjectId(getPostsQueriesDto?.profileId) : undefined;
-    //   const postFilter = getPostsQueriesDto.filter || PostFilter.CREATED_AT;
-    //   const postOrderBy = getPostsQueriesDto.orderBy || PostOrderBy.ASC;
+    try {
+      const page = Math.max(parseInt(getPostsQueriesDto.page || "1"), 1);
+      const limit = Math.min(parseInt(getPostsQueriesDto.limit || "10"), 10);
+      const query = getPostsQueriesDto.query;
+      const communityId = getPostsQueriesDto?.communityId ? parseInt(getPostsQueriesDto?.communityId) : undefined;
+      const { userId } = getPostsRequestDto;
+      const postedBy = getPostsQueriesDto?.profileId ? parseInt(getPostsQueriesDto?.profileId) : undefined;
+      const postFilter = getPostsQueriesDto.filter || PostFilter.CREATED_AT;
+      const postOrderBy = getPostsQueriesDto.orderBy || PostOrderBy.ASC;
 
 
-    //   let postSortFilter: PostSortFilterType = {};
-    //   if (postFilter === PostFilter.CREATED_AT) {
-    //     postSortFilter.createdAt = postOrderBy === PostOrderBy.ASC ? 1 : -1;
-    //   }
-    //   else if (postFilter === PostFilter.UPDATED_AT) {
-    //     postSortFilter.updatedAt = postOrderBy === PostOrderBy.ASC ? 1 : -1;
-    //   }
-    //   else if (postFilter === PostFilter.POPULARITY) {
-    //     postSortFilter.score = postOrderBy === PostOrderBy.ASC ? 1 : -1;
-    //   }
-    //   let postFilterQuery: PostFilterQueryType = {
-    //     communityId,
-    //     status: PostStatus.PUBLISHED,
-    //   }
-    //   if (postedBy) {
-    //     postFilterQuery.postedBy = postedBy
-    //   }
-    //   if (query) {
-    //     postFilterQuery.title = {
-    //       $regex: query,
-    //       $options: "i"
-    //     }
-    //   }
-    //   const offset = (page - 1) * limit;
-    //   const posts = await this.postModel.aggregate([
-    //     {
-    //       $match: postFilterQuery
-    //     },
-    //     {
-    //       $addFields: {
-    //         score: {
-    //           $add: [
-    //             { $multiply: [{ $ifNull: ["$totalUpvotes", 0], }, 1] },
-    //             { $multiply: [{ $ifNull: ["$totalDownvotes", 0], }, -1] },
-    //             { $multiply: [{ $ifNull: ["$totalComments", 0], }, 3] },
-    //           ]
-    //         }
-    //       }
-    //     },
-    //     {
-    //       $lookup: {
-    //         from: "users",
-    //         localField: "postedBy",
-    //         foreignField: "_id",
-    //         as: "user",
-    //         pipeline: [
-    //           {
-    //             $project: {
-    //               _id: 1,
-    //               fname: 1,
-    //               lname: 1
-    //             }
-    //           }
-    //         ]
-    //       }
-    //     },
-    //     {
-    //       $unset: [
-    //         "__v",
-    //         "postedBy",
-    //       ]
-    //     },
-    //     {
-    //       $sort: postSortFilter as Record<string, 1 | -1>
-    //     },
-    //     { $skip: offset },
-    //     { $limit: limit + 1 }
-    //   ])
-    //   const results = posts.slice(0, limit);
-    //   return {
-    //     results,
-    //     hasNextPage: posts.length > limit,
-    //   }
-    // } catch (err) {
-    //   this.logger.error(err);
-    //   if (err instanceof UnauthorizedException) {
-    //     throw new UnauthorizedException(err.message);
-    //   }
-    //   throw new InternalServerErrorException("Failed to get posts");
-    // }
+      let postSortFilter: PostSortFilterType = {};
+      if (postFilter === PostFilter.CREATED_AT) {
+        postSortFilter.createdAt = postOrderBy === PostOrderBy.ASC ? 1 : -1;
+      }
+      else if (postFilter === PostFilter.UPDATED_AT) {
+        postSortFilter.updatedAt = postOrderBy === PostOrderBy.ASC ? 1 : -1;
+      }
+      else if (postFilter === PostFilter.POPULARITY) {
+        postSortFilter.totalUpvotes = postOrderBy === PostOrderBy.ASC ? 1 : -1;
+      }
+      let postFilterQuery: PostFilterQueryType = {
+        community: {
+          id: communityId
+        },
+        status: PostStatus.PUBLISHED,
+      }
+      // TODO: fix query issue
+      if (postedBy) {
+        postFilterQuery.postedBy = {
+          id: postedBy
+        }
+      }
+      if (query) {
+        postFilterQuery.title = ILike(query)
+      }
+      const offset = (page - 1) * limit;
+      // const posts = await this.postModel.aggregate([
+      //   {
+      //     $match: postFilterQuery
+      //   },
+      //   {
+      //     $addFields: {
+      //       score: {
+      //         $add: [
+      //           { $multiply: [{ $ifNull: ["$totalUpvotes", 0], }, 1] },
+      //           { $multiply: [{ $ifNull: ["$totalDownvotes", 0], }, -1] },
+      //           { $multiply: [{ $ifNull: ["$totalComments", 0], }, 3] },
+      //         ]
+      //       }
+      //     }
+      //   },
+      //   {
+      //     $lookup: {
+      //       from: "users",
+      //       localField: "postedBy",
+      //       foreignField: "_id",
+      //       as: "user",
+      //       pipeline: [
+      //         {
+      //           $project: {
+      //             _id: 1,
+      //             fname: 1,
+      //             lname: 1
+      //           }
+      //         }
+      //       ]
+      //     }
+      //   },
+      //   {
+      //     $unset: [
+      //       "__v",
+      //       "postedBy",
+      //     ]
+      //   },
+      //   {
+      //     $sort: postSortFilter as Record<string, 1 | -1>
+      //   },
+      //   { $skip: offset },
+      //   { $limit: limit + 1 }
+      // ])
+      const posts = await this.postRepo.find({
+        where: postFilterQuery,
+        order: postSortFilter,
+        skip: offset,
+        take: limit + 1
+      })
+      const results = posts.slice(0, limit);
+      return {
+        results,
+        hasNextPage: posts.length > limit,
+      }
+    } catch (err) {
+      this.logger.error(err);
+      if (err instanceof UnauthorizedException) {
+        throw new UnauthorizedException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to get posts");
+    }
   }
 
   async createPost(
