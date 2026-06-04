@@ -42,6 +42,9 @@ export class Post {
   totalVotes!: number;
 
   @Column({ type: "int", default: 0 })
+  totalUpvotes!: number;
+
+  @Column({ type: "int", default: 0 })
   totalDownvotes!: number;
 
   @Column({ type: "int", default: 0 })
