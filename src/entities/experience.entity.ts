@@ -24,7 +24,7 @@ export class Experience {
   })
   status!: ExperienceStatus;
 
-  @Column({ nullable: true })
+  @Column()
   startDate!: Date;
 
   @Column({ nullable: true })
