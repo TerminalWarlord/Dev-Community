@@ -12,6 +12,7 @@ import { Comment } from 'src/entities/comment.entity';
 import { Community } from 'src/entities/community.entity';
 import { PostStatus } from 'src/common/post.enum';
 import { CommentStatus } from 'src/common/comment.enum';
+import { CommunityStatus } from 'src/common/community.enum';
 
 
 @Injectable()
@@ -91,24 +92,24 @@ export class SuperadminService {
   }
 
   async deleteCommunity(deleteCommunityDto: DeleteCommunityDto) {
-    // try {
-    //   const communityId = new mongoose.Types.ObjectId(deleteCommunityDto.communityId);
-    //   const community = await this.communityModel.findOneAndUpdate({
-    //     _id: communityId
-    //   }, {
-    //     status: UserStatus.DELETED
-    //   });
-    //   if (!community) {
-    //     throw new NotFoundException("Community doesn't exist");
-    //   }
-    //   return {
-    //     message: "success"
-    //   }
-    // } catch (err) {
-    //   if (err instanceof NotFoundException) {
-    //     throw new NotFoundException(err.message);
-    //   }
-    //   throw new InternalServerErrorException("Failed to delete Community");
-    // }
+    try {
+      const communityId = parseInt(deleteCommunityDto.communityId);
+      const community = await this.communityRepo.update({
+        id: communityId
+      }, {
+        status: CommunityStatus.DELETED
+      });
+      if (!community) {
+        throw new NotFoundException("Community doesn't exist");
+      }
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to delete Community");
+    }
   }
 }
