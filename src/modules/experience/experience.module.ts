@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from 'src/schemas/user.schema';
 import { Experience, ExperienceSchema } from 'src/schemas/experience.schema';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { Experience, ExperienceSchema } from 'src/schemas/experience.schema';
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Experience.name, schema: ExperienceSchema },
-    ])
+    ]),
   ],
   controllers: [ExperienceController],
   providers: [ExperienceService]

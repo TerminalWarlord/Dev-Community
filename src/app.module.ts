@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ExperienceModule } from './modules/user/experience/experience.module';
 import { CommunityModule } from './modules/community/community.module';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -10,6 +9,7 @@ import { SuperadminModule } from './modules/superadmin/superadmin.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SkillModule } from './modules/skill/skill.module';
 import AppDataSource from "./data-source";
+import { ExperienceModule } from './modules/experience/experience.module';
 
 @Module({
   imports: [
@@ -48,7 +48,6 @@ import AppDataSource from "./data-source";
     CommunityModule,
     SuperadminModule,
     SkillModule,
-    // ExperienceModule
   ],
 })
 export class AppModule { }
