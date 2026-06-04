@@ -1,6 +1,4 @@
 import { ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
 import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { PostFilter, PostOrderBy, PostStatus } from 'src/common/post.enum';
 import { GetPostsQueriesDto, GetPostsRequestDto } from './dto/get-posts.dto';
@@ -8,10 +6,7 @@ import { GetPostParamsDto, GetPostQueriesDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 import { DeletePostBodyDto, DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
 import { castVoteOnPost, generatePostSlug, managePost, PostOperationType, schedulePost } from './post.helper';
-import { CommunityRole } from 'src/schemas/community-role.schema';
-import { User } from 'src/schemas/user.schema';
 import { VotePostBodyDto, VotePostParamsDto, VotePostRequestDto } from './dto/vote-post.dto';
-import { PostVote } from 'src/schemas/post-votes.schema';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { MailService } from '../mail/mail.service';
@@ -20,14 +15,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from 'src/entities/post.entity';
 import { Repository } from 'typeorm';
 import { formatDate } from 'src/common/format-date';
+import { PostVote } from 'src/entities/post-vote.entity';
+import { CommunityRole } from 'src/entities/community-role.entity';
+import { User } from 'src/entities/user.entity';
 
 
-interface PostFilterQueryType {
-  communityId?: mongoose.Types.ObjectId,
-  status: PostStatus,
-  title?: object,
-  postedBy?: mongoose.Types.ObjectId
-}
+// interface PostFilterQueryType {
+//   communityId?: mongoose.Types.ObjectId,
+//   status: PostStatus,
+//   title?: object,
+//   postedBy?: mongoose.Types.ObjectId
+// }
 type PostSortFilterType = Record<string, number>;
 
 @Injectable()
@@ -35,16 +33,14 @@ export class PostService {
   private logger = new Logger()
 
   constructor(
-    // @InjectModel(Post.name)
-    // private readonly postModel: Model<Post>,
     @InjectRepository(Post)
     private readonly postRepo: Repository<Post>,
-    @InjectModel(PostVote.name)
-    // private readonly postVoteModel: Model<PostVote>,
-    // @InjectModel(CommunityRole.name)
-    private readonly communityRoleModel: Model<CommunityRole>,
-    // @InjectModel(User.name)
-    // private readonly userModel: Model<User>,
+    @InjectRepository(PostVote)
+    private readonly postVoteRepo: Repository<PostVote>,
+    @InjectRepository(CommunityRole)
+    private readonly communityRoleRepo: Repository<CommunityRole>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     @InjectQueue('posts')
     private postQueue: Queue,
     private mailService: MailService,
@@ -191,7 +187,7 @@ export class PostService {
       const publishAt = formatDate(createPostBodyDto?.publishAt || new Date().toISOString());
       const postStatus = new Date().getTime() < (new Date(publishAt)).getTime() ? PostStatus.SCHEDULED : PostStatus.PUBLISHED;
       this.logger.log({
-        cur: new Date().getTime(), 
+        cur: new Date().getTime(),
         publish: (new Date(publishAt)).getTime()
       })
       this.logger.log({
@@ -244,30 +240,32 @@ export class PostService {
     updatePostParamsDto: UpdatePostParamsDto,
     updatePostRequestDto: UpdatePostRequestDto,
   ) {
-    // try {
-    //   await managePost(
-    //     updatePostParamsDto.postSlug,
-    //     this.postModel,
-    //     this.communityRoleModel,
-    //     this.userModel,
-    //     updatePostRequestDto.userId,
-    //     PostOperationType.UPDATE,
-    //     updatePostBodyDto.communityId,
-    //     updatePostBodyDto
-    //   )
-    //   return {
-    //     message: "message"
-    //   }
-    // }
-    // catch (err) {
-    //   if (err instanceof NotFoundException) {
-    //     throw new NotFoundException(err.message)
-    //   }
-    //   else if (err instanceof ForbiddenException) {
-    //     throw new ForbiddenException(err.message)
-    //   }
-    //   throw new InternalServerErrorException("Failed to update post");
-    // }
+    try {
+      const communityId = updatePostBodyDto.communityId ? parseInt(updatePostBodyDto.communityId) : undefined;
+      await managePost(
+        updatePostParamsDto.postSlug,
+        this.postRepo,
+        this.communityRoleRepo,
+        this.userRepo,
+        updatePostRequestDto.userId,
+        PostOperationType.UPDATE,
+        communityId,
+        updatePostBodyDto
+      )
+      return {
+        message: "message"
+      }
+    }
+    catch (err) {
+      this.logger.log(err)
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message)
+      }
+      else if (err instanceof ForbiddenException) {
+        throw new ForbiddenException(err.message)
+      }
+      throw new InternalServerErrorException("Failed to update post");
+    }
   }
 
   async deletePost(

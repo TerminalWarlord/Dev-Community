@@ -63,6 +63,9 @@ export async function managePost(
       community: {
         id: communityId
       }
+    },
+    relations: {
+      postedBy: true
     }
   });
   if (!post) {

@@ -51,7 +51,7 @@ export class PostController {
   }
 
   @UseGuards(AuthGuard)
-  @UseGuards(CommunityMembershipAuthGuard)
+  @UseGuards(OptionalAccessGuard)
   @Patch(':postSlug/update')
   async updateCommunityPost(
     @Body() updatePostBodyDto: UpdatePostBodyDto,
