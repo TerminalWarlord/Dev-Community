@@ -1,11 +1,12 @@
 import { AuthService } from './auth.service';
 import { Test } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { User } from 'src/schemas/user.schema';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import bcrypt from "bcrypt";
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { User } from 'src/entities/user.entity';
 
 describe("AuthController", () => {
   let service: AuthService;
@@ -13,21 +14,22 @@ describe("AuthController", () => {
 
   beforeEach(async () => {
     mockUserModel = {
-      insertOne: jest.fn().mockImplementation((data: object) => Promise.resolve(data)),
-      findOne: jest.fn().mockImplementation(() => Promise.resolve(null)),
+      create: jest.fn().mockImplementation((data) => Promise.resolve(data)),
+      save: jest.fn().mockImplementation((data) => Promise.resolve({ id: 1, ...data })),
+      findOne: jest.fn().mockImplementation(() => Promise.resolve(null))
     }
     const mockJwtService: Partial<JwtService> = {
       signAsync: jest.fn().mockImplementation((payload: object, secret: string, expiresIn: string) => "jwt-token")
     }
 
     const mockConfigService = {
-      get: (key: string) => "100"
+      get: (key: string) => key
     };
     const module = await Test.createTestingModule({
       providers: [
         AuthService,
         {
-          provide: getModelToken(User.name),
+          provide: getRepositoryToken(User),
           useValue: mockUserModel,
         },
         {
@@ -78,6 +80,7 @@ describe("AuthController", () => {
       password: "12345",
     })
     expect(user).toBeDefined();
+
   })
 
 
