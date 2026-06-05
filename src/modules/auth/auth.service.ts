@@ -32,21 +32,18 @@ export class AuthService {
       }
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
       const newUser = await this.userRepo
-        .createQueryBuilder()
-        .insert()
-        .values({
+        .save(this.userRepo.create({
           ...createUserDto,
           password: hashedPassword
-        }).returning(["id", "fname", "lname", "email"]).execute();
-
+        }));
       if (!newUser) {
         throw new InternalServerErrorException('Failed to save user');
       }
       return {
-        userId: newUser.raw[0].id,
-        fname: newUser.raw[0].fname,
-        lname: newUser.raw[0].lname,
-        email: newUser.raw[0].email,
+        userId: newUser.id,
+        fname: newUser.fname,
+        lname: newUser.lname,
+        email: newUser.email,
       };
 
     }
