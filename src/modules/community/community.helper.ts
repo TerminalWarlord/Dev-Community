@@ -1,4 +1,3 @@
-import { Model } from "mongoose";
 import { nanoid } from "nanoid";
 import slugify from "slugify";
 import { Community } from "src/entities/community.entity";

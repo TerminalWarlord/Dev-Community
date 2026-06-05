@@ -9,10 +9,6 @@ import { Experience } from 'src/entities/experience.entity';
 @Module({
   imports: [
     JwtModule.register({}),
-    // MongooseModule.forFeature([
-    //   { name: User.name, schema: UserSchema },
-    //   { name: Experience.name, schema: ExperienceSchema },
-    // ]),
     TypeOrmModule.forFeature([
       User,
       Experience
