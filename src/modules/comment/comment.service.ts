@@ -177,34 +177,30 @@ export class CommentService {
     deleteCommentParamsDto: DeleteCommentParamsDto,
     deleteCommentRequestDto: DeleteCommentRequestDto
   ) {
-    // const userId = new mongoose.Types.ObjectId(deleteCommentRequestDto.userId);
-    // const commentId = new mongoose.Types.ObjectId(deleteCommentParamsDto.commentId);
-    // try {
-    //   const comment = await this.commentModel.findOneAndUpdate({
-    //     userId,
-    //     _id: commentId
-    //   }, {
-    //     status: CommentStatus.DELETED
-    //   });
-    //   if (!comment) {
-    //     throw new NotFoundException("Comment doesn't exist");
-    //   }
-    //   await this.postModel.updateOne({
-    //     _id: comment.postId
-    //   }, {
-    //     $inc: {
-    //       totalComments: -1
-    //     }
-    //   })
-    //   return {
-    //     message: "success"
-    //   }
-    // } catch (err) {
-    //   if (err instanceof NotFoundException) {
-    //     throw new NotFoundException(err.message);
-    //   }
-    //   throw new InternalServerErrorException("Failed to delete comment");
-    // }
+    const { userId } = deleteCommentRequestDto;
+    const commentId = parseInt(deleteCommentParamsDto.commentId);
+    try {
+      const comment = await this.commentRepo
+        .createQueryBuilder()
+        .update(Comment)
+        .set({ status: CommentStatus.DELETED })
+        .where("id = :commentId", { commentId })
+        .andWhere("userId = :userId", { userId })
+        .returning(["id"])
+        .execute();
+      if (!comment.raw || comment.raw.length === 0) {
+        throw new NotFoundException("Failed to delete comment");
+      }
+      await this.postRepo.increment({id: comment.raw[0].id}, "totalComments", 1)
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to delete comment");
+    }
   }
 
 
