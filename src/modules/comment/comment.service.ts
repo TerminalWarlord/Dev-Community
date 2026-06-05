@@ -87,35 +87,35 @@ export class CommentService {
     const { postSlug } = getAllCommentsParamsDto;
     const { userId } = getAllCommentsRequestDto;
 
-    // const parentObjId = parentId ? new mongoose.Types.ObjectId(parentId) : null;
-    // TODO: check if has rights to view the comments
-    // try {
-    //   const post = await this.postModel.findOne({
-    //     slug: postSlug,
-    //     status: PostStatus.PUBLISHED
-    //   });
-    //   if (!post) {
-    //     throw new NotFoundException("Post doesn't exist");
-    //   }
-    //   const comments = await GetNestedComments(
-    //     this.commentModel,
-    //     parentObjId,
-    //     post._id,
-    //     page,
-    //     limit,
-    //     orderBy
-    //   );
-    //   const results = comments.slice(0, limit);
-    //   return {
-    //     results,
-    //     hasNextPage: comments.length > 0
-    //   }
-    // } catch (err) {
-    //   if (err instanceof NotFoundException) {
-    //     throw new NotFoundException(err.message);
-    //   }
-    //   throw new InternalServerErrorException("Failed to get comments");
-    // }
+    const parentObjId = parentId ? parseInt(parentId) : undefined;
+    try {
+      const post = await this.postRepo.findOneBy({
+        slug: postSlug,
+        status: PostStatus.PUBLISHED
+      });
+      if (!post) {
+        throw new NotFoundException("Post doesn't exist");
+      }
+      const comments = await GetNestedComments(
+        this.commentRepo,
+        parentObjId,
+        post.id,
+        page,
+        limit,
+        orderBy
+      );
+      const results = comments.slice(0, limit);
+      return {
+        results,
+        hasNextPage: comments.length > 0
+      }
+    } catch (err) {
+      this.logger.error(err)
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to get comments");
+    }
   }
 
   async addComment(
