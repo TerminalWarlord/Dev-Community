@@ -1,9 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { AddCommentBodyDto, AddCommentParamsDto, AddCommentRequestDto } from './dto/add-comment.dto';
-import mongoose, { Model } from 'mongoose';
-import { InjectModel } from '@nestjs/mongoose';
-import { Comment } from 'src/schemas/comment.schema';
-import { Post } from 'src/schemas/post.schema';
 import { PostStatus, VoteType } from 'src/common/post.enum';
 import { GetCommentParamsDto } from './dto/get-comment.dto';
 import { CommentOrderBy, CommentStatus } from 'src/common/comment.enum';
@@ -12,30 +8,58 @@ import { GetNestedComments } from './comment.helper';
 import { UpdateCommentBodyDto, UpdateCommentParamsDto, UpdateCommentRequestDto } from './dto/update-comment.dto';
 import { DeleteCommentParamsDto, DeleteCommentRequestDto } from './dto/delete-comment.dto';
 import { VoteCommentBodyDto, VoteCommentParamsDto, VoteCommentRequestDto } from './dto/vote-comment.dto';
-import { CommentVote } from 'src/schemas/comment-vote.schema';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from 'src/entities/user.entity';
+import { Post } from 'src/entities/post.entity';
+import { Comment } from 'src/entities/comment.entity';
+import { CommentVote } from 'src/entities/comment-vote.entity';
 
 @Injectable()
 export class CommentService {
   private logger = new Logger(CommentService.name);
   constructor(
-    @InjectModel(Comment.name)
-    private readonly commentModel: Model<Comment>,
-    @InjectModel(Post.name)
-    private readonly postModel: Model<Post>,
-    @InjectModel(CommentVote.name)
-    private readonly commentVoteModel: Model<CommentVote>
+    // @InjectModel(Comment.name)
+    // private readonly commentModel: Model<Comment>,
+    @InjectRepository(Comment)
+    private readonly commentRepo: Repository<Comment>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+    @InjectRepository(Post)
+    private readonly postRepo: Repository<Post>,
+    @InjectRepository(CommentVote)
+    private readonly commentVoteRepo: Repository<CommentVote>
   ) { }
 
   async getComment(
     getCommentParamsDto: GetCommentParamsDto
   ) {
     try {
-      // TODO: check if user has access to get comment (community post/comments arent public)
-      const commentId = new mongoose.Types.ObjectId(getCommentParamsDto.commentId);
-      const comment = await this.commentModel.findOne({
-        _id: commentId,
-        status: CommentStatus.PUBLISHED
-      }).select("-parentId -status -__v");
+      const commentId = parseInt(getCommentParamsDto.commentId);
+      const comment = await this.commentRepo.findOne({
+        where: {
+          id: commentId,
+          status: CommentStatus.PUBLISHED
+        },
+        select: {
+          id: true,
+          content: true,
+          post: {
+            id: true
+          },
+          user: {
+            id: true
+          },
+          totalUpvotes: true,
+          totalDownvotes: true,
+          totalVotes: true,
+          createdAt: true,
+        },
+        relations: {
+          user: true,
+          post: true
+        }
+      });
       if (!comment) {
         throw new NotFoundException("Comment doesn't exist");
       }
@@ -62,10 +86,9 @@ export class CommentService {
     const { postSlug } = getAllCommentsParamsDto;
     const { userId } = getAllCommentsRequestDto;
 
-    const parentObjId = parentId ? new mongoose.Types.ObjectId(parentId) : null;
-    // TODO: check if has rights to view the comments
+    const parentObjId = parentId ? parseInt(parentId) : undefined;
     try {
-      const post = await this.postModel.findOne({
+      const post = await this.postRepo.findOneBy({
         slug: postSlug,
         status: PostStatus.PUBLISHED
       });
@@ -73,9 +96,9 @@ export class CommentService {
         throw new NotFoundException("Post doesn't exist");
       }
       const comments = await GetNestedComments(
-        this.commentModel,
+        this.commentRepo,
         parentObjId,
-        post._id,
+        post.id,
         page,
         limit,
         orderBy
@@ -86,6 +109,7 @@ export class CommentService {
         hasNextPage: comments.length > 0
       }
     } catch (err) {
+      this.logger.error(err)
       if (err instanceof NotFoundException) {
         throw new NotFoundException(err.message);
       }
@@ -100,29 +124,33 @@ export class CommentService {
   ) {
     const { content, parentId = undefined } = addCommentBodyDto;
     const { postSlug } = addCommentParamsDto;
-    const userId = new mongoose.Types.ObjectId(addCommentRequestDto.userId);
-    // TODO: if its a community post, user has to be a member of it
+    const { userId } = addCommentRequestDto;
     try {
-      const post = await this.postModel.findOne({
+      const post = await this.postRepo.findOneBy({
         slug: postSlug
       });
       if (!post || post.status === PostStatus.DELETED) {
         throw new NotFoundException("Post doesn't exist");
       }
-      const comment = await this.commentModel.insertOne({
-        content,
-        userId,
-        parentId: parentId ? new mongoose.Types.ObjectId(parentId) : parentId,
-        postId: post._id
-      });
-      await this.postModel.updateOne({
-        _id: post._id
-      }, {
-        $inc: { totalComments: 1 }
-      });
+      const comment = await this.commentRepo.save(
+        this.commentRepo.create({
+          content,
+          user: {
+            id: userId
+          },
+          parent: {
+            id: parentId
+          },
+
+          post: {
+            id: post.id
+          }
+        })
+      );
+      this.postRepo.increment({ id: post.id }, "totalComments", 1);
       return {
         message: "success",
-        commentId: comment._id
+        commentId: comment.id
       }
     } catch (err) {
       if (err instanceof NotFoundException) {
@@ -137,22 +165,25 @@ export class CommentService {
     updateCommentRequestDto: UpdateCommentRequestDto,
     updateCommentBodyDto: UpdateCommentBodyDto
   ) {
-    const userId = new mongoose.Types.ObjectId(updateCommentRequestDto.userId);
-    const commentId = new mongoose.Types.ObjectId(updateCommentParamsDto.commentId);
+    const { userId } = updateCommentRequestDto;
+    const commentId = parseInt(updateCommentParamsDto.commentId);
     try {
-      const comment = await this.commentModel.findOneAndUpdate({
-        userId,
-        _id: commentId
+      const comment = await this.commentRepo.update({
+        user: {
+          id: userId
+        },
+        id: commentId
       }, {
         content: updateCommentBodyDto.content
       });
-      if (!comment) {
-        throw new NotFoundException("Comment doesn't exist");
+      if (!comment.affected) {
+        throw new NotFoundException("Failed to update comment");
       }
       return {
         message: "success"
       }
     } catch (err) {
+      this.logger.error(err)
       if (err instanceof NotFoundException) {
         throw new NotFoundException(err.message);
       }
@@ -164,25 +195,21 @@ export class CommentService {
     deleteCommentParamsDto: DeleteCommentParamsDto,
     deleteCommentRequestDto: DeleteCommentRequestDto
   ) {
-    const userId = new mongoose.Types.ObjectId(deleteCommentRequestDto.userId);
-    const commentId = new mongoose.Types.ObjectId(deleteCommentParamsDto.commentId);
+    const { userId } = deleteCommentRequestDto;
+    const commentId = parseInt(deleteCommentParamsDto.commentId);
     try {
-      const comment = await this.commentModel.findOneAndUpdate({
-        userId,
-        _id: commentId
-      }, {
-        status: CommentStatus.DELETED
-      });
-      if (!comment) {
-        throw new NotFoundException("Comment doesn't exist");
+      const comment = await this.commentRepo
+        .createQueryBuilder()
+        .update(Comment)
+        .set({ status: CommentStatus.DELETED })
+        .where("id = :commentId", { commentId })
+        .andWhere("userId = :userId", { userId })
+        .returning(["id"])
+        .execute();
+      if (!comment.raw || comment.raw.length === 0) {
+        throw new NotFoundException("Failed to delete comment");
       }
-      await this.postModel.updateOne({
-        _id: comment.postId
-      }, {
-        $inc: {
-          totalComments: -1
-        }
-      })
+      await this.postRepo.increment({ id: comment.raw[0].id }, "totalComments", 1)
       return {
         message: "success"
       }
@@ -200,22 +227,28 @@ export class CommentService {
     voteCommentParamsDto: VoteCommentParamsDto,
     voteCommentRequestDto: VoteCommentRequestDto
   ) {
-    const commentId = new mongoose.Types.ObjectId(voteCommentParamsDto.commentId);
-    const userId = new mongoose.Types.ObjectId(voteCommentRequestDto.userId);
+    const commentId = parseInt(voteCommentParamsDto.commentId);
+    const userId = voteCommentRequestDto.userId;
     const voteType = voteCommentBodyDto?.voteType || VoteType.NEUTRAL;
     try {
-      const comment = await this.commentModel.findById(commentId);
+      const comment = await this.commentRepo.findOneBy({ id: commentId });
       if (!comment) {
         throw new NotFoundException("Comment doesn't exist");
       }
-      const commentVote = await this.commentVoteModel.findOneAndUpdate({
-        commentId,
-        userId
-      }, {
+      const commentVote = await this.commentVoteRepo.upsert({
+        comment: {
+          id: commentId,
+        },
+        user: {
+          id: userId
+        },
         voteType
-      }, { upsert: true });
+      }, {
+        conflictPaths: ["comment.id", "user.id"],
+        returning: ["id"]
+      });
       if (!commentVote) {
-
+        throw new NotFoundException("Failed to vote");
       }
       return {
         message: "success"

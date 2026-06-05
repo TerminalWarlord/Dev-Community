@@ -1,13 +1,13 @@
-import { IsString } from "class-validator";
+import { IsNumber, IsNumberString, IsString } from "class-validator";
 
 export class UpdateCommentParamsDto {
-  @IsString()
+  @IsNumberString()
   commentId!: string;
 }
 
 export class UpdateCommentRequestDto {
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }
 
 export class UpdateCommentBodyDto {

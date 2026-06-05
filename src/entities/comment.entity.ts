@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
 import { Post } from "./post.entity";
 import { User } from "./user.entity";
 import { CommentStatus } from "src/common/comment.enum";
@@ -13,16 +13,17 @@ export class Comment {
   @Column({ type: "text" })
   content!: string;
 
-  @OneToMany(() => Comment, (comment) => comment.children)
+  @ManyToOne(() => Comment, (comment) => comment.children, { nullable: true })
+  @JoinColumn({ name: "parentId" })
   parent!: Comment;
 
-  @ManyToOne(() => Comment, (comment) => comment.parent)
+  @OneToMany(() => Comment, (comment) => comment.parent)
   children!: Comment[];
 
-  @ManyToOne(() => Post, (post) => post.comments)
+  @ManyToOne(() => Post, (post) => post.comments, { nullable: true })
   post!: Post;
 
-  @ManyToMany(() => User, (user) => user.comments)
+  @ManyToOne(() => User, (user) => user.comments, { nullable: true })
   user!: User;
 
   @Column({

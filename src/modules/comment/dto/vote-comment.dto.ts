@@ -1,20 +1,20 @@
-import { IsOptional, IsString } from "class-validator";
+import { IsEnum, IsNumber, IsNumberString, IsOptional, IsString } from "class-validator";
 import { VoteType } from "src/common/post.enum";
 
 export class VoteCommentBodyDto {
   @IsOptional()
-  @IsString()
+  @IsEnum(VoteType)
   voteType!: VoteType
 }
 
 
 export class VoteCommentRequestDto {
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }
 
 
 export class VoteCommentParamsDto {
-  @IsString()
+  @IsNumberString()
   commentId!: string;
 }
