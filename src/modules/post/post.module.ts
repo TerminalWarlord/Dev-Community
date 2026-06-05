@@ -10,6 +10,7 @@ import { Post } from 'src/entities/post.entity';
 import { User } from 'src/entities/user.entity';
 import { CommunityRole } from 'src/entities/community-role.entity';
 import { PostVote } from 'src/entities/post-vote.entity';
+import { RedisProvider } from 'src/redis.provider';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { PostVote } from 'src/entities/post-vote.entity';
     ]),
     MailModule
   ],
-  providers: [PostService, PostProcessor],
+  providers: [PostService, PostProcessor, RedisProvider],
   controllers: [PostController]
 })
 export class PostModule { }
