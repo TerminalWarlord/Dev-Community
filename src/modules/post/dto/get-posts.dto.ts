@@ -30,9 +30,3 @@ export class GetPostsQueriesDto {
   @IsString()
   orderBy!: PostOrderBy;
 }
-
-export class GetPostsRequestDto {
-  @IsOptional()
-  @IsNumber()
-  userId!: number;
-}

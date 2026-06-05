@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseG
 import { PostService } from './post.service';
 import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
-import { GetPostsQueriesDto, GetPostsRequestDto } from './dto/get-posts.dto';
+import { GetPostsQueriesDto } from './dto/get-posts.dto';
 import { GetPostParamsDto, GetPostQueriesDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 import { DeletePostBodyDto, DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
@@ -18,11 +18,9 @@ export class PostController {
   @Get('all')
   async getAllPosts(
     @Query() getPostsQueriesDto: GetPostsQueriesDto,
-    @Request() getPostsRequestDto: GetPostsRequestDto
   ) {
     return this.postService.getAllPosts(
       getPostsQueriesDto,
-      getPostsRequestDto
     )
   }
   @Get(":postSlug")
@@ -98,8 +96,8 @@ export class PostController {
 
 
 
-  
 
 
-  
+
+
 }

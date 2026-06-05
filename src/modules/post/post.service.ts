@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { PostFilter, PostOrderBy, PostStatus } from 'src/common/post.enum';
-import { GetPostsQueriesDto, GetPostsRequestDto } from './dto/get-posts.dto';
+import { GetPostsQueriesDto } from './dto/get-posts.dto';
 import { GetPostParamsDto, GetPostQueriesDto } from './dto/get-post.dto';
 import { UpdatePostBodyDto, UpdatePostParamsDto, UpdatePostRequestDto } from './dto/update-post.dto';
 import { DeletePostBodyDto, DeletePostParamsDto, DeletePostRequestDto } from './dto/delete-post.dto';
@@ -13,24 +13,13 @@ import { MailService } from '../mail/mail.service';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from 'src/entities/post.entity';
-import { FindOperator, ILike, Repository } from 'typeorm';
+import { FindOperator, FindOptionsOrder, FindOptionsOrderValue, FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { formatDate } from 'src/common/format-date';
 import { PostVote } from 'src/entities/post-vote.entity';
 import { CommunityRole } from 'src/entities/community-role.entity';
 import { User } from 'src/entities/user.entity';
 
 
-interface PostFilterQueryType {
-  community?: {
-    id?: number
-  },
-  status: PostStatus,
-  title?: FindOperator<string>,
-  postedBy?: {
-    id?: number
-  }
-}
-type PostSortFilterType = Record<string, number>;
 
 @Injectable()
 export class PostService {
@@ -83,44 +72,42 @@ export class PostService {
 
   async getAllPosts(
     getPostsQueriesDto: GetPostsQueriesDto,
-    getPostsRequestDto: GetPostsRequestDto
   ) {
     try {
       const page = Math.max(parseInt(getPostsQueriesDto.page || "1"), 1);
       const limit = Math.min(parseInt(getPostsQueriesDto.limit || "10"), 10);
       const query = getPostsQueriesDto.query;
       const communityId = getPostsQueriesDto?.communityId ? parseInt(getPostsQueriesDto?.communityId) : undefined;
-      const { userId } = getPostsRequestDto;
       const postedBy = getPostsQueriesDto?.profileId ? parseInt(getPostsQueriesDto?.profileId) : undefined;
       const postFilter = getPostsQueriesDto.filter || PostFilter.CREATED_AT;
       const postOrderBy = getPostsQueriesDto.orderBy || PostOrderBy.ASC;
 
 
-      let postSortFilter: PostSortFilterType = {};
+      let postSortFilter: FindOptionsOrder<Post> = {};
       if (postFilter === PostFilter.CREATED_AT) {
-        postSortFilter.createdAt = postOrderBy === PostOrderBy.ASC ? 1 : -1;
+        postSortFilter.createdAt = postOrderBy === PostOrderBy.ASC ? "ASC" : "DESC";
       }
       else if (postFilter === PostFilter.UPDATED_AT) {
-        postSortFilter.updatedAt = postOrderBy === PostOrderBy.ASC ? 1 : -1;
+        postSortFilter.updatedAt = postOrderBy === PostOrderBy.ASC ? "ASC" : "DESC";
       }
       else if (postFilter === PostFilter.POPULARITY) {
-        postSortFilter.totalUpvotes = postOrderBy === PostOrderBy.ASC ? 1 : -1;
+        postSortFilter.totalUpvotes = postOrderBy === PostOrderBy.ASC ? "ASC" : "DESC";
       }
-      let postFilterQuery: PostFilterQueryType = {
+      let postFilterQuery: FindOptionsWhere<Post> = {
         community: {
           id: communityId
         },
         status: PostStatus.PUBLISHED,
       }
-      // TODO: fix query issue
       if (postedBy) {
         postFilterQuery.postedBy = {
           id: postedBy
         }
       }
       if (query) {
-        postFilterQuery.title = ILike(query)
+        postFilterQuery.title = ILike(`%${query}%`);
       }
+      console.log(postFilterQuery)
       const offset = (page - 1) * limit;
       // const posts = await this.postModel.aggregate([
       //   {
@@ -195,17 +182,9 @@ export class PostService {
       const communityId = createPostBodyDto.communityId ? parseInt(createPostBodyDto.communityId) : undefined;
       // TODO: make sure used can't post with past publishAt
       // TODO: fix off by 6hrs issue
-      const publishAt = formatDate(createPostBodyDto?.publishAt || new Date().toISOString());
+      const publishAt = createPostBodyDto?.publishAt ? new Date(createPostBodyDto?.publishAt.replace("Z", "") + "+06:00") : new Date();
       const postStatus = new Date().getTime() < (new Date(publishAt)).getTime() ? PostStatus.SCHEDULED : PostStatus.PUBLISHED;
-      this.logger.log({
-        cur: new Date().getTime(),
-        publish: (new Date(publishAt)).getTime()
-      })
-      this.logger.log({
-        publishAt,
-        postStatus,
-        input: createPostBodyDto?.publishAt
-      })
+
       this.logger.log(publishAt)
       const post = await this.postRepo.save(this.postRepo.create({
         slug,
@@ -220,18 +199,18 @@ export class PostService {
           id: createPostRequestDto.userId
         },
       }));
-      // console.log(publishAt.getTime())
-      // console.log(Date.now())
+      console.log(publishAt.getTime())
+      console.log(Date.now())
       // TODO: fix post scheduling
-      // if (postStatus === PostStatus.SCHEDULED) {
-      //   const delay = new Date(publishAt).getTime() - Date.now();
-      //   // console.log(new Date(publishAt), new Date(Date.now()), delay)
-      //   await schedulePost(
-      //     post.id.toString(),
-      //     this.postQueue,
-      //     delay
-      //   );
-      // }
+      if (postStatus === PostStatus.SCHEDULED) {
+        const delay = new Date(publishAt).getTime() - Date.now();
+        // console.log(new Date(publishAt), new Date(Date.now()), delay)
+        await schedulePost(
+          post.id.toString(),
+          this.postQueue,
+          delay
+        );
+      }
       return {
         message: "success",
         slug,
