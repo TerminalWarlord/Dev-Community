@@ -23,7 +23,7 @@ export class Comment {
   @ManyToOne(() => Post, (post) => post.comments, { nullable: true })
   post!: Post;
 
-  @ManyToMany(() => User, (user) => user.comments)
+  @ManyToOne(() => User, (user) => user.comments, { nullable: true })
   user!: User;
 
   @Column({
