@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { InjectModel } from '@nestjs/mongoose';
 import { MembershipStatus } from 'src/common/community.enum';
 import { CommunityService } from '../community.service';
 import { ConfigService } from '@nestjs/config';
