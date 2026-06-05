@@ -13,6 +13,7 @@ import { Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 import { Post } from 'src/entities/post.entity';
 import { Comment } from 'src/entities/comment.entity';
+import { CommentVote } from 'src/entities/comment-vote.entity';
 
 @Injectable()
 export class CommentService {
@@ -25,11 +26,9 @@ export class CommentService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     @InjectRepository(Post)
-    private readonly postRepo: Repository<Post>
-    // @InjectModel(Post.name)
-    // private readonly postModel: Model<Post>,
-    // @InjectModel(CommentVote.name)
-    // private readonly commentVoteModel: Model<CommentVote>
+    private readonly postRepo: Repository<Post>,
+    @InjectRepository(CommentVote)
+    private readonly commentVoteRepo: Repository<CommentVote>
   ) { }
 
   async getComment(
@@ -228,32 +227,38 @@ export class CommentService {
     voteCommentParamsDto: VoteCommentParamsDto,
     voteCommentRequestDto: VoteCommentRequestDto
   ) {
-    // const commentId = new mongoose.Types.ObjectId(voteCommentParamsDto.commentId);
-    // const userId = new mongoose.Types.ObjectId(voteCommentRequestDto.userId);
-    // const voteType = voteCommentBodyDto?.voteType || VoteType.NEUTRAL;
-    // try {
-    //   const comment = await this.commentModel.findById(commentId);
-    //   if (!comment) {
-    //     throw new NotFoundException("Comment doesn't exist");
-    //   }
-    //   const commentVote = await this.commentVoteModel.findOneAndUpdate({
-    //     commentId,
-    //     userId
-    //   }, {
-    //     voteType
-    //   }, { upsert: true });
-    //   if (!commentVote) {
-
-    //   }
-    //   return {
-    //     message: "success"
-    //   }
-    // } catch (err) {
-    //   if (err instanceof NotFoundException) {
-    //     throw new NotFoundException(err.message);
-    //   }
-    //   throw new InternalServerErrorException("Failed to cast vote");
-    // }
+    const commentId = parseInt(voteCommentParamsDto.commentId);
+    const userId = voteCommentRequestDto.userId;
+    const voteType = voteCommentBodyDto?.voteType || VoteType.NEUTRAL;
+    try {
+      const comment = await this.commentRepo.findOneBy({ id: commentId });
+      if (!comment) {
+        throw new NotFoundException("Comment doesn't exist");
+      }
+      const commentVote = await this.commentVoteRepo.upsert({
+        comment: {
+          id: commentId,
+        },
+        user: {
+          id: userId
+        },
+        voteType
+      }, {
+        conflictPaths: ["comment.id", "user.id"],
+        returning: ["id"]
+      });
+      if (!commentVote) {
+        throw new NotFoundException("Failed to vote");
+      }
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to cast vote");
+    }
 
   }
 }
