@@ -182,17 +182,9 @@ export class PostService {
       const communityId = createPostBodyDto.communityId ? parseInt(createPostBodyDto.communityId) : undefined;
       // TODO: make sure used can't post with past publishAt
       // TODO: fix off by 6hrs issue
-      const publishAt = formatDate(createPostBodyDto?.publishAt || new Date().toISOString());
+      const publishAt = createPostBodyDto?.publishAt ? new Date(createPostBodyDto?.publishAt.replace("Z", "") + "+06:00") : new Date();
       const postStatus = new Date().getTime() < (new Date(publishAt)).getTime() ? PostStatus.SCHEDULED : PostStatus.PUBLISHED;
-      this.logger.log({
-        cur: new Date().getTime(),
-        publish: (new Date(publishAt)).getTime()
-      })
-      this.logger.log({
-        publishAt,
-        postStatus,
-        input: createPostBodyDto?.publishAt
-      })
+
       this.logger.log(publishAt)
       const post = await this.postRepo.save(this.postRepo.create({
         slug,
@@ -207,18 +199,18 @@ export class PostService {
           id: createPostRequestDto.userId
         },
       }));
-      // console.log(publishAt.getTime())
-      // console.log(Date.now())
+      console.log(publishAt.getTime())
+      console.log(Date.now())
       // TODO: fix post scheduling
-      // if (postStatus === PostStatus.SCHEDULED) {
-      //   const delay = new Date(publishAt).getTime() - Date.now();
-      //   // console.log(new Date(publishAt), new Date(Date.now()), delay)
-      //   await schedulePost(
-      //     post.id.toString(),
-      //     this.postQueue,
-      //     delay
-      //   );
-      // }
+      if (postStatus === PostStatus.SCHEDULED) {
+        const delay = new Date(publishAt).getTime() - Date.now();
+        // console.log(new Date(publishAt), new Date(Date.now()), delay)
+        await schedulePost(
+          post.id.toString(),
+          this.postQueue,
+          delay
+        );
+      }
       return {
         message: "success",
         slug,
