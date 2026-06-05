@@ -107,8 +107,6 @@ export class CommentService {
     const { content, parentId = undefined } = addCommentBodyDto;
     const { postSlug } = addCommentParamsDto;
     const { userId } = addCommentRequestDto;
-    console.log(parentId)
-    // TODO: if its a community post, user has to be a member of it
     try {
       const post = await this.postRepo.findOneBy({
         slug: postSlug
@@ -125,7 +123,7 @@ export class CommentService {
           parent: {
             id: parentId
           },
-          
+
           post: {
             id: post.id
           }
@@ -149,27 +147,30 @@ export class CommentService {
     updateCommentRequestDto: UpdateCommentRequestDto,
     updateCommentBodyDto: UpdateCommentBodyDto
   ) {
-    // const userId = new mongoose.Types.ObjectId(updateCommentRequestDto.userId);
-    // const commentId = new mongoose.Types.ObjectId(updateCommentParamsDto.commentId);
-    // try {
-    //   const comment = await this.commentModel.findOneAndUpdate({
-    //     userId,
-    //     _id: commentId
-    //   }, {
-    //     content: updateCommentBodyDto.content
-    //   });
-    //   if (!comment) {
-    //     throw new NotFoundException("Comment doesn't exist");
-    //   }
-    //   return {
-    //     message: "success"
-    //   }
-    // } catch (err) {
-    //   if (err instanceof NotFoundException) {
-    //     throw new NotFoundException(err.message);
-    //   }
-    //   throw new InternalServerErrorException("Failed to update comment");
-    // }
+    const { userId } = updateCommentRequestDto;
+    const commentId = parseInt(updateCommentParamsDto.commentId);
+    try {
+      const comment = await this.commentRepo.update({
+        user: {
+          id: userId
+        },
+        id: commentId
+      }, {
+        content: updateCommentBodyDto.content
+      });
+      if (!comment.affected) {
+        throw new NotFoundException("Failed to update comment");
+      }
+      return {
+        message: "success"
+      }
+    } catch (err) {
+      this.logger.error(err)
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to update comment");
+    }
   }
 
   async deleteComment(
