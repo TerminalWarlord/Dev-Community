@@ -35,23 +35,42 @@ export class CommentService {
   async getComment(
     getCommentParamsDto: GetCommentParamsDto
   ) {
-    // try {
-    //   // TODO: check if user has access to get comment (community post/comments arent public)
-    //   const commentId = new mongoose.Types.ObjectId(getCommentParamsDto.commentId);
-    //   const comment = await this.commentModel.findOne({
-    //     _id: commentId,
-    //     status: CommentStatus.PUBLISHED
-    //   }).select("-parentId -status -__v");
-    //   if (!comment) {
-    //     throw new NotFoundException("Comment doesn't exist");
-    //   }
-    //   return comment;
-    // } catch (err) {
-    //   if (err instanceof NotFoundException) {
-    //     throw new NotFoundException(err.message);
-    //   }
-    //   throw new InternalServerErrorException("Failed to get comment");
-    // }
+    try {
+      const commentId = parseInt(getCommentParamsDto.commentId);
+      const comment = await this.commentRepo.findOne({
+        where: {
+          id: commentId,
+          status: CommentStatus.PUBLISHED
+        },
+        select: {
+          id: true,
+          content: true,
+          post: {
+            id: true
+          },
+          user: {
+            id: true
+          },
+          totalUpvotes: true,
+          totalDownvotes: true,
+          totalVotes: true,
+          createdAt: true,
+        },
+        relations: {
+          user: true,
+          post: true
+        }
+      });
+      if (!comment) {
+        throw new NotFoundException("Comment doesn't exist");
+      }
+      return comment;
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException("Failed to get comment");
+    }
   }
   async getComments(
     getAllCommentsQueriesDto: GetAllCommentsQueriesDto,
@@ -191,7 +210,7 @@ export class CommentService {
       if (!comment.raw || comment.raw.length === 0) {
         throw new NotFoundException("Failed to delete comment");
       }
-      await this.postRepo.increment({id: comment.raw[0].id}, "totalComments", 1)
+      await this.postRepo.increment({ id: comment.raw[0].id }, "totalComments", 1)
       return {
         message: "success"
       }
