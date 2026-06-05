@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   Injectable,
@@ -7,19 +8,19 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { InjectModel } from '@nestjs/mongoose';
-import { User } from 'src/schemas/user.schema';
-import mongoose, { Model } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 import { UserStatus } from 'src/common/user.enum';
 import { SuperadminService } from './superadmin.service';
+import { Repository } from 'typeorm';
+import { User } from 'src/entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class SuperAdminAuthGuard implements CanActivate {
   private logger = new Logger(SuperadminService.name);
   constructor(
-    @InjectModel(User.name)
-    private readonly userModel: Model<User>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     private readonly jwtService: JwtService,
     private configService: ConfigService
   ) { }
@@ -39,8 +40,13 @@ export class SuperAdminAuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: JWT_SECRET,
       });
-      const user = await this.userModel.findById(
-        new mongoose.Types.ObjectId(payload.userId),
+      const userId = parseInt(payload.userId);
+      if (Number.isNaN(userId)) {
+        throw new BadRequestException("Invalid user")
+      }
+      const user = await this.userRepo.findOne({
+        where: { id: userId }
+      }
       );
       if (!user || user.status !== UserStatus.SUPERADMIN) {
         throw new UnauthorizedException();
