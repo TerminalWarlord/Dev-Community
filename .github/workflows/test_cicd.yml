@@ -54,7 +54,7 @@ jobs:
             if pm2 list | grep -Eq 'dev-community'; then
               pm2 restart dev-community --update-env
             else
-              pm2 start "npm start" --name dev-community
+              pm2 start "npm run start:prod" --name dev-community
             fi
 
             pm2 save
