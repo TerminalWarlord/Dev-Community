@@ -264,11 +264,9 @@ export async function schedulePost(
     postId
   }, {
     delay,
-    jobId: postId,
+    jobId: `post-${postId}`,
     attempts: 5,
     removeOnFail: true,
     removeOnComplete: true,
   })
-
-
 }
