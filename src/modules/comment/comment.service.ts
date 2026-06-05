@@ -19,8 +19,6 @@ import { CommentVote } from 'src/entities/comment-vote.entity';
 export class CommentService {
   private logger = new Logger(CommentService.name);
   constructor(
-    // @InjectModel(Comment.name)
-    // private readonly commentModel: Model<Comment>,
     @InjectRepository(Comment)
     private readonly commentRepo: Repository<Comment>,
     @InjectRepository(User)

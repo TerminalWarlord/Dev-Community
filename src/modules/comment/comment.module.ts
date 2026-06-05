@@ -12,12 +12,6 @@ import { CommunityRole } from 'src/entities/community-role.entity';
 @Module({
   imports: [
     JwtModule,
-    // MongooseModule.forFeature([
-    //   { name: User.name, schema: UserSchema },
-    //   { name: Comment.name, schema: CommentSchema },
-    //   { name: Post.name, schema: PostSchema },
-    //   { name: CommentVote.name, schema: CommentVoteSchema },
-    // ])
     TypeOrmModule.forFeature([
       User,
       Comment,
