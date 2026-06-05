@@ -15,7 +15,7 @@ export class GetAllCommentsQueriesDto {
   query!: string;
 
   @IsOptional()
-  @IsString()
+  @IsNumberString()
   parentId!: string;
 
   @IsOptional()
@@ -29,6 +29,6 @@ export class GetAllCommentsParamsDto {
 }
 
 export class GetAllCommentsRequestDto {
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }

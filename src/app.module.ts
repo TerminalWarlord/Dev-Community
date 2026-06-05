@@ -11,6 +11,7 @@ import { SkillModule } from './modules/skill/skill.module';
 import AppDataSource from "./data-source";
 import { ExperienceModule } from './modules/experience/experience.module';
 import { PostModule } from './modules/post/post.module';
+import { CommentModule } from './modules/comment/comment.module';
 
 @Module({
   imports: [
@@ -49,7 +50,8 @@ import { PostModule } from './modules/post/post.module';
     CommunityModule,
     SuperadminModule,
     SkillModule,
-    PostModule
+    PostModule,
+    CommentModule
   ],
 })
 export class AppModule { }

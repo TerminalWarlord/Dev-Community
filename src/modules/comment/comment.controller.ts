@@ -7,6 +7,7 @@ import { GetAllCommentsParamsDto, GetAllCommentsQueriesDto, GetAllCommentsReques
 import { UpdateCommentBodyDto, UpdateCommentParamsDto, UpdateCommentRequestDto } from './dto/update-comment.dto';
 import { DeleteCommentParamsDto, DeleteCommentRequestDto } from './dto/delete-comment.dto';
 import { VoteCommentBodyDto, VoteCommentParamsDto, VoteCommentRequestDto } from './dto/vote-comment.dto';
+import { OptionalAccessGuard } from '../community/common/optional-access.guard';
 
 
 @Controller()
@@ -37,6 +38,7 @@ export class CommentController {
   }
 
   @UseGuards(AuthGuard)
+  @UseGuards(OptionalAccessGuard)
   @Post('/post/:postSlug/comment/add')
   async addComment(
     @Body() addCommentBodyDto: AddCommentBodyDto,
@@ -51,6 +53,7 @@ export class CommentController {
   }
 
   @UseGuards(AuthGuard)
+  @UseGuards(OptionalAccessGuard)
   @Patch('/comment/:commentId/update')
   async updateComment(
     @Param() updateCommentParamsDto: UpdateCommentParamsDto,
@@ -65,6 +68,7 @@ export class CommentController {
   }
 
   @UseGuards(AuthGuard)
+  @UseGuards(OptionalAccessGuard)
   @Delete('/comment/:commentId/delete')
   async deleteComment(
     @Param() deleteCommentParamsDto: DeleteCommentParamsDto,
@@ -77,6 +81,7 @@ export class CommentController {
   }
 
   @UseGuards(AuthGuard)
+  @UseGuards(OptionalAccessGuard)
   @Post('/comment/:commentId/vote')
   async voteComment(
     @Body() voteCommentBodyDto: VoteCommentBodyDto,

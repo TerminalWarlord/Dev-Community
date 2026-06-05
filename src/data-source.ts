@@ -15,6 +15,7 @@ export default new DataSource({
   entities: [__dirname + '/entities/*.entity.{js,ts}'],
   migrations: [__dirname + "/migrations/**/*{.js,.ts}"],
   invalidWhereValuesBehavior: {
-        undefined: "ignore" 
+        undefined: "ignore",
+        null: "ignore"
     }
 })

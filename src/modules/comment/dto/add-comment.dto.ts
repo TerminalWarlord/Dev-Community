@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsNumber, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 export class AddCommentBodyDto {
   @IsString()
@@ -7,8 +7,8 @@ export class AddCommentBodyDto {
   content!: string;
 
   @IsOptional()
-  @IsString()
-  parentId!: string;
+  @IsNumber()
+  parentId!: number;
 }
 
 export class AddCommentParamsDto {
@@ -18,6 +18,6 @@ export class AddCommentParamsDto {
 
 
 export class AddCommentRequestDto {
-  @IsString()
-  userId!: string;
+  @IsNumber()
+  userId!: number;
 }
