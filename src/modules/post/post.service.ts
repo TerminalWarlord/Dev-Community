@@ -66,7 +66,7 @@ export class PostService {
       const views = await this.redisClient.incr(`post:${post.id}:views`);
       return {
         ...post,
-        views
+        views: post.views + views
       };
     } catch (err) {
       if (err instanceof NotFoundException) {
@@ -169,7 +169,10 @@ export class PostService {
       const updatedResults = await Promise.all(
         results.map(async (post) => {
           const views = parseInt(await this.redisClient.get(`post:${post.id}:views`) || "0");
-          return { ...post, views }
+          return {
+            ...post,
+            views: post.views + views
+          }
         })
       )
       return {
