@@ -10,13 +10,17 @@ import { Post } from 'src/entities/post.entity';
 import { User } from 'src/entities/user.entity';
 import { CommunityRole } from 'src/entities/community-role.entity';
 import { PostVote } from 'src/entities/post-vote.entity';
+import { RedisProvider } from 'src/redis.provider';
+import { PostViewProcessor } from './post-views.processor';
+import { PostViewSchedulerService } from './post-views.scheduler';
 
 @Module({
   imports: [
     JwtModule,
-    BullModule.registerQueue({
-      name: 'posts'
-    }),
+    BullModule.registerQueue(
+      { name: 'posts' },
+      { name: 'post-views' }
+    ),
     TypeOrmModule.forFeature([
       Post,
       User,
@@ -25,7 +29,13 @@ import { PostVote } from 'src/entities/post-vote.entity';
     ]),
     MailModule
   ],
-  providers: [PostService, PostProcessor],
+  providers: [
+    PostService,
+    PostProcessor,
+    RedisProvider,
+    PostViewProcessor,
+    PostViewSchedulerService
+  ],
   controllers: [PostController]
 })
 export class PostModule { }
