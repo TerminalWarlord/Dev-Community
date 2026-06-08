@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreatePostBodyDto, CreatePostRequestDto } from './dto/create-post.dto';
 import { PostFilter, PostOrderBy, PostStatus } from 'src/common/post.enum';
 import { GetPostsQueriesDto } from './dto/get-posts.dto';
@@ -13,11 +13,11 @@ import { MailService } from '../mail/mail.service';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from 'src/entities/post.entity';
-import { FindOperator, FindOptionsOrder, FindOptionsOrderValue, FindOptionsWhere, ILike, Repository } from 'typeorm';
-import { formatDate } from 'src/common/format-date';
+import { FindOptionsOrder, FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { PostVote } from 'src/entities/post-vote.entity';
 import { CommunityRole } from 'src/entities/community-role.entity';
 import { User } from 'src/entities/user.entity';
+import Redis from 'ioredis';
 
 
 
@@ -26,6 +26,8 @@ export class PostService {
   private logger = new Logger()
 
   constructor(
+    @Inject('REDIS_CLIENT')
+    private readonly redisClient: Redis,
     @InjectRepository(Post)
     private readonly postRepo: Repository<Post>,
     @InjectRepository(PostVote)
@@ -61,7 +63,11 @@ export class PostService {
       if (!post) {
         throw new NotFoundException("Couldn't find any post with that slug");
       }
-      return post;
+      const views = await this.redisClient.incr(`post:${post.id}:views`);
+      return {
+        ...post,
+        views: post.views + views
+      };
     } catch (err) {
       if (err instanceof NotFoundException) {
         throw new NotFoundException(err.message);
@@ -160,8 +166,17 @@ export class PostService {
         take: limit + 1
       })
       const results = posts.slice(0, limit);
+      const updatedResults = await Promise.all(
+        results.map(async (post) => {
+          const views = parseInt(await this.redisClient.get(`post:${post.id}:views`) || "0");
+          return {
+            ...post,
+            views: post.views + views
+          }
+        })
+      )
       return {
-        results,
+        updatedResults,
         hasNextPage: posts.length > limit,
       }
     } catch (err) {

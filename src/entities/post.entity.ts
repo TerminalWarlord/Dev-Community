@@ -38,6 +38,9 @@ export class Post {
   @OneToMany(() => Comment, (comment) => comment.post)
   comments!: Comment[];
 
+  @Column({ type: 'int', default: 0 })
+  views!: number;
+
   @Column({ type: "int", default: 0 })
   totalVotes!: number;
 
